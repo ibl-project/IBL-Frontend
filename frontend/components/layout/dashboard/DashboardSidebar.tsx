@@ -73,8 +73,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       items: [
         {
           name: "Schedule Result",
-          href: "#",
-          hasRoute: false,
+          href: "/schedule-result",
+          hasRoute: true,
           icon: (
             <svg
               className="w-5 h-5 shrink-0 text-white"

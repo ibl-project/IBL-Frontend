@@ -40,9 +40,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/teams", request.url));
   }
 
-  // 2. Proteksi rute dashboard (/teams, /scoring)
+  // 2. Proteksi rute dashboard (/teams, /scoring, /schedule-result)
   const authToken = request.cookies.get("auth_token")?.value;
-  const isProtectedPath = pathname.startsWith("/teams") || pathname.startsWith("/scoring");
+  const isProtectedPath =
+    pathname.startsWith("/teams") ||
+    pathname.startsWith("/scoring") ||
+    pathname.startsWith("/schedule-result");
 
   if (isProtectedPath && !authToken) {
     const loginUrl = new URL("/login", request.url);
@@ -63,6 +66,7 @@ export const config = {
     "/dashboard",
     "/teams/:path*",
     "/scoring/:path*",
+    "/schedule-result/:path*",
     "/login",
   ],
 };
