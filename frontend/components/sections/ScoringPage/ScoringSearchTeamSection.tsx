@@ -17,6 +17,24 @@ interface ScoringSearchTeamSectionProps {
   onBack?: () => void;
 }
 
+const sortPlayersByNopung = <T extends { nopung?: string | number }>(list: T[]): T[] => {
+  return [...(list || [])].sort((a, b) => {
+    const rawA = String(a.nopung ?? "").trim();
+    const rawB = String(b.nopung ?? "").trim();
+    const numA = parseInt(rawA, 10);
+    const numB = parseInt(rawB, 10);
+    const isNumA = !isNaN(numA);
+    const isNumB = !isNaN(numB);
+
+    if (isNumA && isNumB) {
+      return numA - numB;
+    }
+    if (isNumA) return -1;
+    if (isNumB) return 1;
+    return rawA.localeCompare(rawB, undefined, { numeric: true });
+  });
+};
+
 const generatePlayers = (teamName: string) => {
   return Array.from({ length: 15 }, (_, i) => ({
     id: i + 1,
@@ -98,12 +116,14 @@ export const ScoringSearchTeamSection = ({
     );
     if (foundTeam && foundTeam.players && foundTeam.players.length > 0) {
       setPlayers1(
-        foundTeam.players.map((p, i) => ({
-          id: p.id || i + 1,
-          name: p.name || `Pemain ${i + 1}`,
-          nopung: p.nopung || `${i + 1}`,
-          isCaptain: p.isCaptain ?? i === 0,
-        }))
+        sortPlayersByNopung(
+          foundTeam.players.map((p, i) => ({
+            id: p.id || i + 1,
+            name: p.name || `Pemain ${i + 1}`,
+            nopung: p.nopung || `${i + 1}`,
+            isCaptain: p.isCaptain ?? i === 0,
+          }))
+        )
       );
     } else {
       setPlayers1(generatePlayers(teamName));
@@ -125,12 +145,14 @@ export const ScoringSearchTeamSection = ({
     );
     if (foundTeam && foundTeam.players && foundTeam.players.length > 0) {
       setPlayers2(
-        foundTeam.players.map((p, i) => ({
-          id: p.id || i + 1,
-          name: p.name || `Pemain ${i + 1}`,
-          nopung: p.nopung || `${i + 1}`,
-          isCaptain: p.isCaptain ?? i === 0,
-        }))
+        sortPlayersByNopung(
+          foundTeam.players.map((p, i) => ({
+            id: p.id || i + 1,
+            name: p.name || `Pemain ${i + 1}`,
+            nopung: p.nopung || `${i + 1}`,
+            isCaptain: p.isCaptain ?? i === 0,
+          }))
+        )
       );
     } else {
       setPlayers2(generatePlayers(teamName));
@@ -550,7 +572,12 @@ export const ScoringSearchTeamSection = ({
                     alert("Team 1 dan Team 2 tidak boleh sama!");
                     return;
                   }
-                  onCreate?.(t1, t2, players1, players2);
+                  onCreate?.(
+                    t1,
+                    t2,
+                    sortPlayersByNopung(players1),
+                    sortPlayersByNopung(players2)
+                  );
                 }}
                 disabled={hasDuplicates || isDuplicateTeam}
                 className={`transition-colors rounded-[50px] px-[24px] py-[10px] h-[36px] flex items-center justify-center min-w-[100px] ${
