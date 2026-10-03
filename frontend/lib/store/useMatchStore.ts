@@ -133,14 +133,28 @@ export const useMatchStore = create<MatchStoreState>()(
       },
 
       createMatch: (id, team1, team2, players1, players2) => {
+        const sortPlayers = (players: MatchPlayer[]) => {
+          return [...(players || [])].sort((a, b) => {
+            const numA = parseInt(String(a.nopung ?? "").trim(), 10);
+            const numB = parseInt(String(b.nopung ?? "").trim(), 10);
+            if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+            if (!isNaN(numA)) return -1;
+            if (!isNaN(numB)) return 1;
+            return String(a.nopung ?? "").localeCompare(String(b.nopung ?? ""), undefined, { numeric: true });
+          });
+        };
+
+        const sortedP1 = sortPlayers(players1);
+        const sortedP2 = sortPlayers(players2);
+
         // Inisialisasi statistik awal untuk semua pemain
         const initialStats1: { [playerId: number]: BoxScoreStats } = {};
-        players1.forEach((p) => {
+        sortedP1.forEach((p) => {
           initialStats1[p.id] = createInitialBoxScoreStats();
         });
 
         const initialStats2: { [playerId: number]: BoxScoreStats } = {};
-        players2.forEach((p) => {
+        sortedP2.forEach((p) => {
           initialStats2[p.id] = createInitialBoxScoreStats();
         });
 
@@ -154,8 +168,8 @@ export const useMatchStore = create<MatchStoreState>()(
               team2,
               color1: m.color1 || "#ffffff",
               color2: m.color2 || "#ffffff",
-              players1,
-              players2,
+              players1: sortedP1,
+              players2: sortedP2,
               stats1: m.stats1 && Object.keys(m.stats1).length > 0 ? m.stats1 : initialStats1,
               stats2: m.stats2 && Object.keys(m.stats2).length > 0 ? m.stats2 : initialStats2,
             };
