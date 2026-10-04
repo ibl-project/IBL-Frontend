@@ -1,7 +1,7 @@
 import React from "react";
 
 import { formatWib } from "@/lib/datetime";
-import type { MatchListItem, MatchTeamSide } from "@/lib/matchesApi";
+import { type MatchListItem, type MatchTeamSide, stageLabel } from "@/lib/matchesApi";
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 
 interface MatchCardProps {
@@ -39,6 +39,15 @@ export const MatchCard = ({ match, actionLabel, onAction, disabled = false, note
       <TeamBlock team={match.team1} />
 
       <div className="flex min-w-0 flex-1 flex-col items-center gap-1 text-center">
+        <span
+          className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wide ${
+            match.stage === "PLAYOFF"
+              ? "border border-amber-200 bg-amber-50 text-amber-700"
+              : "border border-teal-200 bg-teal-50 text-teal-700"
+          }`}
+        >
+          {stageLabel(match)}
+        </span>
         <p className="w-full truncate text-sm text-[#202224]" title={match.venue ?? undefined}>
           {match.venue ?? "Tempat belum diatur"}
         </p>

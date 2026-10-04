@@ -4,7 +4,7 @@ import React, { useCallback, useState } from "react";
 
 import { formatWib } from "@/lib/datetime";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
-import { type MatchSide, type MatchSnapshot, deleteSchedule, getMatch } from "@/lib/matchesApi";
+import { type MatchSide, type MatchSnapshot, deleteSchedule, getMatch, stageLabel } from "@/lib/matchesApi";
 import { errorMessage } from "@/lib/teamsApi";
 import { Modal } from "@/components/ui/Modal";
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
@@ -58,7 +58,16 @@ const DetailBody = ({ match }: { match: MatchSnapshot }) => {
               <span className="max-w-full truncate text-center text-base font-bold text-[#202224]">{side.name}</span>
             </div>
           ) : (
-            <div key="center" className="flex min-w-0 flex-1 flex-col items-center gap-1 pt-3 text-center">
+            <div key="center" className="flex min-w-0 flex-1 flex-col items-center gap-1 pt-2 text-center">
+              <span
+                className={`inline-block rounded-full px-3 py-0.5 text-xs font-semibold ${
+                  match.stage === "PLAYOFF"
+                    ? "border border-amber-200 bg-amber-50 text-amber-700"
+                    : "border border-teal-200 bg-teal-50 text-teal-700"
+                }`}
+              >
+                {stageLabel(match)}
+              </span>
               <p className="text-sm text-[#202224]">{match.venue ?? "Tempat belum diatur"}</p>
               <p className="text-sm font-medium text-red-700">{formatWib(match.scheduledAt)}</p>
             </div>

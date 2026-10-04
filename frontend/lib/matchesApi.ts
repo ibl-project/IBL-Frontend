@@ -6,6 +6,18 @@ import { ApiError, apiFetch } from "@/lib/apiClient";
  */
 
 export type MatchStatus = "SCHEDULED" | "LIVE" | "FINISHED";
+export type MatchStage = "GROUP" | "PLAYOFF" | "EXHIBITION";
+
+export const PLAYOFF_ROUNDS = ["ROUND_OF_16", "QUARTERFINAL", "SEMIFINAL", "THIRD_PLACE", "FINAL"] as const;
+export type PlayoffRound = (typeof PLAYOFF_ROUNDS)[number];
+
+export const PLAYOFF_ROUND_LABEL: Record<PlayoffRound, string> = {
+  ROUND_OF_16: "16 Besar",
+  QUARTERFINAL: "Perempat Final",
+  SEMIFINAL: "Semifinal",
+  THIRD_PLACE: "Perebutan Juara 3",
+  FINAL: "Final",
+};
 
 export const STAT_KEYS = [
   "twoPointMade",
@@ -43,8 +55,10 @@ export interface MatchListItem {
   id: string;
   season: string;
   matchNumber: number | null;
-  stage: "GROUP" | "PLAYOFF" | "EXHIBITION";
+  stage: MatchStage;
   group: { id: string; name: string } | null;
+  playoffRound: PlayoffRound | null;
+  bracketPosition: number | null;
   status: MatchStatus;
   locked: boolean;
   scheduledAt: string | null;
@@ -96,8 +110,9 @@ export interface MatchSnapshot {
   id: string;
   season: string;
   matchNumber: number | null;
-  stage: MatchListItem["stage"];
+  stage: MatchStage;
   group: { id: string; name: string } | null;
+  playoffRound: PlayoffRound | null;
   status: MatchStatus;
   locked: boolean;
   lockedAt: string | null;
@@ -142,6 +157,19 @@ export interface ScheduleInput {
   venue: string;
 }
 
+/** Jenis hanya dipilih saat membuat jadwal; Edit tidak bisa mengubahnya. */
+export interface CreateScheduleInput extends ScheduleInput {
+  stage: "GROUP" | "PLAYOFF";
+  playoffRound?: PlayoffRound;
+}
+
+/** Label jenis pertandingan di kartu & detail: "Group B", "16 Besar", "Final", dst. */
+export function stageLabel(match: Pick<MatchListItem, "stage" | "group" | "playoffRound">): string {
+  if (match.stage === "PLAYOFF") return match.playoffRound ? PLAYOFF_ROUND_LABEL[match.playoffRound] : "Playoff";
+  if (match.stage === "EXHIBITION") return "Exhibition";
+  return match.group?.name ?? "Fase grup";
+}
+
 export interface LineupEntry {
   playerId: string;
   jerseyNumber: string;
@@ -181,8 +209,8 @@ export const listMatches = (date?: string) =>
 
 export const getMatch = (id: string) => apiFetch<MatchSnapshot>(`/matches/${id}`, { auth: false });
 
-export const createSchedule = (input: ScheduleInput) =>
-  apiFetch<MatchListItem>("/matches", { method: "POST", body: { ...input, stage: "GROUP" } });
+export const createSchedule = (input: CreateScheduleInput) =>
+  apiFetch<MatchListItem>("/matches", { method: "POST", body: input });
 
 export const updateSchedule = (id: string, input: Partial<ScheduleInput>) =>
   apiFetch<MatchListItem>(`/matches/${id}`, { method: "PATCH", body: input });
