@@ -74,7 +74,7 @@ const CounterPill = ({
 }) => {
   return (
     <div
-      className={`h-[24px] w-full max-w-[48px] min-w-0 mx-auto px-0.5 rounded-[4px] flex items-center justify-between select-none box-border border ${variant === "green"
+      className={`h-[24px] w-full max-w-[46px] min-w-0 mx-auto rounded-[4px] overflow-hidden flex items-center justify-between select-none box-border border ${variant === "green"
         ? "bg-[#c8e6c9] border-[#a5d6a7]"
         : "bg-[#ffcdd2] border-[#ef9a9a]"
         }`}
@@ -82,26 +82,26 @@ const CounterPill = ({
       <button
         type="button"
         onClick={onDecrement}
-        className="w-3 h-3 flex items-center justify-center hover:scale-110 active:scale-90 transition-transform cursor-pointer shrink-0"
+        className="w-[14px] h-full flex items-center justify-center hover:bg-black/15 active:scale-90 transition-all cursor-pointer shrink-0 pl-0.5"
         title="Kurang"
       >
-        <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-[#b71c1c]">
-          <path d="M18 4L6 12l12 8z" />
+        <svg viewBox="0 0 8 10" className="w-[8px] h-[10px] shrink-0">
+          <polygon points="8,0 0,5 8,10" fill="#b71c1c" />
         </svg>
       </button>
 
-      <span className="text-[11px] font-black text-black font-mono leading-none tracking-tight">
+      <span className="text-[11px] font-black text-black font-mono leading-none tracking-tight text-center truncate flex-1">
         {String(value).padStart(2, "0")}
       </span>
 
       <button
         type="button"
         onClick={onIncrement}
-        className="w-3 h-3 flex items-center justify-center hover:scale-110 active:scale-90 transition-transform cursor-pointer shrink-0"
+        className="w-[14px] h-full flex items-center justify-center hover:bg-black/15 active:scale-90 transition-all cursor-pointer shrink-0 pr-0.5"
         title="Tambah"
       >
-        <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-[#1b5e20]">
-          <path d="M6 4l12 8-12 8z" />
+        <svg viewBox="0 0 8 10" className="w-[8px] h-[10px] shrink-0">
+          <polygon points="0,0 8,5 0,10" fill="#1b5e20" />
         </svg>
       </button>
     </div>
@@ -140,16 +140,35 @@ export const ScoringBoxScoreSection = ({
     s.matches.find((m) => m.id === activeMatchId)
   );
 
-  // Player lists in state so names are editable
-  const [players1List, setPlayers1List] = useState(players1);
-  const [players2List, setPlayers2List] = useState(players2);
+  // Helper to sort players by nopung (nomor punggung) ascending (terkecil ke terbesar)
+  const sortPlayersByNopung = (list: any[]) => {
+    return [...(list || [])].sort((a, b) => {
+      const rawA = String(a.nopung ?? "").trim();
+      const rawB = String(b.nopung ?? "").trim();
+      const numA = parseInt(rawA, 10);
+      const numB = parseInt(rawB, 10);
+      const isNumA = !isNaN(numA);
+      const isNumB = !isNaN(numB);
+
+      if (isNumA && isNumB) {
+        return numA - numB;
+      }
+      if (isNumA) return -1;
+      if (isNumB) return 1;
+      return rawA.localeCompare(rawB, undefined, { numeric: true });
+    });
+  };
+
+  // Player lists in state so names are editable, always sorted by nopung ascending
+  const [players1List, setPlayers1List] = useState(() => sortPlayersByNopung(players1));
+  const [players2List, setPlayers2List] = useState(() => sortPlayersByNopung(players2));
 
   useEffect(() => {
-    setPlayers1List(players1);
+    setPlayers1List(sortPlayersByNopung(players1));
   }, [players1]);
 
   useEffect(() => {
-    setPlayers2List(players2);
+    setPlayers2List(sortPlayersByNopung(players2));
   }, [players2]);
 
   // Custom colors for Team 1 and Team 2 (persisted in store)
