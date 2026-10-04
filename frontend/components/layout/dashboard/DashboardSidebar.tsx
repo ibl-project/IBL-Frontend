@@ -3,8 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
+import { logout } from "@/lib/apiClient";
 
 interface DashboardSidebarProps {
   isCollapsed?: boolean;
@@ -38,7 +39,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   onToggle,
 }) => {
   const pathname = usePathname();
-  const router = useRouter();
 
   // Definisi struktur navigasi menu
   const menuGroups: MenuGroup[] = [
@@ -143,14 +143,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     },
   ];
 
+  // Sesi dicabut di backend; DashboardLayout otomatis mengarahkan ke /login.
   const handleLogout = async () => {
-    document.cookie = "auth_token=; path=/; max-age=0; SameSite=Lax";
-    try {
-      localStorage.removeItem("auth_token");
-    } catch {
-      // Ignore
-    }
-    router.push("/login");
+    await logout();
   };
 
   return (

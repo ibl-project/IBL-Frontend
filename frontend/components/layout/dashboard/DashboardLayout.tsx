@@ -1,9 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardTopbar } from "./DashboardTopbar";
+import { restoreSession } from "@/lib/apiClient";
+import { useAuthStore } from "@/lib/store/useAuthStore";
+
+/** Sidebar langsung tertutup di layar < 1024px (mobile/tablet). */
+function isNarrowViewport(): boolean {
+  if (typeof window === "undefined") return false;
+  const width = window.innerWidth || document.documentElement.clientWidth || 0;
+  return width > 0 && width < 1024;
+}
 
 /**
  * DashboardLayout
@@ -13,6 +22,10 @@ import { DashboardTopbar } from "./DashboardTopbar";
  * 1. DashboardSidebar fixed full-height di sisi kiri dengan transisi width (w-64 <-> w-0)
  * 2. DashboardTopbar di sisi atas yang mengambil sisa lebar
  * 3. Main content ({children}) yang otomatis melebar ketika sidebar ditutup (tanpa scroll horizontal)
+ *
+ * Auth guard: isi dashboard baru ditampilkan setelah BACKEND mengonfirmasi
+ * sesi login masih sah (lib/apiClient.ts). Tidak ada lagi cookie/localStorage
+ * yang bisa dipalsukan dari DevTools untuk membuka dashboard.
  */
 export const DashboardLayout = ({
   children,
@@ -20,35 +33,26 @@ export const DashboardLayout = ({
   children: React.ReactNode;
 }) => {
   const router = useRouter();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const pathname = usePathname();
+  const authStatus = useAuthStore((state) => state.status);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isNarrowViewport);
 
-  // Auth Guard: Verifikasi apakah user sudah login
+  // Pulihkan sesi dari backend saat dashboard dibuka (mis. setelah reload).
   useEffect(() => {
-    const hasAuthCookie = document.cookie
-      .split("; ")
-      .some((row) => row.startsWith("auth_token="));
-    const hasAuthStorage =
-      typeof window !== "undefined" && localStorage.getItem("auth_token") === "true";
-
-    if (!hasAuthCookie && !hasAuthStorage) {
-      router.replace("/login");
-    } else {
-      setIsAuthenticated(true);
-    }
-  }, [router]);
-
-  // Auto-collapse pada viewport mobile saat inisialisasi
-  useEffect(() => {
-    const width =
-      window.innerWidth || document.documentElement.clientWidth || 0;
-    if (width > 0 && width < 1024) {
-      setIsSidebarCollapsed(true);
-    }
+    void restoreSession();
   }, []);
 
-  // Tampilkan loading / kosong sesaat saat mengecek auth untuk menghindari flash of unauthorized content
-  if (isAuthenticated === null) {
+  // Tidak ada sesi yang sah (belum login, logout, atau sesi dicabut di tab
+  // lain) → kembali ke login, lalu kembali ke halaman ini setelah login.
+  useEffect(() => {
+    if (authStatus === "unauthenticated") {
+      router.replace(`/login?from=${encodeURIComponent(pathname || "/teams")}`);
+    }
+  }, [authStatus, pathname, router]);
+
+  // Tampilkan loading selama sesi belum dikonfirmasi backend, supaya isi
+  // dashboard tidak sempat terlihat oleh yang belum login.
+  if (authStatus !== "authenticated") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 font-poppins">
         <div className="w-8 h-8 border-3 border-teal-600 border-t-transparent rounded-full animate-spin" />
