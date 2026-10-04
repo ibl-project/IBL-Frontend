@@ -42,7 +42,7 @@ const NAV_ITEMS: NavItem[] = [
     href: "#",
     soon: true,
   },
-  { plainLabel: "Leaderboard", label: "Leaderboard", href: "#", soon: true },
+  { plainLabel: "Leaderboard", label: "Leaderboard", href: "/leaderboard" },
 ];
 
 // ---------------------------------------------------------------------------
