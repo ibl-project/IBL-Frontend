@@ -1,7 +1,8 @@
 {
-  "name": "frontend",
+  "name": "ibl-frontend",
   "version": "0.1.0",
   "private": true,
+  "description": "Proyek ini dibangun menggunakan Next.js dan merupakan antarmuka (UI) utama untuk sistem IBL 2K26.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,10 +11,17 @@
   },
   "dependencies": {
     "framer-motion": "^12.42.0",
-    "next": "16.2.9",
+    "html-to-image": "^1.11.13",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^1.47.0",
+    "next": "^16.3.4",
     "react": "19.2.4",
+    "react-colorful": "^5.8.1",
     "react-dom": "19.2.4",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "xlsx": "^0.18.5",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

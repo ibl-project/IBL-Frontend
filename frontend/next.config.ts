@@ -5,10 +5,15 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [390, 502, 640, 768, 1024, 1280, 1440, 1920],
   },
-  experimental: {
-    workerThreads: false,
-    cpus: 1
-  }
+  async redirects() {
+    return [
+      {
+        source: "/dashboard",
+        destination: "/teams",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

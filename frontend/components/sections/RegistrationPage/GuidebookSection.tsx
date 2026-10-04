@@ -33,7 +33,8 @@ export const GuidebookSection = () => {
           </h2>
           
           <motion.a 
-            href="#" 
+            href="https://intip.in/GUIDEBOOKPENDAFTARANIBL2K26" 
+            target="_blank"
             aria-label="Unduh Guidebook IBL 2K26"
             rel="noopener noreferrer"
             whileHover={{ scale: 1.06, y: -3 }}

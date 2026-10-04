@@ -61,6 +61,22 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
+const LinkedInIcon = () => (
+  <svg
+    width="13"
+    height="13"
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M6.94 8.5H3.56V19h3.38V8.5ZM5.25 3C4.14 3 3.25 3.9 3.25 5s.89 2 2 2 2-.9 2-2-.89-2-2-2ZM20.75 12.98c0-3.17-1.69-4.64-3.95-4.64-1.82 0-2.64 1-3.09 1.7V8.5h-3.38V19h3.38v-5.2c0-1.37.26-2.7 1.95-2.7 1.67 0 1.69 1.56 1.69 2.79V19h3.4l-.01-6.02Z"
+      fill="#FFFFFF"
+    />
+  </svg>
+);
+
 // ---------------------------------------------------------------------------
 // Typed interface for footer nav items
 // ---------------------------------------------------------------------------
@@ -68,11 +84,13 @@ interface FooterNavItem {
   label: React.ReactNode;
   plainLabel: string;
   href: string;
+  external?: boolean;
 }
 
 const NAV_COL_1: FooterNavItem[] = [
   { label: "Home", plainLabel: "Home", href: "/" },
   { label: "Registration", plainLabel: "Registration", href: "/registration" },
+  { label: "Regulasi", plainLabel: "Regulasi", href: "https://intip.in/REGULASIKOMPETISIIBL2K26", external: true },
   {
     label: (
       <>
@@ -121,9 +139,15 @@ const SOCIAL_LINKS = [
   },
   {
     icon: <WhatsAppIcon />,
-    handle: "083130030546",
-    href: "https://wa.me/6283130030546",
+    handle: "087760333086",
+    href: "https://wa.me/6287760333086",
     label: "WhatsApp IBL 2K26",
+  },
+  {
+    icon: <LinkedInIcon />,
+    handle: "itsbasketballleague",
+    href: "https://www.linkedin.com/company/itsbasketballleague/",
+    label: "LinkedIn IBL 2K26",
   },
 ];
 
@@ -230,19 +254,35 @@ export const Footer = () => {
               gap: "clamp(12px, calc(100vw * 29 / 1440), 29px)",
             }}
           >
-            {NAV_COL_1.map((item) => (
-              <Link
-                key={item.plainLabel}
-                href={item.href}
-                className="text-black font-['Drowner'] font-normal tracking-[3px] hover:opacity-70 transition-opacity whitespace-nowrap"
-                style={{
-                  fontSize: "clamp(12px, calc(100vw * 20 / 1440), 20px)",
-                  lineHeight: "clamp(16px, calc(100vw * 24 / 1440), 24px)",
-                }}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {NAV_COL_1.map((item) =>
+              item.external ? (
+                <a
+                  key={item.plainLabel}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-black font-['Drowner'] font-normal tracking-[3px] hover:opacity-70 transition-opacity whitespace-nowrap"
+                  style={{
+                    fontSize: "clamp(12px, calc(100vw * 20 / 1440), 20px)",
+                    lineHeight: "clamp(16px, calc(100vw * 24 / 1440), 24px)",
+                  }}
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.plainLabel}
+                  href={item.href}
+                  className="text-black font-['Drowner'] font-normal tracking-[3px] hover:opacity-70 transition-opacity whitespace-nowrap"
+                  style={{
+                    fontSize: "clamp(12px, calc(100vw * 20 / 1440), 20px)",
+                    lineHeight: "clamp(16px, calc(100vw * 24 / 1440), 24px)",
+                  }}
+                >
+                  {item.label}
+                </Link>
+              )
+            )}
           </div>
 
           {/* Column 2 Nav Links */}
@@ -329,15 +369,27 @@ export const Footer = () => {
           {/* Middle Section: 2 columns navigation */}
           <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-center w-full max-w-[340px] pt-1">
             <div className="flex flex-col gap-1">
-              {NAV_COL_1.map((item) => (
-                <Link
-                  key={item.plainLabel}
-                  href={item.href}
-                  className="text-black font-['Drowner'] text-[13px] sm:text-[14px] tracking-[1.5px] leading-tight hover:opacity-70 transition-opacity whitespace-nowrap"
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {NAV_COL_1.map((item) =>
+                item.external ? (
+                  <a
+                    key={item.plainLabel}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-black font-['Drowner'] text-[13px] sm:text-[14px] tracking-[1.5px] leading-tight hover:opacity-70 transition-opacity whitespace-nowrap"
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.plainLabel}
+                    href={item.href}
+                    className="text-black font-['Drowner'] text-[13px] sm:text-[14px] tracking-[1.5px] leading-tight hover:opacity-70 transition-opacity whitespace-nowrap"
+                  >
+                    {item.label}
+                  </Link>
+                )
+              )}
             </div>
             <div className="flex flex-col gap-1">
               {NAV_COL_2.map((item) => (

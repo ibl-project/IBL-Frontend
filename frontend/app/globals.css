@@ -63,6 +63,7 @@ html {
   --font-hollywood: var(--font-hollywood);
   --font-crosner: var(--font-crosner);
   --font-drowner: var(--font-drowner);
+  --font-poppins: var(--font-poppins);
 
   /* Border Radiuses */
   --radius-lg: var(--radius);

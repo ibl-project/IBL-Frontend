@@ -28,14 +28,13 @@ export const RegisterNowSection = () => {
           height={527} 
           className="w-full h-auto"
         />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center rotate-[3deg] ml-[2%]">
-          {/* Invisible clickable area for the button with Next.js Link for instant SPA routing */}
-          <Link 
-            href="/register" 
-            className="absolute bottom-[20%] w-[40%] h-[15%] rounded-xl z-20 cursor-pointer"
-            aria-label="Daftar Sekarang - Open Team Registration IBL 2K26"
-          />
-        </div>
+        <a 
+          href="https://intip.in/OPENREGISTRATIONTEAMIBL2K26" 
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute inset-0 z-20"
+          aria-label="Daftar Sekarang - Open Team Registration IBL 2K26"
+        />
       </motion.div>
     </section>
   );
