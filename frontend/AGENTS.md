@@ -8,7 +8,21 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 **IBL** stands for **ITS Basketball League**, which is an annual basketball tournament hosted by the student basketball club (**UKM Basket**) at the **Institut Teknologi Sepuluh Nopember (ITS)**.
 
-This repository contains both the frontend and backend codebase for the project. This directory specifically houses the frontend web application for the **IBL 2K26** edition, including the landing page, event information, and the registration portal.
+This repository contains the frontend web application for the **IBL 2K26** edition: the landing page, event information, the registration portal, and the committee dashboard. The REST API lives in the separate **IBL-Backend** repository.
+
+---
+
+## Committee Dashboard & Backend API
+
+`/login` and the dashboard (`app/(dashboard)/`: Teams, Schedule Result, Scoring) use the IBL-Backend API. Its endpoint contract is `docs/API.md` and its setup guide is `SETUP.md`, both in that repository.
+
+- Base URL: `NEXT_PUBLIC_API_URL` (dev falls back to `http://localhost:4000/api`).
+- Call the API only through `lib/apiClient.ts` (`apiFetch`: bearer token, shared refresh on 401, raw file upload), `lib/teamsApi.ts`, and `lib/matchesApi.ts`. Never call `fetch` directly. Never put tokens in `localStorage` or `sessionStorage`: the access token stays in memory and the refresh token is an httpOnly cookie.
+- Live match data: `lib/hooks/useMatchLive.ts` (snapshot + SSE). Scoring writes: `lib/hooks/useScoringSession.ts` (one account per match, 30 s heartbeat) and `lib/hooks/useAutoSaveActions.ts` (one UUID `actionId` per tap, retried with the same id).
+- There are no quarters or periods: one match is one scoreboard. Save and Lock finishes a match; Unlock reopens it for correction.
+- Times are shown in WIB through `lib/datetime.ts`; send ISO strings with `+07:00`.
+- Role checks such as `canEditData` only hide controls. The API is the real guard.
+- User-facing text is Indonesian.
 
 ---
 
