@@ -247,6 +247,8 @@ export interface ApiRequestOptions {
   /** false untuk endpoint publik (jadwal, klasemen, live score). Default true. */
   auth?: boolean;
   signal?: AbortSignal;
+  /** Tetap terkirim walaupun halaman sedang ditutup (mis. melepas sesi scoring). */
+  keepalive?: boolean;
 }
 
 /**
@@ -257,7 +259,7 @@ export interface ApiRequestOptions {
  *   await apiFetch(`/matches/${id}/start`, { method: "POST" });
  */
 export async function apiFetch<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
-  const { method = "GET", body, auth = true, signal } = options;
+  const { method = "GET", body, auth = true, signal, keepalive } = options;
   const isFile = typeof Blob !== "undefined" && body instanceof Blob;
 
   const run = (token: string | null) => {
@@ -272,6 +274,7 @@ export async function apiFetch<T>(path: string, options: ApiRequestOptions = {})
       headers,
       body: body === undefined ? undefined : isFile ? body : JSON.stringify(body),
       signal,
+      keepalive,
     });
   };
 
