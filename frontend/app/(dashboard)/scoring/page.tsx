@@ -17,14 +17,41 @@ type Mode = "tabs" | "choose" | "lineup";
 const BOARD_REFRESH_MS = 20_000;
 // Data prototipe lama (sebelum scoring tersambung ke database).
 const LEGACY_STORAGE_KEYS = ["ibl_teams_storage_v1", "ibl-match-store"];
+// Layar yang sedang dibuka di tab ini, supaya refresh kembali ke tempat yang sama.
+const VIEW_STORAGE_KEY = "ibl-scoring-view";
+
+interface View {
+  mode: Mode;
+  focusId: string | null;
+}
+
+/** Halaman ini hanya dirender di browser (setelah sesi login dipulihkan), jadi aman membaca storage. */
+function restoreView(): View {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(VIEW_STORAGE_KEY) ?? "null") as View | null;
+    if (saved && ["tabs", "choose", "lineup"].includes(saved.mode)) return saved;
+  } catch {
+    // Storage diblokir atau isinya rusak: mulai dari awal.
+  }
+  return { mode: "tabs", focusId: null };
+}
 
 export default function ScoringPage() {
   const canEdit = canEditData(useAuthStore((state) => state.user?.role));
   const loadBoard = useCallback(() => getScoringBoard(), []);
   const { state: board, reload: reloadBoard } = useAsyncData(loadBoard);
-  const [mode, setMode] = useState<Mode>("tabs");
+  const [initialView] = useState(restoreView);
+  const [mode, setMode] = useState<Mode>(initialView.mode);
   // Match yang sedang dikerjakan akun ini: di layar kapten (lineup) atau tab Match N.
-  const [focusId, setFocusId] = useState<string | null>(null);
+  const [focusId, setFocusId] = useState<string | null>(initialView.focusId);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(VIEW_STORAGE_KEY, JSON.stringify({ mode, focusId }));
+    } catch {
+      // Tidak bisa disimpan: refresh akan kembali ke daftar Match.
+    }
+  }, [mode, focusId]);
 
   useEffect(() => {
     try {
@@ -43,10 +70,12 @@ export default function ScoringPage() {
   const opened = board.status === "ready" ? board.data.opened : [];
   const available = board.status === "ready" ? board.data.available : [];
   const focusItem = [...opened, ...available].find((match) => match.id === focusId) ?? null;
+  // Layar kapten yang dipulihkan setelah refresh, padahal match-nya sudah dimulai → tampilkan tab-nya.
+  const view: Mode = mode === "lineup" && focusItem && focusItem.status !== "SCHEDULED" ? "tabs" : mode;
 
   // Satu sesi untuk seluruh halaman, supaya pindah dari layar kapten ke
   // Match N tidak melepas lalu mengambil ulang sesi.
-  const sessionMatchId = mode !== "choose" && focusId && !focusItem?.locked ? focusId : null;
+  const sessionMatchId = view !== "choose" && focusId && !focusItem?.locked ? focusId : null;
   const { session, recheck } = useScoringSession(sessionMatchId);
 
   const openTab = (id: string) => {
@@ -70,7 +99,7 @@ export default function ScoringPage() {
       <div className="mb-8 flex items-center justify-between gap-4 overflow-x-auto rounded-[12px] bg-white px-6 py-4 shadow-sm">
         <div role="tablist" aria-label="Pertandingan" className="flex items-center gap-2">
           {opened.map((match) => {
-            const active = mode === "tabs" && match.id === focusId;
+            const active = view === "tabs" && match.id === focusId;
             const takenBy = !match.locked && match.scoring.holder && !match.scoring.isMine ? match.scoring.holder.name : null;
             return (
               <button
@@ -121,7 +150,7 @@ export default function ScoringPage() {
         </div>
       )}
 
-      {board.status === "ready" && mode === "choose" && (
+      {board.status === "ready" && view === "choose" && (
         <ScoringChooseMatchSection
           available={available}
           onChoose={(match) => {
@@ -132,7 +161,7 @@ export default function ScoringPage() {
         />
       )}
 
-      {board.status === "ready" && mode === "lineup" && focusItem && (
+      {board.status === "ready" && view === "lineup" && focusItem && (
         <ScoringLineupSection
           match={focusItem}
           session={session}
@@ -148,7 +177,7 @@ export default function ScoringPage() {
         />
       )}
 
-      {board.status === "ready" && mode === "tabs" && (
+      {board.status === "ready" && view === "tabs" && (
         <>
           {opened.length === 0 && <ScoringLandingSection />}
           {opened.length > 0 && !focusItem && (

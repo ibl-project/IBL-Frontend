@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
 import type { SessionState } from "@/lib/hooks/useScoringSession";
@@ -152,19 +152,45 @@ const LineupForm = ({
   const [rows2, setRows2] = useState(() => toRows(snapshot.team2));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [draft, setDraft] = useState<"idle" | "saving" | "saved" | "failed">("idle");
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const touched = useRef(false);
 
   const invalid1 = problemsOf(rows1);
   const invalid2 = problemsOf(rows2);
   const team1 = snapshot.team1.name ?? "Team 1";
   const team2 = snapshot.team2.name ?? "Team 2";
   const empty = rows1.length === 0 || rows2.length === 0;
+  const valid = invalid1.size === 0 && invalid2.size === 0 && !empty;
+
+  const toEntries = (rows: Row[]) =>
+    rows.map((row) => ({ playerId: row.playerId, jerseyNumber: row.jersey, isCaptain: row.isCaptain }));
+
+  // Auto-save draf kapten & NOPUNG ke database, supaya tidak hilang saat refresh.
+  // Disimpan hanya kalau isinya sah (nomor tidak kembar); Create Match tetap menyimpan ulang.
+  useEffect(() => {
+    if (!touched.current || !editable || !valid) return;
+    clearTimeout(draftTimer.current);
+    draftTimer.current = setTimeout(() => {
+      setDraft("saving");
+      saveLineup(match.id, { team1: toEntries(rows1), team2: toEntries(rows2) }).then(
+        () => setDraft("saved"),
+        () => setDraft("failed"),
+      );
+    }, 600);
+    return () => clearTimeout(draftTimer.current);
+  }, [rows1, rows2, editable, valid, match.id]);
+
+  const change = (setRows: (rows: Row[]) => void) => (rows: Row[]) => {
+    touched.current = true;
+    setRows(rows);
+  };
 
   const handleCreate = async () => {
-    if (invalid1.size > 0 || invalid2.size > 0 || empty) return;
+    if (!valid) return;
+    clearTimeout(draftTimer.current);
     setSaving(true);
     setError(null);
-    const toEntries = (rows: Row[]) =>
-      rows.map((row) => ({ playerId: row.playerId, jerseyNumber: row.jersey, isCaptain: row.isCaptain }));
     try {
       await saveLineup(match.id, { team1: toEntries(rows1), team2: toEntries(rows2) });
       await startMatch(match.id);
@@ -178,12 +204,21 @@ const LineupForm = ({
   return (
     <div className="mt-12 w-full">
       <div className="flex w-full flex-col items-start justify-center gap-10 lg:flex-row lg:gap-20">
-        <LineupTable side={1} teamName={team1} rows={rows1} invalid={invalid1} disabled={!editable || saving} onChange={setRows1} />
-        <LineupTable side={2} teamName={team2} rows={rows2} invalid={invalid2} disabled={!editable || saving} onChange={setRows2} />
+        <LineupTable side={1} teamName={team1} rows={rows1} invalid={invalid1} disabled={!editable || saving} onChange={change(setRows1)} />
+        <LineupTable side={2} teamName={team2} rows={rows2} invalid={invalid2} disabled={!editable || saving} onChange={change(setRows2)} />
       </div>
 
       <p className="mt-6 text-center text-xs text-gray-600">
         Nomor punggung di sini hanya berlaku untuk pertandingan ini. Nama pemain diubah di halaman Teams.
+      </p>
+      <p aria-live="polite" className={`mt-1 text-center text-xs font-medium ${draft === "failed" ? "text-red-700" : "text-teal-800"}`}>
+        {draft === "saving"
+          ? "Menyimpan draf..."
+          : draft === "saved"
+            ? "Draf kapten & NOPUNG tersimpan"
+            : draft === "failed"
+              ? "Draf gagal disimpan, akan dicoba lagi saat diubah"
+              : ""}
       </p>
       {empty && (
         <p role="alert" className="mt-2 text-center text-sm font-medium text-red-700">
