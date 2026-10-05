@@ -49,6 +49,7 @@ export interface MatchTeamSide {
   placeholder: string | null;
   color: string;
   score: number;
+  quarterScores?: [number, number, number, number];
 }
 
 export interface MatchListItem {
@@ -101,6 +102,7 @@ export interface TeamSummary {
 }
 
 export interface MatchSide extends MatchTeamSide {
+  quarterScores: [number, number, number, number];
   summary: TeamSummary;
   players: PlayerLine[];
 }
@@ -114,6 +116,7 @@ export interface MatchSnapshot {
   group: { id: string; name: string } | null;
   playoffRound: PlayoffRound | null;
   status: MatchStatus;
+  currentQuarter?: number;
   locked: boolean;
   lockedAt: string | null;
   scheduledAt: string | null;
@@ -249,7 +252,7 @@ export const startMatch = (id: string) =>
 
 export const recordAction = (
   id: string,
-  action: { actionId: string; playerId: string; teamId: string; actionType: StatKey; delta: 1 | -1 },
+  action: { actionId: string; playerId: string; teamId: string; quarter?: number; actionType: StatKey; delta: 1 | -1 },
 ) => apiFetch<ActionResult>(`/matches/${id}/actions`, { method: "POST", body: action });
 
 export const updateColors = (id: string, colors: { team1Color?: string; team2Color?: string }) =>

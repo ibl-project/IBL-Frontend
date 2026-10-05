@@ -77,13 +77,13 @@ export const ScoringMatchPanel = ({ item, session, recheckSession, onBoardChange
   );
   const { enqueue, status, pending } = useAutoSaveActions(item.id, setSnapshot, handleRejected);
 
-  const handleStep = (side: 1 | 2, player: PlayerLine, stat: StatKey, delta: 1 | -1) => {
+  const handleStep = (side: 1 | 2, player: PlayerLine, stat: StatKey, delta: 1 | -1, quarter?: number) => {
     if (readOnly || !snapshot) return;
     if (delta < 0 && player[stat] <= 0) return;
     const teamId = side === 1 ? snapshot.team1.id : snapshot.team2.id;
     if (!teamId) return;
     setSnapshot((current) => (current ? applyStep(current, side, player.id, stat, delta) : current));
-    enqueue({ playerId: player.id, teamId, actionType: stat, delta });
+    enqueue({ playerId: player.id, teamId, quarter: quarter ?? 1, actionType: stat, delta });
   };
 
   const handleColors = (colors: { team1Color?: string; team2Color?: string }) => {

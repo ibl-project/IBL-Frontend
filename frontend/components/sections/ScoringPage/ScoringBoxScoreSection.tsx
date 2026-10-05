@@ -12,7 +12,7 @@ interface ScoringBoxScoreSectionProps {
   snapshot: MatchSnapshot;
   /** true saat match dikunci atau akun ini bukan pemegang sesi. */
   readOnly: boolean;
-  onStep: (side: 1 | 2, player: PlayerLine, stat: StatKey, delta: 1 | -1) => void;
+  onStep: (side: 1 | 2, player: PlayerLine, stat: StatKey, delta: 1 | -1, quarter?: number) => void;
   onColorsChange: (colors: { team1Color?: string; team2Color?: string }) => void;
   /** Tombol sesi (Save and Lock / Unlock / Keluar) + status simpan, di kiri bawah. */
   footer?: React.ReactNode;
@@ -162,6 +162,7 @@ export const ScoringBoxScoreSection = ({
   // Warna jersey: tampil langsung, disimpan ke server setelah berhenti mengetik/memilih.
   const [color1, setColor1] = useState(snapshot.team1.color);
   const [color2, setColor2] = useState(snapshot.team2.color);
+  const [activeQuarter, setActiveQuarter] = useState<number>(snapshot.currentQuarter || 1);
   const [syncedColors, setSyncedColors] = useState(`${snapshot.team1.color}|${snapshot.team2.color}`);
   if (syncedColors !== `${snapshot.team1.color}|${snapshot.team2.color}`) {
     setSyncedColors(`${snapshot.team1.color}|${snapshot.team2.color}`);
@@ -199,7 +200,7 @@ export const ScoringBoxScoreSection = ({
   const updateStat = (teamIdx: 1 | 2, playerId: string, statKey: StatKey, delta: 1 | -1) => {
     if (readOnly) return;
     const player = (teamIdx === 1 ? players1List : players2List).find((p) => p.id === playerId);
-    if (player) onStep(teamIdx, player, statKey, delta);
+    if (player) onStep(teamIdx, player, statKey, delta, activeQuarter);
   };
 
   // Calculate player total points
@@ -929,9 +930,27 @@ export const ScoringBoxScoreSection = ({
             </div>
           </div>
 
-          {/* Central VS */}
-          <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-[#8b0000] font-poppins leading-none select-none px-2 shrink-0">
-            VS
+          {/* Central VS with Quarter Selector Button */}
+          <div className="flex flex-col items-center gap-1.5 px-2 shrink-0">
+            <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-[#8b0000] font-poppins leading-none select-none">
+              VS
+            </div>
+            <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg border border-gray-200">
+              {[1, 2, 3, 4].map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => setActiveQuarter(q)}
+                  className={`px-2 py-0.5 text-[11px] font-bold rounded cursor-pointer transition-colors ${
+                    activeQuarter === q
+                      ? "bg-[#f99f1b] text-white"
+                      : "text-gray-600 hover:text-black"
+                  }`}
+                >
+                  Q{q}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Team 2 Header with Custom Color Picker */}

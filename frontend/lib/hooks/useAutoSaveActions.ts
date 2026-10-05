@@ -9,6 +9,7 @@ export interface PendingAction {
   actionId: string;
   playerId: string;
   teamId: string;
+  quarter?: number;
   actionType: StatKey;
   delta: 1 | -1;
 }
