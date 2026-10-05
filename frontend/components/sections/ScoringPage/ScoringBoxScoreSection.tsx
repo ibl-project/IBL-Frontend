@@ -5,7 +5,7 @@ import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import * as XLSX from "xlsx";
 
-import type { MatchSnapshot, PlayerLine, StatKey } from "@/lib/matchesApi";
+import { type MatchSnapshot, type PlayerLine, type StatKey, getQuarterStats } from "@/lib/matchesApi";
 
 interface ScoringBoxScoreSectionProps {
   /** Data match dari server (nama pemain selalu mengikuti halaman Teams). */
@@ -131,6 +131,17 @@ const CounterPill = ({
   );
 };
 
+/** Nomor punggung angka diurutkan naik; yang bukan angka di belakang. */
+const sortByNopung = (list: PlayerLine[]) =>
+  [...list].sort((a, b) => {
+    const numA = parseInt(a.nopung, 10);
+    const numB = parseInt(b.nopung, 10);
+    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+    if (!isNaN(numA)) return -1;
+    if (!isNaN(numB)) return 1;
+    return a.nopung.localeCompare(b.nopung, undefined, { numeric: true });
+  });
+
 const isColorDark = (hex: string) => {
   if (!hex || hex === "#ffffff") return false;
   const c = hex.replace("#", "");
@@ -156,8 +167,9 @@ export const ScoringBoxScoreSection = ({
   const team1 = snapshot.team1.name ?? "Team 1";
   const team2 = snapshot.team2.name ?? "Team 2";
   // Nama & nomor punggung dari server: nama mengikuti Teams, nomor mengikuti susunan pemain match ini.
-  const players1List = snapshot.team1.players;
-  const players2List = snapshot.team2.players;
+  // Diurutkan dari nomor punggung terkecil.
+  const players1List = useMemo(() => sortByNopung(snapshot.team1.players), [snapshot.team1.players]);
+  const players2List = useMemo(() => sortByNopung(snapshot.team2.players), [snapshot.team2.players]);
 
   // Warna jersey: tampil langsung, disimpan ke server setelah berhenti mengetik/memilih.
   const [color1, setColor1] = useState(snapshot.team1.color);
@@ -341,7 +353,7 @@ export const ScoringBoxScoreSection = ({
   };
 
   // Handle Export to CSV & Excel (.xlsx) with clean columns and formatting
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     if (isExporting) return;
     setExportFormat("csv");
 
@@ -456,9 +468,6 @@ export const ScoringBoxScoreSection = ({
       };
     };
 
-    const team1Data = buildTeamData(team1, team1Score, players1List, stats1);
-    const team2Data = buildTeamData(team2, team2Score, players2List, stats2);
-
     const now = new Date();
     const formattedDate = now.toLocaleDateString("id-ID", {
       year: "numeric",
@@ -491,29 +500,61 @@ export const ScoringBoxScoreSection = ({
       "FOUL",
     ];
 
+    // Satu lembar box score; dipakai untuk total match dan tiap quarter.
+    const buildSheetData = (
+      scoreLabel: string,
+      score1: number,
+      score2: number,
+      lines1: PlayerLine[],
+      lines2: PlayerLine[],
+    ): Array<Array<string | number>> => {
+      const team1Data = buildTeamData(team1, score1, lines1, toStats(lines1));
+      const team2Data = buildTeamData(team2, score2, lines2, toStats(lines2));
+      return [
+        ["IBL 2K26 - OFFICIAL BASKETBALL BOX SCORE REPORT"],
+        ["Match", `${team1} vs ${team2}`],
+        [scoreLabel, `${team1} (${score1}) - (${score2}) ${team2}`],
+        ["Tanggal & Waktu", formattedDate],
+        [],
+        [`--- TEAM: ${team1} (Total Points: ${score1}) ---`],
+        headers,
+        ...team1Data.playerRows,
+        team1Data.totalRow,
+        [],
+        [`--- TEAM: ${team2} (Total Points: ${score2}) ---`],
+        headers,
+        ...team2Data.playerRows,
+        team2Data.totalRow,
+      ];
+    };
+
     // 1. Generate real Excel (.xlsx) file with separate columns and custom column widths
-    const aoaData: Array<Array<string | number>> = [
-      ["IBL 2K26 - OFFICIAL BASKETBALL BOX SCORE REPORT"],
-      ["Match", `${team1} vs ${team2}`],
-      ["Final Score", `${team1} (${team1Score}) - (${team2Score}) ${team2}`],
-      ["Tanggal & Waktu", formattedDate],
-      [],
-      [`--- TEAM: ${team1} (Total Points: ${team1Score}) ---`],
-      headers,
-      ...team1Data.playerRows,
-      team1Data.totalRow,
-      [],
-      [`--- TEAM: ${team2} (Total Points: ${team2Score}) ---`],
-      headers,
-      ...team2Data.playerRows,
-      team2Data.totalRow,
-    ];
+    const aoaData = buildSheetData("Final Score", team1Score, team2Score, players1List, players2List);
+    const sheets: Array<[string, Array<Array<string | number>>]> = [["Box Score", aoaData]];
+
+    // Sheet Q1–Q4 dalam file yang sama. Kalau backend belum punya quarter-stats, cukup sheet total.
+    try {
+      const { quarters } = await getQuarterStats(snapshot.id);
+      for (const q of quarters) {
+        sheets.push([
+          `Q${q.quarter}`,
+          buildSheetData(
+            `Score Q${q.quarter}`,
+            q.team1.score,
+            q.team2.score,
+            sortByNopung(q.team1.players),
+            sortByNopung(q.team2.players),
+          ),
+        ]);
+      }
+    } catch {
+      // Export total tetap jalan.
+    }
 
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(aoaData);
 
     // Auto-fit column widths so text is never truncated in Excel
-    ws["!cols"] = [
+    const cols = [
       { wch: 8 },  // NO
       { wch: 28 }, // NAMA PEMAIN
       { wch: 8 },  // PTS
@@ -536,7 +577,11 @@ export const ScoringBoxScoreSection = ({
       { wch: 8 },  // FOUL
     ];
 
-    XLSX.utils.book_append_sheet(wb, ws, "Box Score");
+    for (const [name, data] of sheets) {
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      ws["!cols"] = cols;
+      XLSX.utils.book_append_sheet(wb, ws, name);
+    }
     XLSX.writeFile(wb, `BoxScore_${team1}_vs_${team2}.xlsx`);
 
     // 2. Also export CSV with sep=, directive so Indonesian Windows Excel splits columns perfectly!

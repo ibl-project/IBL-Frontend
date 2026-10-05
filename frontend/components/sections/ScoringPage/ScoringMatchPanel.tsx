@@ -83,7 +83,8 @@ export const ScoringMatchPanel = ({ item, session, recheckSession, onBoardChange
     const teamId = side === 1 ? snapshot.team1.id : snapshot.team2.id;
     if (!teamId) return;
     setSnapshot((current) => (current ? applyStep(current, side, player.id, stat, delta) : current));
-    enqueue({ playerId: player.id, teamId, quarter: quarter ?? 1, actionType: stat, delta });
+    // Q1 adalah default backend, jadi `quarter` hanya dikirim untuk Q2–Q4.
+    enqueue({ playerId: player.id, teamId, ...(quarter && quarter > 1 ? { quarter } : {}), actionType: stat, delta });
   };
 
   const handleColors = (colors: { team1Color?: string; team2Color?: string }) => {

@@ -102,7 +102,8 @@ export interface TeamSummary {
 }
 
 export interface MatchSide extends MatchTeamSide {
-  quarterScores: [number, number, number, number];
+  /** Skor Q1–Q4; tidak ada kalau backend belum punya kolom quarter. */
+  quarterScores?: [number, number, number, number];
   summary: TeamSummary;
   players: PlayerLine[];
 }
@@ -211,6 +212,16 @@ export const listMatches = (date?: string) =>
   apiFetch<MatchListItem[]>(`/matches${date ? `?date=${date}` : ""}`, { auth: false });
 
 export const getMatch = (id: string) => apiFetch<MatchSnapshot>(`/matches/${id}`, { auth: false });
+
+export interface QuarterStats {
+  quarter: number;
+  team1: { score: number; players: PlayerLine[] };
+  team2: { score: number; players: PlayerLine[] };
+}
+
+/** Box score Q1–Q4 untuk export per quarter. */
+export const getQuarterStats = (id: string) =>
+  apiFetch<{ quarters: QuarterStats[] }>(`/matches/${id}/quarter-stats`, { auth: false });
 
 export const createSchedule = (input: CreateScheduleInput) =>
   apiFetch<MatchListItem>("/matches", { method: "POST", body: input });
