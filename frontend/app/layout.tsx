@@ -81,15 +81,15 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* Scale up content proportionally for viewports wider than 1440px on public landing pages */}
-        {/* Bypass dashboard and login routes so sidebar and layout remain strictly 1:1 on zoom */}
+        {/* Scale up content proportionally for viewports wider than 1440px on public pages */}
+        {/* Dashboard and login routes stay 1:1 so the fixed sidebar is not distorted */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 function applyZoom() {
                   var p = window.location.pathname;
-                  if (p.startsWith('/teams') || p.startsWith('/scoring') || p.startsWith('/login')) {
+                  if (p.startsWith('/teams') || p.startsWith('/scoring') || p.startsWith('/schedule-result') || p.startsWith('/login')) {
                     document.documentElement.style.zoom = '';
                     return;
                   }

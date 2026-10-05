@@ -1,4 +1,8 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
+import { logout } from "@/lib/apiClient";
+import { ROLE_LABEL, useAuthStore } from "@/lib/store/useAuthStore";
 
 interface DashboardTopbarProps {
   isSidebarCollapsed?: boolean;
@@ -11,12 +15,18 @@ interface DashboardTopbarProps {
  * Komponen topbar navigasi atas untuk halaman dashboard.
  * Berisi:
  * 1. Tombol toggle menu (tampil ketika sidebar collapsed untuk membuka kembali)
- * 2. Profil pengguna di kanan atas (Role "Damen", "IBL 2K26", dan Avatar)
+ * 2. Profil akun yang sedang login (nama, role, email dari backend) dengan dropdown Logout
  */
 export const DashboardTopbar: React.FC<DashboardTopbarProps> = ({
   isSidebarCollapsed = false,
   onToggleSidebar,
 }) => {
+  const user = useAuthStore((state) => state.user);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const displayName = user?.name ?? "";
+  const roleLabel = user ? ROLE_LABEL[user.role] : "";
+  const initial = displayName.trim().charAt(0).toUpperCase() || "?";
+
   return (
     <>
       <header
@@ -53,21 +63,71 @@ export const DashboardTopbar: React.FC<DashboardTopbarProps> = ({
         </div>
 
         {/* 
-          2. User Profile Info 
-          TODO [BACKEND]: 
-          - Ambil data user aktif (nama, role, photoUrl) dari session auth / user context / API me.
-          - Gantikan teks hardcoded "Damen", "IBL 2K26", dan inisial avatar "D" dengan data dinamis.
+          2. User Profile Info with Dropdown & Logout
         */}
-        <div className="flex items-center gap-3 ml-auto">
-          <div className="flex flex-col text-right">
-            <span className="text-sm font-semibold text-gray-800 leading-tight">
-              Damen
-            </span>
-            <span className="text-xs text-gray-500 leading-tight">IBL 2K26</span>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-teal-600 text-white font-bold flex items-center justify-center text-sm shadow-xs select-none">
-            D
-          </div>
+        <div className="relative ml-auto">
+          <button
+            type="button"
+            onClick={() => setIsProfileOpen((prev) => !prev)}
+            className="flex items-center gap-3 p-1.5 rounded-full hover:bg-gray-100 transition-colors focus:outline-hidden cursor-pointer select-none"
+            aria-expanded={isProfileOpen}
+            aria-label="Menu pengguna"
+          >
+            <div className="hidden sm:flex flex-col text-right">
+              <span className="text-sm font-semibold text-gray-800 leading-tight">
+                {displayName}
+              </span>
+              <span className="text-xs text-gray-500 leading-tight">
+                {roleLabel} · IBL 2K26
+              </span>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-teal-600 text-white font-bold flex items-center justify-center text-sm shadow-xs select-none ring-2 ring-transparent hover:ring-teal-200 transition-all">
+              {initial}
+            </div>
+          </button>
+
+          {/* Dropdown Menu */}
+          {isProfileOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setIsProfileOpen(false)}
+              />
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50 flex flex-col gap-1 font-poppins animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-3 py-2 border-b border-gray-100">
+                  <p className="text-sm font-bold text-gray-800">{displayName}</p>
+                  <p className="text-xs text-gray-500 font-medium break-all">{user?.email}</p>
+                  <p className="text-xs text-teal-700 font-semibold mt-0.5">{roleLabel}</p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileOpen(false);
+                    // Sesi dicabut di backend; DashboardLayout otomatis
+                    // mengarahkan ke /login begitu status berubah.
+                    void logout();
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer text-left"
+                >
+                  <svg
+                    className="w-4 h-4 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
+                  </svg>
+                  <span>Logout</span>
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </header>
 

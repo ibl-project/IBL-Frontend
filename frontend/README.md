@@ -20,6 +20,22 @@ Buka [http://localhost:3000](http://localhost:3000) di browser untuk melihat has
 
 ---
 
+## 🔌 Dashboard Panitia & Koneksi ke Backend
+
+Login (`/login`) dan dashboard panitia (`/teams`, `/schedule-result`, `/scoring`) mengambil data dari API di repo **IBL-Backend**. Halaman publik (`/schedule-result-main`, klasemen, leaderboard) belum tersambung.
+
+1. Jalankan backend lebih dulu sesuai `SETUP.md` di repo IBL-Backend, lalu cek [http://localhost:4000/api/health](http://localhost:4000/api/health).
+2. Alamat API diambil dari `NEXT_PUBLIC_API_URL`. Di mode dev, tanpa variabel ini otomatis `http://localhost:4000/api`. Untuk menggantinya, tambahkan satu baris itu di `.env.local`. Jangan menyalin seluruh `.env.local.example`, karena placeholder `NEXT_PUBLIC_BACKEND_URL` di dalamnya akan menimpa URL form registrasi di `.env`.
+3. Buka lewat **http://localhost:3000**, bukan `127.0.0.1` atau IP jaringan, supaya cookie login dan CORS cocok. Akun panitia diminta ke admin backend.
+
+Aturan untuk kode dashboard:
+- Panggil API lewat `lib/apiClient.ts` (`apiFetch`), `lib/teamsApi.ts`, atau `lib/matchesApi.ts`. Jangan memakai `fetch` langsung.
+- Jangan simpan token di `localStorage` atau `sessionStorage`. Access token hanya di memori; refresh token ada di cookie httpOnly yang diurus browser.
+- Menyembunyikan tombol berdasarkan role (`canEditData`) hanya untuk tampilan. Yang benar-benar menolak akses adalah API.
+- Kontrak endpoint ada di `docs/API.md` repo IBL-Backend.
+
+---
+
 ## ⚠️ Panduan Pembagian Kerja (Untuk Staff FE)
 
 Agar alur kerja pengembangan berjalan rapi dan menghindari bentrok kode (*merge conflict*), seluruh tim diwajibkan untuk mematuhi aturan berikut:

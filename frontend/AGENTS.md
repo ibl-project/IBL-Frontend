@@ -1,14 +1,32 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
 <!-- END:nextjs-agent-rules -->
 
 # Project Overview: IBL 2K26
 
 **IBL** stands for **ITS Basketball League**, which is an annual basketball tournament hosted by the student basketball club (**UKM Basket**) at the **Institut Teknologi Sepuluh Nopember (ITS)**.
 
-This repository contains both the frontend and backend codebase for the project. This directory specifically houses the frontend web application for the **IBL 2K26** edition, including the landing page, event information, and the registration portal.
+This repository contains the frontend web application for the **IBL 2K26** edition: the landing page, event information, the registration portal, and the committee dashboard. The REST API lives in the separate **IBL-Backend** repository.
+
+---
+
+## Committee Dashboard & Backend API
+
+`/login` and the dashboard (`app/(dashboard)/`: Teams, Schedule Result, Scoring) use the IBL-Backend API. Its endpoint contract is `docs/API.md` and its setup guide is `SETUP.md`, both in that repository.
+
+- Base URL: `NEXT_PUBLIC_API_URL` (dev falls back to `http://localhost:4000/api`).
+- Call the API only through `lib/apiClient.ts` (`apiFetch`: bearer token, shared refresh on 401, raw file upload), `lib/teamsApi.ts`, and `lib/matchesApi.ts`. Never call `fetch` directly. Never put tokens in `localStorage` or `sessionStorage`: the access token stays in memory and the refresh token is an httpOnly cookie.
+- Live match data: `lib/hooks/useMatchLive.ts` (snapshot + SSE). Scoring writes: `lib/hooks/useScoringSession.ts` (one account per match, 30 s heartbeat) and `lib/hooks/useAutoSaveActions.ts` (one UUID `actionId` per tap, retried with the same id).
+- One match is one scoreboard. Each scoring action is tagged with a quarter (Q1–Q4 selector in the box score; Q1 is the backend default, so `quarter` is only sent for Q2–Q4). `GET /matches/:id/quarter-stats` feeds the per-quarter sheets in the Excel export. Save and Lock finishes a match; Unlock reopens it for correction.
+- Times are shown in WIB through `lib/datetime.ts`; send ISO strings with `+07:00`.
+- Role checks such as `canEditData` only hide controls. The API is the real guard.
+- User-facing text is Indonesian.
 
 ---
 

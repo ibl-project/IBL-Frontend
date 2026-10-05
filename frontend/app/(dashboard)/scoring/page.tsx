@@ -1,86 +1,219 @@
 "use client";
 
-import React, { useState } from "react";
-import { ScoringLandingSection } from "@/components/sections/ScoringPage/ScoringLandingSection";
-import { ScoringSearchTeamSection } from "@/components/sections/ScoringPage/ScoringSearchTeamSection";
-import { ScoringBoxScoreSection } from "@/components/sections/ScoringPage/ScoringBoxScoreSection";
+import React, { useCallback, useEffect, useState } from "react";
+import { Lock } from "lucide-react";
 
-type Match = {
-  id: number;
-  mode: "SEARCH" | "BOX_SCORE";
-  team1?: string;
-  team2?: string;
-  players1?: any[];
-  players2?: any[];
-};
+import { useAsyncData } from "@/lib/hooks/useAsyncData";
+import { useScoringSession } from "@/lib/hooks/useScoringSession";
+import { getScoringBoard } from "@/lib/matchesApi";
+import { canEditData, useAuthStore } from "@/lib/store/useAuthStore";
+import { ScoringChooseMatchSection } from "@/components/sections/ScoringPage/ScoringChooseMatchSection";
+import { ScoringLandingSection } from "@/components/sections/ScoringPage/ScoringLandingSection";
+import { ScoringLineupSection } from "@/components/sections/ScoringPage/ScoringLineupSection";
+import { ScoringMatchPanel } from "@/components/sections/ScoringPage/ScoringMatchPanel";
+
+type Mode = "tabs" | "choose" | "lineup";
+
+const BOARD_REFRESH_MS = 20_000;
+// Data prototipe lama (sebelum scoring tersambung ke database).
+const LEGACY_STORAGE_KEYS = ["ibl_teams_storage_v1", "ibl-match-store"];
+// Layar yang sedang dibuka di tab ini, supaya refresh kembali ke tempat yang sama.
+const VIEW_STORAGE_KEY = "ibl-scoring-view";
+
+interface View {
+  mode: Mode;
+  focusId: string | null;
+}
+
+/** Halaman ini hanya dirender di browser (setelah sesi login dipulihkan), jadi aman membaca storage. */
+function restoreView(): View {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(VIEW_STORAGE_KEY) ?? "null") as View | null;
+    if (saved && ["tabs", "choose", "lineup"].includes(saved.mode)) return saved;
+  } catch {
+    // Storage diblokir atau isinya rusak: mulai dari awal.
+  }
+  return { mode: "tabs", focusId: null };
+}
 
 export default function ScoringPage() {
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [activeMatchId, setActiveMatchId] = useState<number | null>(null);
-  const [nextId, setNextId] = useState(1);
+  const canEdit = canEditData(useAuthStore((state) => state.user?.role));
+  const loadBoard = useCallback(() => getScoringBoard(), []);
+  const { state: board, reload: reloadBoard } = useAsyncData(loadBoard);
+  const [initialView] = useState(restoreView);
+  const [mode, setMode] = useState<Mode>(initialView.mode);
+  // Match yang sedang dikerjakan akun ini: di layar kapten (lineup) atau tab Match N.
+  const [focusId, setFocusId] = useState<string | null>(initialView.focusId);
 
-  const handleAddMatch = () => {
-    const newMatch: Match = { id: nextId, mode: "SEARCH" };
-    setMatches([...matches, newMatch]);
-    setActiveMatchId(nextId);
-    setNextId(nextId + 1);
-  };
-
-  const handleRemoveMatch = (id: number) => {
-    const newMatches = matches.filter(m => m.id !== id);
-    setMatches(newMatches);
-    if (newMatches.length === 0) {
-      setNextId(1);
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(VIEW_STORAGE_KEY, JSON.stringify({ mode, focusId }));
+    } catch {
+      // Tidak bisa disimpan: refresh akan kembali ke daftar Match.
     }
-    if (activeMatchId === id) {
-      setActiveMatchId(newMatches.length > 0 ? newMatches[newMatches.length - 1].id : null);
+  }, [mode, focusId]);
+
+  useEffect(() => {
+    try {
+      for (const key of LEGACY_STORAGE_KEYS) localStorage.removeItem(key);
+    } catch {
+      // Storage diblokir browser: tidak ada yang perlu dibersihkan.
     }
+  }, []);
+
+  // Pemegang sesi & status lock bisa berubah dari laptop lain.
+  useEffect(() => {
+    const timer = setInterval(reloadBoard, BOARD_REFRESH_MS);
+    return () => clearInterval(timer);
+  }, [reloadBoard]);
+
+  const opened = board.status === "ready" ? board.data.opened : [];
+  const available = board.status === "ready" ? board.data.available : [];
+  const focusItem = [...opened, ...available].find((match) => match.id === focusId) ?? null;
+  // Layar kapten yang dipulihkan setelah refresh, padahal match-nya sudah dimulai → tampilkan tab-nya.
+  const view: Mode = mode === "lineup" && focusItem && focusItem.status !== "SCHEDULED" ? "tabs" : mode;
+
+  // Satu sesi untuk seluruh halaman, supaya pindah dari layar kapten ke
+  // Match N tidak melepas lalu mengambil ulang sesi.
+  const sessionMatchId = view !== "choose" && focusId && !focusItem?.locked ? focusId : null;
+  const { session, recheck } = useScoringSession(sessionMatchId);
+
+  const openTab = (id: string) => {
+    setMode("tabs");
+    setFocusId(id);
   };
 
-  const handleCreateMatch = (team1: string, team2: string, players1: any[], players2: any[]) => {
-    setMatches(matches.map(m => {
-      if (m.id === activeMatchId) {
-        return {
-          ...m,
-          mode: "BOX_SCORE",
-          team1,
-          team2,
-          players1,
-          players2
-        };
-      }
-      return m;
-    }));
-  };
-
-  const activeMatch = matches.find(m => m.id === activeMatchId);
+  if (!canEdit) {
+    return (
+      <Shell total={null}>
+        <p className="py-32 text-center font-poppins text-base font-semibold text-[#202224]">
+          Halaman Scoring khusus akun admin dan scorekeeper.
+        </p>
+      </Shell>
+    );
+  }
 
   return (
-    <div className="bg-[#e1e7ea] min-h-screen w-full px-6 py-6 md:px-[46px]">
-      {matches.length === 0 ? (
-        <ScoringLandingSection onAddScoring={handleAddMatch} />
-      ) : activeMatch?.mode === "BOX_SCORE" ? (
-        <ScoringBoxScoreSection 
-          matches={matches}
-          activeMatchId={activeMatchId}
-          onAddScoring={handleAddMatch}
-          onRemoveMatch={handleRemoveMatch}
-          onSelectMatch={setActiveMatchId}
-          team1={activeMatch.team1!}
-          team2={activeMatch.team2!}
-          players1={activeMatch.players1!}
-          players2={activeMatch.players2!}
-        />
-      ) : (
-        <ScoringSearchTeamSection 
-          matches={matches} 
-          activeMatchId={activeMatchId}
-          onAddScoring={handleAddMatch}
-          onRemoveMatch={handleRemoveMatch}
-          onSelectMatch={setActiveMatchId}
-          onCreate={handleCreateMatch}
+    <Shell total={opened.length}>
+      {/* Tab Match N + tombol Add Scoring */}
+      <div className="mb-8 flex items-center justify-between gap-4 overflow-x-auto rounded-[12px] bg-white px-6 py-4 shadow-sm">
+        <div role="tablist" aria-label="Pertandingan" className="flex items-center gap-2">
+          {opened.map((match) => {
+            const active = view === "tabs" && match.id === focusId;
+            const takenBy = !match.locked && match.scoring.holder && !match.scoring.isMine ? match.scoring.holder.name : null;
+            return (
+              <button
+                key={match.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => openTab(match.id)}
+                title={
+                  match.locked ? "Terkunci" : takenBy ? `Sedang dipakai ${takenBy}` : `${match.team1.name} vs ${match.team2.name}`
+                }
+                className={`flex h-[36px] shrink-0 items-center gap-1.5 rounded-full border px-4 font-poppins text-[12px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a9ba8] ${
+                  active ? "border-transparent bg-[#e2e8f0] text-black" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                Match {match.matchNumber}
+                {match.locked && <Lock aria-label="terkunci" className="h-3.5 w-3.5" />}
+                {takenBy && <span aria-label={`dipakai ${takenBy}`} className="h-2 w-2 rounded-full bg-amber-600" />}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setMode("choose");
+            setFocusId(null);
+            reloadBoard();
+          }}
+          className="ml-4 flex h-[36px] shrink-0 items-center justify-center rounded-full bg-[#7a9ba8] px-6 font-poppins text-[12px] font-semibold text-white transition-colors hover:bg-[#688591] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a9ba8]"
+        >
+          + Add Scoring
+        </button>
+      </div>
+
+      {board.status === "loading" && (
+        <p role="status" className="py-24 text-center font-poppins text-sm text-gray-600">
+          Memuat pertandingan...
+        </p>
+      )}
+
+      {board.status === "error" && (
+        <div role="alert" className="flex flex-col items-center gap-3 py-24 text-center font-poppins">
+          <p className="text-sm font-medium text-red-700">Data scoring gagal dimuat: {board.message}</p>
+          <button type="button" onClick={reloadBoard} className="rounded-full bg-[#7a9ba8] px-5 py-2 text-xs font-semibold text-white">
+            Coba Lagi
+          </button>
+        </div>
+      )}
+
+      {board.status === "ready" && view === "choose" && (
+        <ScoringChooseMatchSection
+          available={available}
+          onChoose={(match) => {
+            setMode("lineup");
+            setFocusId(match.id);
+          }}
+          onCancel={() => setMode("tabs")}
         />
       )}
-    </div>
+
+      {board.status === "ready" && view === "lineup" && focusItem && (
+        <ScoringLineupSection
+          match={focusItem}
+          session={session}
+          onBack={() => {
+            setMode("choose");
+            setFocusId(null);
+            reloadBoard();
+          }}
+          onStarted={() => {
+            setMode("tabs");
+            reloadBoard();
+          }}
+        />
+      )}
+
+      {board.status === "ready" && view === "tabs" && (
+        <>
+          {opened.length === 0 && <ScoringLandingSection />}
+          {opened.length > 0 && !focusItem && (
+            <p className="py-24 text-center font-poppins text-sm text-gray-600">
+              Pilih Match di atas untuk melanjutkan scoring, atau klik &quot;+ Add Scoring&quot;.
+            </p>
+          )}
+          {focusItem && (
+            <ScoringMatchPanel
+              key={focusItem.id}
+              item={focusItem}
+              session={session}
+              recheckSession={recheck}
+              onBoardChange={reloadBoard}
+              onLeave={() => {
+                setFocusId(null);
+                reloadBoard();
+              }}
+            />
+          )}
+        </>
+      )}
+    </Shell>
   );
 }
+
+const Shell = ({ total, children }: { total: number | null; children: React.ReactNode }) => (
+  <div className="relative min-h-screen w-full bg-[#e1e7ea] px-6 py-6 font-poppins md:px-[46px]">
+    <div className="flex w-full flex-col pt-6">
+      <div className="mb-6">
+        <h1 className="text-[32px] font-bold tracking-[-0.11px] text-[#202224]">Scoring</h1>
+        {total !== null && (
+          <p className="mt-1 text-sm text-gray-600">Total {total} Pertandingan Terdaftar dalam IBL 2K26</p>
+        )}
+      </div>
+      {children}
+    </div>
+  </div>
+);

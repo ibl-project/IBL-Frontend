@@ -1,8 +1,16 @@
 # Documents and briefing files
 All Divisi Pemberkasan.xlsx
 Tupoksi Divisi IBL2K26.docx
+/*.xlsx
+/*.csv
+
+# Scratch and unused temporary files
+/frontend/scripts/
+/frontend/components/ui/FigmaColorPicker.tsx
 
 # IDE and other system configs
 .vscode/
 .DS_Store
 Thumbs.db
+node_modules/
+.next/

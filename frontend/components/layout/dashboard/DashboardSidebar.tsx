@@ -3,8 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
+import { logout } from "@/lib/apiClient";
 
 interface DashboardSidebarProps {
   isCollapsed?: boolean;
@@ -38,7 +39,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   onToggle,
 }) => {
   const pathname = usePathname();
-  const router = useRouter();
 
   // Definisi struktur navigasi menu
   const menuGroups: MenuGroup[] = [
@@ -73,8 +73,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       items: [
         {
           name: "Schedule Result",
-          href: "#",
-          hasRoute: false,
+          href: "/schedule-result",
+          hasRoute: true,
           icon: (
             <svg
               className="w-5 h-5 shrink-0 text-white"
@@ -143,17 +143,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     },
   ];
 
+  // Sesi dicabut di backend; DashboardLayout otomatis mengarahkan ke /login.
   const handleLogout = async () => {
-    /**
-     * =========================================================================
-     * TODO [BACKEND]: Integrasi Endpoint Logout
-     * =========================================================================
-     * 1. Panggil endpoint logout BE jika ada (e.g. POST /api/auth/logout).
-     * 2. Bersihkan token/cookie otentikasi.
-     * 3. Bersihkan cache/state user jika diperlukan.
-     * =========================================================================
-     */
-    router.push("/login");
+    await logout();
   };
 
   return (
@@ -167,9 +159,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         />
       )}
 
-      {/* Sidebar Container (Fixed inset-y-0 left-0 top to bottom) */}
+      {/* Sidebar Container (Pinned to viewport top and bottom with inset-y-0 h-full) */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 bg-teal-600 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] 
+        className={`fixed inset-y-0 left-0 h-full z-50 bg-teal-600 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] 
           flex flex-col font-poppins transition-[width] duration-300 ease-in-out
           ${
             isCollapsed

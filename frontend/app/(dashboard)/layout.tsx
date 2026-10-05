@@ -23,11 +23,12 @@ export const metadata: Metadata = {
 };
 
 /**
- * TODO [BACKEND / AUTH GUARD]:
- * Rute di dalam group (dashboard) ini mencakup /teams dan /scoring.
- * - Proteksi rute saat ini diarahkan melalui frontend/middleware.ts.
- * - Jika ingin validasi sesi di sisi server component, dapat mengecek cookie
- *   atau memverifikasi session JWT di sini sebelum merender children.
+ * AUTH GUARD:
+ * Rute di dalam group (dashboard) ini mencakup /teams, /scoring, /schedule-result.
+ * Sesi login dicek ke backend oleh DashboardLayout (lib/apiClient.ts). Cookie
+ * sesi milik domain API, jadi tidak bisa dibaca di sini atau di proxy Next.js.
+ * Perlindungan data yang sebenarnya tetap di backend: semua endpoint pengubah
+ * data menolak request tanpa access token yang sah.
  */
 export default function DashboardRouteGroupLayout({
   children,
