@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Search } from "lucide-react";
 
@@ -23,6 +23,10 @@ interface TeamsLandingSectionProps {
 export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const teams = useTeamStore((state) => state.teams);
+
+  useEffect(() => {
+    useTeamStore.getState().syncWithBackend();
+  }, []);
 
   const filteredTeams = teams.filter((team) =>
     team.name.toLowerCase().includes(searchQuery.toLowerCase())

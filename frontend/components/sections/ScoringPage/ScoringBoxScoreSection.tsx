@@ -333,35 +333,43 @@ export const ScoringBoxScoreSection = ({
 
   // Handle Export to CSV
   const handleExportCSV = () => {
-    const buildTeamCSV = (teamName: string, playersList: any[], s: { [id: number]: PlayerStats }) => {
-      const rows = [
-        `TEAM: ${teamName}`,
-        "Nama,NO,Total,2PT Made,2PT Miss,3PT Made,3PT Miss,Assist,FT Made,FT Miss,Rebound Off,Rebound Def,Foul",
-      ];
-      playersList.forEach((p) => {
-        const ps = s[p.id] || initialStats();
-        const total = getPlayerPoints(ps);
-        rows.push(
-          `"${p.name}",${p.nopung || "-"},${total},${ps.twoPointMade},${ps.twoPointMiss},${ps.threePointMade},${ps.threePointMiss},${ps.assist},${ps.freethrowMade},${ps.freethrowMiss},${ps.reboundOff},${ps.reboundDef},${ps.foul}`
-        );
-      });
-      return rows.join("\n");
-    };
+    try {
+      const buildTeamCSV = (teamName: string, playersList: any[], s: { [id: number]: PlayerStats }) => {
+        const rows = [
+          `TEAM: ${teamName}`,
+          "Nama,NO,Total,2PT Made,2PT Miss,3PT Made,3PT Miss,Assist,FT Made,FT Miss,Rebound Off,Rebound Def,Foul",
+        ];
+        playersList.forEach((p) => {
+          const ps = s[p.id] || initialStats();
+          const total = getPlayerPoints(ps);
+          const no = p.nopung || p.jerseyNumber || "-";
+          const safeName = String(p.name || "").replace(/"/g, '""');
+          rows.push(
+            `"${safeName}",${no},${total},${ps.twoPointMade},${ps.twoPointMiss},${ps.threePointMade},${ps.threePointMiss},${ps.assist},${ps.freethrowMade},${ps.freethrowMiss},${ps.reboundOff},${ps.reboundDef},${ps.foul}`
+          );
+        });
+        return rows.join("\n");
+      };
 
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      `MATCH: ${team1} vs ${team2}\nSCORE: ${team1Score} - ${team2Score}\n\n` +
-      buildTeamCSV(team1, players1List, stats1) +
-      "\n\n" +
-      buildTeamCSV(team2, players2List, stats2);
+      const csvContent =
+        `MATCH: ${team1} vs ${team2}\nSCORE: ${team1Score} - ${team2Score}\n\n` +
+        buildTeamCSV(team1, players1List, stats1) +
+        "\n\n" +
+        buildTeamCSV(team2, players2List, stats2);
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `BoxScore_${team1}_vs_${team2}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `BoxScore_${team1}_vs_${team2}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export CSV failed:", err);
+      alert("Gagal melakukan export CSV. Silakan coba lagi.");
+    }
   };
 
   const renderScoringTable = (

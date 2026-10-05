@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
+import { Plus, Trash2 } from "lucide-react";
 import { useTeamStore, TeamStats, PlayerStats, Player } from "@/lib/store/useTeamStore";
 
 interface TeamEditSectionProps {
@@ -152,6 +153,33 @@ export const TeamEditSection = ({
     }));
   };
 
+  const handleAddPlayer = () => {
+    const newId = Date.now();
+    const newPlayer: Player = {
+      id: newId,
+      name: `Pemain ${players.length + 1}`,
+      nopung: String(players.length + 1),
+      stats: {
+        game: "-",
+        point: "-",
+        assist: "-",
+        rebound: "-",
+        ppg: "-",
+        apg: "-",
+        rpg: "-",
+        fgPercent: "-",
+        threePPercent: "-",
+        twoPPercent: "-",
+        ftPercent: "-",
+      },
+    };
+    setPlayers((prev) => [...prev, newPlayer]);
+  };
+
+  const handleRemovePlayer = (idx: number) => {
+    setPlayers((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   const handleSave = () => {
     const targetId = currentTeam?.id || teamId || "1";
 
@@ -276,59 +304,90 @@ export const TeamEditSection = ({
                   <th className="p-3 border-b border-r border-white/50">GAME</th>
                   <th className="p-3 border-b border-r border-white/50">POINT</th>
                   <th className="p-3 border-b border-r border-white/50">ASSIST</th>
-                  <th className="p-3 border-b">REBOUND</th>
+                  <th className="p-3 border-b border-r border-white/50">REBOUND</th>
+                  <th className="p-3 border-b w-12">AKSI</th>
                 </tr>
               </thead>
               <tbody>
-                {players.map((player, idx) => (
-                  <tr
-                    key={player.id || idx}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-[#F3EFE9]"}
-                  >
-                    <td className="p-1 border-r border-gray-200 font-medium text-gray-700">
-                      <NameInput
-                        value={player.name}
-                        onChange={(newName) =>
-                          handlePlayerNameChange(idx, newName)
-                        }
-                      />
-                    </td>
-                    <td className="p-1 border-r border-gray-200">
-                      <StatInput
-                        value={player.stats?.game || "-"}
-                        onChange={(v) =>
-                          handlePlayerStatChange(idx, "game", v)
-                        }
-                      />
-                    </td>
-                    <td className="p-1 border-r border-gray-200">
-                      <StatInput
-                        value={player.stats?.point || "-"}
-                        onChange={(v) =>
-                          handlePlayerStatChange(idx, "point", v)
-                        }
-                      />
-                    </td>
-                    <td className="p-1 border-r border-gray-200">
-                      <StatInput
-                        value={player.stats?.assist || "-"}
-                        onChange={(v) =>
-                          handlePlayerStatChange(idx, "assist", v)
-                        }
-                      />
-                    </td>
-                    <td className="p-1">
-                      <StatInput
-                        value={player.stats?.rebound || "-"}
-                        onChange={(v) =>
-                          handlePlayerStatChange(idx, "rebound", v)
-                        }
-                      />
+                {players.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-gray-500 font-medium">
+                      Belum ada pemain di tim ini. Klik tombol <span className="font-bold text-[#1E88E5]">+ Tambah Pemain</span> di bawah untuk menambahkan roster pemain.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  players.map((player, idx) => (
+                    <tr
+                      key={player.id || idx}
+                      className={idx % 2 === 0 ? "bg-white" : "bg-[#F3EFE9]"}
+                    >
+                      <td className="p-1 border-r border-gray-200 font-medium text-gray-700">
+                        <NameInput
+                          value={player.name}
+                          onChange={(newName) =>
+                            handlePlayerNameChange(idx, newName)
+                          }
+                        />
+                      </td>
+                      <td className="p-1 border-r border-gray-200">
+                        <StatInput
+                          value={player.stats?.game || "-"}
+                          onChange={(v) =>
+                            handlePlayerStatChange(idx, "game", v)
+                          }
+                        />
+                      </td>
+                      <td className="p-1 border-r border-gray-200">
+                        <StatInput
+                          value={player.stats?.point || "-"}
+                          onChange={(v) =>
+                            handlePlayerStatChange(idx, "point", v)
+                          }
+                        />
+                      </td>
+                      <td className="p-1 border-r border-gray-200">
+                        <StatInput
+                          value={player.stats?.assist || "-"}
+                          onChange={(v) =>
+                            handlePlayerStatChange(idx, "assist", v)
+                          }
+                        />
+                      </td>
+                      <td className="p-1 border-r border-gray-200">
+                        <StatInput
+                          value={player.stats?.rebound || "-"}
+                          onChange={(v) =>
+                            handlePlayerStatChange(idx, "rebound", v)
+                          }
+                        />
+                      </td>
+                      <td className="p-1">
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePlayer(idx)}
+                          title="Hapus Pemain"
+                          className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4 mx-auto" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
+          </div>
+
+          {/* Add Player Button */}
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              onClick={handleAddPlayer}
+              className="flex items-center gap-2 px-4 py-2 bg-[#1E88E5] hover:bg-[#1565C0] text-white text-sm font-bold rounded-lg shadow-sm transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Pemain</span>
+            </button>
           </div>
         </div>
 
@@ -352,23 +411,30 @@ export const TeamEditSection = ({
                 </tr>
               </thead>
               <tbody>
-                {players.map((player, idx) => (
-                  <tr
-                    key={player.id || idx}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-[#F3EFE9]"}
-                  >
-                    <td className="p-3 border-r border-gray-200 font-medium text-gray-700">
-                      {player.name}
+                {players.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="p-6 text-center text-gray-400 font-medium">
+                      Belum ada data rata-rata statistik pemain.
                     </td>
-                    <td className="p-1 border-r border-gray-200">
-                      <StatInput
-                        allowDecimal
-                        value={player.stats?.ppg || "-"}
-                        onChange={(v) =>
-                          handlePlayerStatChange(idx, "ppg", v)
-                        }
-                      />
-                    </td>
+                  </tr>
+                ) : (
+                  players.map((player, idx) => (
+                    <tr
+                      key={player.id || idx}
+                      className={idx % 2 === 0 ? "bg-white" : "bg-[#F3EFE9]"}
+                    >
+                      <td className="p-3 border-r border-gray-200 font-medium text-gray-700">
+                        {player.name}
+                      </td>
+                      <td className="p-1 border-r border-gray-200">
+                        <StatInput
+                          allowDecimal
+                          value={player.stats?.ppg || "-"}
+                          onChange={(v) =>
+                            handlePlayerStatChange(idx, "ppg", v)
+                          }
+                        />
+                      </td>
                     <td className="p-1 border-r border-gray-200">
                       <StatInput
                         allowDecimal
@@ -424,8 +490,9 @@ export const TeamEditSection = ({
                       />
                     </td>
                   </tr>
-                ))}
-              </tbody>
+                ))
+              )}
+            </tbody>
             </table>
           </div>
         </div>

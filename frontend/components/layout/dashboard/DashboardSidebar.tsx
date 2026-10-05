@@ -167,9 +167,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         />
       )}
 
-      {/* Sidebar Container (Fixed top-0 left-0 h-screen top to bottom) */}
+      {/* Sidebar Container (Fixed inset-y-0 left-0 top to bottom) */}
       <aside
-        className={`fixed top-0 left-0 h-screen h-[100dvh] z-50 bg-teal-600 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] 
+        className={`fixed inset-y-0 left-0 z-50 bg-teal-600 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] 
           flex flex-col font-poppins transition-[width] duration-300 ease-in-out
           ${
             isCollapsed
@@ -178,7 +178,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           }`}
       >
         {/* Inner fixed-width wrapper to prevent reflow / CLS during collapse transition */}
-        <div className="w-64 h-full max-h-screen max-h-[100dvh] flex flex-col shrink-0 overflow-hidden">
+        <div className="w-64 h-full flex flex-col justify-between shrink-0 overflow-hidden">
           {/* Sisi Atas: Logo & Navigasi */}
           <div className="w-full flex-1 flex flex-col min-h-0 overflow-hidden">
             {/* Header Brand & Tombol Close (Lucide X di samping kiri logo + tulisan IBL 2K26) */}

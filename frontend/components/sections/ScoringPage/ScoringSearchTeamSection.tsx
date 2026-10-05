@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, KeyboardEvent, useRef } from "react";
+import { useState, useMemo, KeyboardEvent } from "react";
 import { useTeamStore } from "@/lib/store/useTeamStore";
 
 export interface MatchInfo {
@@ -57,18 +57,35 @@ export const ScoringSearchTeamSection = ({
   // Daftar nama seluruh 18 tim dari Zustand store
   const allTeamNames = useMemo(() => teams.map((t) => t.name), [teams]);
 
-  // Filtering teams based on search input
-  const filteredTeams1 = allTeamNames.filter((t) =>
-    t.toLowerCase().includes(search1.toLowerCase())
-  );
-  const filteredTeams2 = allTeamNames.filter((t) =>
-    t.toLowerCase().includes(search2.toLowerCase())
-  );
+  // Filtering teams based on search input & mutually exclusive selection
+  // Tim yang sudah dipilih di Tim 1 tidak bisa dipilih di Tim 2, begitu juga sebaliknya
+  const filteredTeams1 = useMemo(() => {
+    return allTeamNames.filter((t) => {
+      const matchesSearch = t.toLowerCase().includes(search1.toLowerCase());
+      const isSelectedInT2 = Boolean(t2 && t.toLowerCase() === t2.trim().toLowerCase());
+      return matchesSearch && !isSelectedInT2;
+    });
+  }, [allTeamNames, search1, t2]);
+
+  const filteredTeams2 = useMemo(() => {
+    return allTeamNames.filter((t) => {
+      const matchesSearch = t.toLowerCase().includes(search2.toLowerCase());
+      const isSelectedInT1 = Boolean(t1 && t.toLowerCase() === t1.trim().toLowerCase());
+      return matchesSearch && !isSelectedInT1;
+    });
+  }, [allTeamNames, search2, t1]);
 
   const handleSelectTeam1 = (teamName: string) => {
     setT1(teamName);
     setSearch1(teamName);
     setShowDropdown1(false);
+
+    // Jika tim ini sebelumnya terpilih di Team 2, bersihkan Team 2
+    if (t2 && t2.toLowerCase() === teamName.toLowerCase()) {
+      setT2("");
+      setSearch2("");
+      setPlayers2([]);
+    }
 
     // Ambil data tim dari store untuk template awal nama pemain
     const foundTeam = teams.find(
@@ -92,6 +109,13 @@ export const ScoringSearchTeamSection = ({
     setT2(teamName);
     setSearch2(teamName);
     setShowDropdown2(false);
+
+    // Jika tim ini sebelumnya terpilih di Team 1, bersihkan Team 1
+    if (t1 && t1.toLowerCase() === teamName.toLowerCase()) {
+      setT1("");
+      setSearch1("");
+      setPlayers1([]);
+    }
 
     // Ambil data tim dari store untuk template awal nama pemain
     const foundTeam = teams.find(
@@ -187,6 +211,10 @@ export const ScoringSearchTeamSection = ({
   const duplicateNopungs1 = useMemo(() => getDuplicateNopungs(players1), [players1]);
   const duplicateNopungs2 = useMemo(() => getDuplicateNopungs(players2), [players2]);
   const hasDuplicates = duplicateNopungs1.size > 0 || duplicateNopungs2.size > 0;
+  const isSameTeam = Boolean(
+    t1 && t2 && t1.trim().toLowerCase() === t2.trim().toLowerCase()
+  );
+  const isCreateDisabled = hasDuplicates || isSameTeam || !t1 || !t2;
 
   return (
     <div className="flex flex-col w-full h-full pt-6">
@@ -256,6 +284,10 @@ export const ScoringSearchTeamSection = ({
                 value={search1}
                 onChange={(e) => {
                   setSearch1(e.target.value);
+                  if (t1 && e.target.value !== t1) {
+                    setT1("");
+                    setPlayers1([]);
+                  }
                   setShowDropdown1(true);
                 }}
                 onFocus={() => setShowDropdown1(true)}
@@ -264,22 +296,30 @@ export const ScoringSearchTeamSection = ({
                 className="w-full outline-none text-[16px] text-[#1c1b1f] font-poppins bg-transparent"
               />
             </div>
-            {showDropdown1 && filteredTeams1.length > 0 && (
+            {showDropdown1 && (
               <div className="absolute top-full left-0 w-full mt-1 bg-[#ececec] rounded-[10px] shadow-lg max-h-[200px] overflow-y-auto z-50">
-                {filteredTeams1.map((team, idx) => (
-                  <div
-                    key={idx}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      handleSelectTeam1(team);
-                    }}
-                    className="px-5 py-3 cursor-pointer hover:bg-gray-300 transition-colors border-b border-gray-300 last:border-0"
-                  >
-                    <span className="text-[17px] text-black font-poppins">
-                      {team}
-                    </span>
+                {filteredTeams1.length > 0 ? (
+                  filteredTeams1.map((team, idx) => (
+                    <div
+                      key={idx}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleSelectTeam1(team);
+                      }}
+                      className="px-5 py-3 cursor-pointer hover:bg-gray-300 transition-colors border-b border-gray-300 last:border-0"
+                    >
+                      <span className="text-[17px] text-black font-poppins">
+                        {team}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-5 py-3 text-gray-500 text-[14px] font-poppins">
+                    {t2 && search1 && search1.trim().toLowerCase() === t2.trim().toLowerCase()
+                      ? `Tim "${t2}" sudah dipilih sebagai Tim 2`
+                      : "Tim tidak ditemukan"}
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>
@@ -300,6 +340,10 @@ export const ScoringSearchTeamSection = ({
                 value={search2}
                 onChange={(e) => {
                   setSearch2(e.target.value);
+                  if (t2 && e.target.value !== t2) {
+                    setT2("");
+                    setPlayers2([]);
+                  }
                   setShowDropdown2(true);
                 }}
                 onFocus={() => setShowDropdown2(true)}
@@ -308,29 +352,44 @@ export const ScoringSearchTeamSection = ({
                 className="w-full outline-none text-[16px] text-[#1c1b1f] font-poppins bg-transparent"
               />
             </div>
-            {showDropdown2 && filteredTeams2.length > 0 && (
+            {showDropdown2 && (
               <div className="absolute top-full left-0 w-full mt-1 bg-[#ececec] rounded-[10px] shadow-lg max-h-[200px] overflow-y-auto z-50">
-                {filteredTeams2.map((team, idx) => (
-                  <div
-                    key={idx}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      handleSelectTeam2(team);
-                    }}
-                    className="px-5 py-3 cursor-pointer hover:bg-gray-300 transition-colors border-b border-gray-300 last:border-0"
-                  >
-                    <span className="text-[17px] text-black font-poppins">
-                      {team}
-                    </span>
+                {filteredTeams2.length > 0 ? (
+                  filteredTeams2.map((team, idx) => (
+                    <div
+                      key={idx}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleSelectTeam2(team);
+                      }}
+                      className="px-5 py-3 cursor-pointer hover:bg-gray-300 transition-colors border-b border-gray-300 last:border-0"
+                    >
+                      <span className="text-[17px] text-black font-poppins">
+                        {team}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-5 py-3 text-gray-500 text-[14px] font-poppins">
+                    {t1 && search2 && search2.trim().toLowerCase() === t1.trim().toLowerCase()
+                      ? `Tim "${t1}" sudah dipilih sebagai Tim 1`
+                      : "Tim tidak ditemukan"}
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>
         </div>
 
+        {/* Same team alert banner */}
+        {isSameTeam && (
+          <div className="w-full max-w-[800px] mt-6 p-3 bg-red-50 border border-red-200 rounded-[10px] text-center text-red-600 text-[13px] font-poppins font-medium">
+            ⚠️ Tim 1 dan Tim 2 tidak boleh sama! Silakan pilih tim lawan yang berbeda.
+          </div>
+        )}
+
         {/* Players Tables - Only show if both teams are selected */}
-        {players1.length > 0 && players2.length > 0 && (
+        {players1.length > 0 && players2.length > 0 && !isSameTeam && (
           <div className="w-full mt-12">
             <div className="w-full flex flex-col lg:flex-row items-start justify-center gap-10 lg:gap-20">
               
@@ -452,11 +511,15 @@ export const ScoringSearchTeamSection = ({
                     alert("Nomor punggung dalam satu tim tidak boleh sama!");
                     return;
                   }
+                  if (isSameTeam) {
+                    alert("Tim 1 dan Tim 2 tidak boleh sama!");
+                    return;
+                  }
                   onCreate?.(t1, t2, players1, players2);
                 }}
-                disabled={hasDuplicates}
+                disabled={isCreateDisabled}
                 className={`transition-colors rounded-[50px] px-[24px] py-[10px] h-[36px] flex items-center justify-center min-w-[100px] ${
-                  hasDuplicates
+                  isCreateDisabled
                     ? "bg-gray-400 cursor-not-allowed opacity-60 text-white"
                     : "bg-[#f99f1b] hover:bg-[#d98b16] text-white cursor-pointer"
                 }`}

@@ -128,28 +128,36 @@ export const TeamDetailSection = ({
                 </tr>
               </thead>
               <tbody>
-                {players.map((player, idx) => (
-                  <tr
-                    key={player.id || idx}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-[#F3EFE9]"}
-                  >
-                    <td className="p-3 border-r border-gray-200 font-medium text-gray-700">
-                      {player.name}
-                    </td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">
-                      {player.stats?.game || "-"}
-                    </td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">
-                      {player.stats?.point || "-"}
-                    </td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">
-                      {player.stats?.assist || "-"}
-                    </td>
-                    <td className="p-3 text-gray-600">
-                      {player.stats?.rebound || "-"}
+                {players.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-gray-500 font-medium">
+                      Belum ada daftar pemain untuk tim ini. Klik tombol <span className="font-bold text-[#F59E0B]">Edit</span> di bawah untuk menambahkan roster pemain.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  players.map((player, idx) => (
+                    <tr
+                      key={player.id || idx}
+                      className={idx % 2 === 0 ? "bg-white" : "bg-[#F3EFE9]"}
+                    >
+                      <td className="p-3 border-r border-gray-200 font-medium text-gray-700">
+                        {player.name}
+                      </td>
+                      <td className="p-3 border-r border-gray-200 text-gray-600">
+                        {player.stats?.game || "-"}
+                      </td>
+                      <td className="p-3 border-r border-gray-200 text-gray-600">
+                        {player.stats?.point || "-"}
+                      </td>
+                      <td className="p-3 border-r border-gray-200 text-gray-600">
+                        {player.stats?.assist || "-"}
+                      </td>
+                      <td className="p-3 text-gray-600">
+                        {player.stats?.rebound || "-"}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -175,37 +183,45 @@ export const TeamDetailSection = ({
                 </tr>
               </thead>
               <tbody>
-                {players.map((player, idx) => (
-                  <tr
-                    key={player.id || idx}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-[#F3EFE9]"}
-                  >
-                    <td className="p-3 border-r border-gray-200 font-medium text-gray-700">
-                      {player.name}
-                    </td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">
-                      {player.stats?.ppg || "-"}
-                    </td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">
-                      {player.stats?.apg || "-"}
-                    </td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">
-                      {player.stats?.rpg || "-"}
-                    </td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">
-                      {player.stats?.fgPercent || "-"}
-                    </td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">
-                      {player.stats?.threePPercent || "-"}
-                    </td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">
-                      {player.stats?.twoPPercent || "-"}
-                    </td>
-                    <td className="p-3 text-gray-600">
-                      {player.stats?.ftPercent || "-"}
+                {players.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="p-6 text-center text-gray-400 font-medium">
+                      Belum ada data rata-rata statistik pemain.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  players.map((player, idx) => (
+                    <tr
+                      key={player.id || idx}
+                      className={idx % 2 === 0 ? "bg-white" : "bg-[#F3EFE9]"}
+                    >
+                      <td className="p-3 border-r border-gray-200 font-medium text-gray-700">
+                        {player.name}
+                      </td>
+                      <td className="p-3 border-r border-gray-200 text-gray-600">
+                        {player.stats?.ppg || "-"}
+                      </td>
+                      <td className="p-3 border-r border-gray-200 text-gray-600">
+                        {player.stats?.apg || "-"}
+                      </td>
+                      <td className="p-3 border-r border-gray-200 text-gray-600">
+                        {player.stats?.rpg || "-"}
+                      </td>
+                      <td className="p-3 border-r border-gray-200 text-gray-600">
+                        {player.stats?.fgPercent || "-"}
+                      </td>
+                      <td className="p-3 border-r border-gray-200 text-gray-600">
+                        {player.stats?.threePPercent || "-"}
+                      </td>
+                      <td className="p-3 border-r border-gray-200 text-gray-600">
+                        {player.stats?.twoPPercent || "-"}
+                      </td>
+                      <td className="p-3 text-gray-600">
+                        {player.stats?.ftPercent || "-"}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
