@@ -1,23 +1,37 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { MatchInfo } from "./ScoringSearchTeamSection";
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import * as XLSX from "xlsx";
-import { useMatchStore } from "@/lib/store/useMatchStore";
+
+import type { MatchSnapshot, PlayerLine, StatKey } from "@/lib/matchesApi";
 
 interface ScoringBoxScoreSectionProps {
-  matches: MatchInfo[];
-  activeMatchId: number | null;
-  onAddScoring: () => void;
-  onRemoveMatch: (id: number) => void;
-  onSelectMatch: (id: number) => void;
-  team1: string;
-  team2: string;
-  players1: any[];
-  players2: any[];
+  /** Data match dari server (nama pemain selalu mengikuti halaman Teams). */
+  snapshot: MatchSnapshot;
+  /** true saat match dikunci atau akun ini bukan pemegang sesi. */
+  readOnly: boolean;
+  onStep: (side: 1 | 2, player: PlayerLine, stat: StatKey, delta: 1 | -1) => void;
+  onColorsChange: (colors: { team1Color?: string; team2Color?: string }) => void;
+  /** Tombol sesi (Save and Lock / Unlock / Keluar) + status simpan, di kiri bawah. */
+  footer?: React.ReactNode;
 }
+
+const HEX = /^#[0-9a-fA-F]{6}$/;
+
+const STAT_LABEL: Record<StatKey, string> = {
+  twoPointMade: "2 Point Made",
+  twoPointMiss: "2 Point Miss",
+  threePointMade: "3 Point Made",
+  threePointMiss: "3 Point Miss",
+  assist: "Assist",
+  freethrowMade: "Freethrow Made",
+  freethrowMiss: "Freethrow Miss",
+  reboundOff: "Rebound Off",
+  reboundDef: "Rebound Def",
+  foul: "Foul",
+};
 
 interface PlayerStats {
   twoPointMade: number;
@@ -64,11 +78,16 @@ const HMD_COLOR_PRESETS = [
 const CounterPill = ({
   value,
   variant = "green",
+  label,
+  disabled = false,
   onIncrement,
   onDecrement,
 }: {
   value: number;
   variant?: "green" | "red";
+  /** Mis. "2 Point Made Budi Santoso", untuk pembaca layar. */
+  label: string;
+  disabled?: boolean;
   onIncrement: () => void;
   onDecrement: () => void;
 }) => {
@@ -82,7 +101,9 @@ const CounterPill = ({
       <button
         type="button"
         onClick={onDecrement}
-        className="w-3 h-3 flex items-center justify-center hover:scale-110 active:scale-90 transition-transform cursor-pointer shrink-0"
+        disabled={disabled}
+        aria-label={`Kurangi ${label}`}
+        className="w-3 h-3 flex items-center justify-center hover:scale-110 active:scale-90 transition-transform cursor-pointer shrink-0 disabled:cursor-default disabled:opacity-30 disabled:hover:scale-100"
         title="Kurang"
       >
         <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-[#b71c1c]">
@@ -97,7 +118,9 @@ const CounterPill = ({
       <button
         type="button"
         onClick={onIncrement}
-        className="w-3 h-3 flex items-center justify-center hover:scale-110 active:scale-90 transition-transform cursor-pointer shrink-0"
+        disabled={disabled}
+        aria-label={`Tambah ${label}`}
+        className="w-3 h-3 flex items-center justify-center hover:scale-110 active:scale-90 transition-transform cursor-pointer shrink-0 disabled:cursor-default disabled:opacity-30 disabled:hover:scale-100"
         title="Tambah"
       >
         <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-[#1b5e20]">
@@ -120,82 +143,63 @@ const isColorDark = (hex: string) => {
 };
 
 export const ScoringBoxScoreSection = ({
-  matches,
-  activeMatchId,
-  onAddScoring,
-  onRemoveMatch,
-  onSelectMatch,
-  team1,
-  team2,
-  players1,
-  players2,
+  snapshot,
+  readOnly,
+  onStep,
+  onColorsChange,
+  footer,
 }: ScoringBoxScoreSectionProps) => {
   const exportRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportFormat, setExportFormat] = useState<"csv" | "pdf" | "png" | null>(null);
 
-  const updateMatchStats = useMatchStore((s) => s.updateMatchStats);
-  const updateMatchColors = useMatchStore((s) => s.updateMatchColors);
-  const currentMatch = useMatchStore((s) =>
-    s.matches.find((m) => m.id === activeMatchId)
-  );
+  const team1 = snapshot.team1.name ?? "Team 1";
+  const team2 = snapshot.team2.name ?? "Team 2";
+  // Nama & nomor punggung dari server: nama mengikuti Teams, nomor mengikuti susunan pemain match ini.
+  const players1List = snapshot.team1.players;
+  const players2List = snapshot.team2.players;
 
-  // Player lists in state so names are editable
-  const [players1List, setPlayers1List] = useState(players1);
-  const [players2List, setPlayers2List] = useState(players2);
-
-  useEffect(() => {
-    setPlayers1List(players1);
-  }, [players1]);
-
-  useEffect(() => {
-    setPlayers2List(players2);
-  }, [players2]);
-
-  // Custom colors for Team 1 and Team 2 (persisted in store)
-  const [color1, setColor1] = useState(currentMatch?.color1 || "#ffffff");
-  const [color2, setColor2] = useState(currentMatch?.color2 || "#ffffff");
+  // Warna jersey: tampil langsung, disimpan ke server setelah berhenti mengetik/memilih.
+  const [color1, setColor1] = useState(snapshot.team1.color);
+  const [color2, setColor2] = useState(snapshot.team2.color);
+  const [syncedColors, setSyncedColors] = useState(`${snapshot.team1.color}|${snapshot.team2.color}`);
+  if (syncedColors !== `${snapshot.team1.color}|${snapshot.team2.color}`) {
+    setSyncedColors(`${snapshot.team1.color}|${snapshot.team2.color}`);
+    setColor1(snapshot.team1.color);
+    setColor2(snapshot.team2.color);
+  }
   const [showColorPicker1, setShowColorPicker1] = useState(false);
   const [showColorPicker2, setShowColorPicker2] = useState(false);
+  const colorTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // Sync colors from currentMatch when activeMatchId changes
-  useEffect(() => {
-    if (currentMatch?.color1) setColor1(currentMatch.color1);
-    if (currentMatch?.color2) setColor2(currentMatch.color2);
-  }, [currentMatch?.id, currentMatch?.color1, currentMatch?.color2]);
+  useEffect(() => () => clearTimeout(colorTimer.current), []);
+
+  const saveColors = (colors: { team1Color?: string; team2Color?: string }) => {
+    const value = colors.team1Color ?? colors.team2Color ?? "";
+    if (readOnly || !HEX.test(value)) return;
+    clearTimeout(colorTimer.current);
+    colorTimer.current = setTimeout(() => onColorsChange(colors), 400);
+  };
 
   const handleColor1Change = (newColor: string) => {
     setColor1(newColor);
-    if (activeMatchId) {
-      updateMatchColors(activeMatchId, newColor, color2);
-    }
+    saveColors({ team1Color: newColor });
   };
 
   const handleColor2Change = (newColor: string) => {
     setColor2(newColor);
-    if (activeMatchId) {
-      updateMatchColors(activeMatchId, color1, newColor);
-    }
+    saveColors({ team2Color: newColor });
   };
 
-  // Derive stats directly from store for reactive, persistent updates across tabs
-  const stats1: { [playerId: number]: PlayerStats } = useMemo(() => {
-    return (currentMatch?.stats1 as any) || {};
-  }, [currentMatch?.stats1]);
+  const toStats = (lines: PlayerLine[]) =>
+    Object.fromEntries(lines.map((line) => [line.id, line])) as { [playerId: string]: PlayerStats };
+  const stats1 = useMemo(() => toStats(players1List), [players1List]);
+  const stats2 = useMemo(() => toStats(players2List), [players2List]);
 
-  const stats2: { [playerId: number]: PlayerStats } = useMemo(() => {
-    return (currentMatch?.stats2 as any) || {};
-  }, [currentMatch?.stats2]);
-
-  const updateStat = (
-    teamIdx: 1 | 2,
-    playerId: number,
-    statKey: keyof PlayerStats,
-    delta: number
-  ) => {
-    if (activeMatchId) {
-      updateMatchStats(activeMatchId, teamIdx, playerId, statKey as any, delta);
-    }
+  const updateStat = (teamIdx: 1 | 2, playerId: string, statKey: StatKey, delta: 1 | -1) => {
+    if (readOnly) return;
+    const player = (teamIdx === 1 ? players1List : players2List).find((p) => p.id === playerId);
+    if (player) onStep(teamIdx, player, statKey, delta);
   };
 
   // Calculate player total points
@@ -208,7 +212,7 @@ export const ScoringBoxScoreSection = ({
   };
 
   // Calculate team total points
-  const getTeamTotalPoints = (teamIdx: 1 | 2, playersList: any[]) => {
+  const getTeamTotalPoints = (teamIdx: 1 | 2, playersList: PlayerLine[]) => {
     const s = teamIdx === 1 ? stats1 : stats2;
     return playersList.reduce((acc, p) => {
       const pStats = s[p.id] || initialStats();
@@ -348,8 +352,8 @@ export const ScoringBoxScoreSection = ({
     const buildTeamData = (
       teamName: string,
       teamTotalScore: number,
-      playersList: any[],
-      s: { [id: number]: PlayerStats }
+      playersList: PlayerLine[],
+      s: { [id: string]: PlayerStats }
     ) => {
       let totPts = 0;
       let tot2PM = 0;
@@ -487,7 +491,7 @@ export const ScoringBoxScoreSection = ({
     ];
 
     // 1. Generate real Excel (.xlsx) file with separate columns and custom column widths
-    const aoaData: any[][] = [
+    const aoaData: Array<Array<string | number>> = [
       ["IBL 2K26 - OFFICIAL BASKETBALL BOX SCORE REPORT"],
       ["Match", `${team1} vs ${team2}`],
       ["Final Score", `${team1} (${team1Score}) - (${team2Score}) ${team2}`],
@@ -563,7 +567,7 @@ export const ScoringBoxScoreSection = ({
   const renderScoringTable = (
     teamIdx: 1 | 2,
     currentTeam: string,
-    playersList: any[],
+    playersList: PlayerLine[],
     themeColor: string
   ) => {
     const s = teamIdx === 1 ? stats1 : stats2;
@@ -694,6 +698,8 @@ export const ScoringBoxScoreSection = ({
                     <CounterPill
                       value={pStats.twoPointMade}
                       variant="green"
+                      label={`${STAT_LABEL.twoPointMade} ${p.name}, ${currentTeam}`}
+                      disabled={readOnly}
                       onIncrement={() => updateStat(teamIdx, p.id, "twoPointMade", 1)}
                       onDecrement={() => updateStat(teamIdx, p.id, "twoPointMade", -1)}
                     />
@@ -704,6 +710,8 @@ export const ScoringBoxScoreSection = ({
                     <CounterPill
                       value={pStats.twoPointMiss}
                       variant="red"
+                      label={`${STAT_LABEL.twoPointMiss} ${p.name}, ${currentTeam}`}
+                      disabled={readOnly}
                       onIncrement={() => updateStat(teamIdx, p.id, "twoPointMiss", 1)}
                       onDecrement={() => updateStat(teamIdx, p.id, "twoPointMiss", -1)}
                     />
@@ -714,6 +722,8 @@ export const ScoringBoxScoreSection = ({
                     <CounterPill
                       value={pStats.threePointMade}
                       variant="green"
+                      label={`${STAT_LABEL.threePointMade} ${p.name}, ${currentTeam}`}
+                      disabled={readOnly}
                       onIncrement={() => updateStat(teamIdx, p.id, "threePointMade", 1)}
                       onDecrement={() => updateStat(teamIdx, p.id, "threePointMade", -1)}
                     />
@@ -724,6 +734,8 @@ export const ScoringBoxScoreSection = ({
                     <CounterPill
                       value={pStats.threePointMiss}
                       variant="red"
+                      label={`${STAT_LABEL.threePointMiss} ${p.name}, ${currentTeam}`}
+                      disabled={readOnly}
                       onIncrement={() => updateStat(teamIdx, p.id, "threePointMiss", 1)}
                       onDecrement={() => updateStat(teamIdx, p.id, "threePointMiss", -1)}
                     />
@@ -734,6 +746,8 @@ export const ScoringBoxScoreSection = ({
                     <CounterPill
                       value={pStats.assist}
                       variant="green"
+                      label={`${STAT_LABEL.assist} ${p.name}, ${currentTeam}`}
+                      disabled={readOnly}
                       onIncrement={() => updateStat(teamIdx, p.id, "assist", 1)}
                       onDecrement={() => updateStat(teamIdx, p.id, "assist", -1)}
                     />
@@ -744,6 +758,8 @@ export const ScoringBoxScoreSection = ({
                     <CounterPill
                       value={pStats.freethrowMade}
                       variant="green"
+                      label={`${STAT_LABEL.freethrowMade} ${p.name}, ${currentTeam}`}
+                      disabled={readOnly}
                       onIncrement={() => updateStat(teamIdx, p.id, "freethrowMade", 1)}
                       onDecrement={() => updateStat(teamIdx, p.id, "freethrowMade", -1)}
                     />
@@ -754,6 +770,8 @@ export const ScoringBoxScoreSection = ({
                     <CounterPill
                       value={pStats.freethrowMiss}
                       variant="red"
+                      label={`${STAT_LABEL.freethrowMiss} ${p.name}, ${currentTeam}`}
+                      disabled={readOnly}
                       onIncrement={() => updateStat(teamIdx, p.id, "freethrowMiss", 1)}
                       onDecrement={() => updateStat(teamIdx, p.id, "freethrowMiss", -1)}
                     />
@@ -764,6 +782,8 @@ export const ScoringBoxScoreSection = ({
                     <CounterPill
                       value={pStats.reboundOff}
                       variant="green"
+                      label={`${STAT_LABEL.reboundOff} ${p.name}, ${currentTeam}`}
+                      disabled={readOnly}
                       onIncrement={() => updateStat(teamIdx, p.id, "reboundOff", 1)}
                       onDecrement={() => updateStat(teamIdx, p.id, "reboundOff", -1)}
                     />
@@ -774,6 +794,8 @@ export const ScoringBoxScoreSection = ({
                     <CounterPill
                       value={pStats.reboundDef}
                       variant="green"
+                      label={`${STAT_LABEL.reboundDef} ${p.name}, ${currentTeam}`}
+                      disabled={readOnly}
                       onIncrement={() => updateStat(teamIdx, p.id, "reboundDef", 1)}
                       onDecrement={() => updateStat(teamIdx, p.id, "reboundDef", -1)}
                     />
@@ -784,6 +806,8 @@ export const ScoringBoxScoreSection = ({
                     <CounterPill
                       value={pStats.foul}
                       variant="red"
+                      label={`${STAT_LABEL.foul} ${p.name}, ${currentTeam}`}
+                      disabled={readOnly}
                       onIncrement={() => updateStat(teamIdx, p.id, "foul", 1)}
                       onDecrement={() => updateStat(teamIdx, p.id, "foul", -1)}
                     />
@@ -815,60 +839,7 @@ export const ScoringBoxScoreSection = ({
   };
 
   return (
-    <div className="flex flex-col w-full h-full pt-6">
-      <div className="mb-6">
-        <h1 className="text-[32px] font-bold text-[#202224] font-poppins tracking-[-0.11px]">
-          Scoring
-        </h1>
-        <p className="text-sm text-gray-500 font-poppins mt-1">
-          Total {matches.length} Pertandingan Terdaftar dalam IBL 2K26
-        </p>
-      </div>
-
-      {/* Tabs */}
-      <div className="bg-white flex items-center justify-between px-6 py-4 rounded-[12px] mb-8 overflow-x-auto shadow-sm">
-        <div className="flex items-center gap-2">
-          {matches.map((match, index) => (
-            <div
-              key={match.id}
-              onClick={() => onSelectMatch(match.id)}
-              className={`flex items-center h-[36px] px-4 rounded-full cursor-pointer transition-colors border ${activeMatchId === match.id
-                ? "bg-[#e2e8f0] border-transparent"
-                : "bg-white border-gray-300 hover:bg-gray-50"
-                }`}
-            >
-              <span
-                className={`font-semibold text-[12px] font-poppins ${activeMatchId === match.id ? "text-black" : "text-gray-600"
-                  }`}
-              >
-                Match {index + 1}
-              </span>
-              <button
-                type="button"
-                onClick={(e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  onRemoveMatch(match.id);
-                }}
-                className={`flex items-center justify-center ml-2 ${activeMatchId === match.id
-                  ? "text-black hover:text-gray-700"
-                  : "text-gray-500 hover:text-gray-700"
-                  }`}
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-        </div>
-        <button
-          onClick={onAddScoring}
-          className="bg-[#7a9ba8] hover:bg-[#688591] transition-colors flex items-center justify-center px-[24px] py-[10px] rounded-full h-[36px] shrink-0 ml-4"
-        >
-          <span className="font-semibold text-[12px] text-white font-poppins">
-            + Add Scoring
-          </span>
-        </button>
-      </div>
-
+    <div className="flex flex-col w-full">
       {/* Main Box Score Card */}
       <div className="relative bg-white rounded-[12px] shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)] w-full py-8 px-4 lg:px-8 flex flex-col items-center">
 
@@ -881,6 +852,8 @@ export const ScoringBoxScoreSection = ({
               <button
                 type="button"
                 onClick={() => setShowColorPicker1(!showColorPicker1)}
+                disabled={readOnly}
+                aria-label={`Warna jersey ${team1}`}
                 className="flex items-center gap-1.5 sm:gap-2 bg-gray-100 hover:bg-gray-200 px-2.5 sm:px-3 py-1.5 rounded-full border border-gray-300 transition-colors shadow-sm cursor-pointer shrink-0"
               >
                 <div
@@ -985,6 +958,8 @@ export const ScoringBoxScoreSection = ({
               <button
                 type="button"
                 onClick={() => setShowColorPicker2(!showColorPicker2)}
+                disabled={readOnly}
+                aria-label={`Warna jersey ${team2}`}
                 className="flex items-center gap-1.5 sm:gap-2 bg-gray-100 hover:bg-gray-200 px-2.5 sm:px-3 py-1.5 rounded-full border border-gray-300 transition-colors shadow-sm cursor-pointer shrink-0"
               >
                 <div
@@ -1101,7 +1076,9 @@ export const ScoringBoxScoreSection = ({
         </div>
 
         {/* Bottom Actions Row: 1 Baris Memanjang (Horizontal) */}
-        <div className="w-full mt-8 border-t pt-6 flex flex-row items-center justify-end gap-3 flex-nowrap overflow-x-auto pb-2">
+        <div className="w-full mt-8 border-t pt-6 flex flex-col-reverse items-stretch justify-between gap-4 lg:flex-row lg:items-center">
+          <div className="flex flex-wrap items-center gap-3">{footer}</div>
+          <div className="flex flex-row items-center justify-end gap-3 flex-nowrap overflow-x-auto pb-2">
           {/* Export CSV / Excel */}
           <button
             type="button"
@@ -1183,6 +1160,7 @@ export const ScoringBoxScoreSection = ({
               <span className="text-[10px] text-white/80 font-normal leading-none mt-0.5">.png / HD Image</span>
             </div>
           </button>
+          </div>
         </div>
 
       </div>
