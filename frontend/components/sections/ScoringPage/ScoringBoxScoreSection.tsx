@@ -1,17 +1,30 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { toPng } from "html-to-image";
-import jsPDF from "jspdf";
-import * as XLSX from "xlsx";
 
-import type { MatchSnapshot, PlayerLine, StatKey } from "@/lib/matchesApi";
+import {
+  buildBoxScoreCsv,
+  downloadCsv,
+  exportFileName,
+  exportPdf,
+  exportSections,
+  linesForView,
+} from "@/lib/boxScoreExport";
+import { type MatchSnapshot, type PlayerLine, type StatKey, periodLabel } from "@/lib/matchesApi";
+import { ScoringExportSheet } from "./ScoringExportSheet";
+import type { ScoringView } from "./ScoringQuarterTabs";
 
 interface ScoringBoxScoreSectionProps {
+  quarterTabs?: React.ReactNode;
   /** Data match dari server (nama pemain selalu mengikuti halaman Teams). */
   snapshot: MatchSnapshot;
-  /** true saat match dikunci atau akun ini bukan pemegang sesi. */
+  /** Periode yang ditampilkan, atau "total" (akumulasi semua periode). */
+  view: ScoringView;
+  /** true saat match dikunci atau akun ini bukan pemegang sesi (warna jersey ikut terkunci). */
   readOnly: boolean;
+  /** Tombol ◀ ▶ hanya muncul di periode aktif milik pemegang sesi; selain itu angka saja. */
+  canTap: boolean;
+  /** `player` = baris pemain di tampilan ini (angka periode itu). */
   onStep: (side: 1 | 2, player: PlayerLine, stat: StatKey, delta: 1 | -1) => void;
   onColorsChange: (colors: { team1Color?: string; team2Color?: string }) => void;
   /** Tombol sesi (Save and Lock / Unlock / Keluar) + status simpan, di kiri bawah. */
@@ -73,13 +86,13 @@ const HMD_COLOR_PRESETS = [
 ];
 
 /**
- * Capsule Counter Component with Red Left Arrow (decrement) and Green Right Arrow (increment)
+ * Penghitung satu statistik di dalam sel tabel:
+ * Berbentuk kapsul memanjang [ ◀  00  ▶ ] dengan panah SVG simetris dan angka tepat di tengah.
  */
 const CounterPill = ({
   value,
   variant = "green",
   label,
-  disabled = false,
   onIncrement,
   onDecrement,
 }: {
@@ -87,49 +100,58 @@ const CounterPill = ({
   variant?: "green" | "red";
   /** Mis. "2 Point Made Budi Santoso", untuk pembaca layar. */
   label: string;
-  disabled?: boolean;
   onIncrement: () => void;
   onDecrement: () => void;
 }) => {
   return (
     <div
-      className={`h-[24px] w-full max-w-[48px] min-w-0 mx-auto px-0.5 rounded-[4px] flex items-center justify-between select-none box-border border ${variant === "green"
-        ? "bg-[#c8e6c9] border-[#a5d6a7]"
-        : "bg-[#ffcdd2] border-[#ef9a9a]"
-        }`}
+      className={`mx-auto flex h-[28px] sm:h-[30px] w-[64px] sm:w-[68px] select-none items-center justify-between rounded-full border px-0.5 shadow-2xs ${
+        variant === "green"
+          ? "border-[#a5d6a7] bg-[#c8e6c9]"
+          : "border-[#ef9a9a] bg-[#ffcdd2]"
+      }`}
     >
       <button
         type="button"
         onClick={onDecrement}
-        disabled={disabled}
         aria-label={`Kurangi ${label}`}
-        className="w-3 h-3 flex items-center justify-center hover:scale-110 active:scale-90 transition-transform cursor-pointer shrink-0 disabled:cursor-default disabled:opacity-30 disabled:hover:scale-100"
         title="Kurang"
+        className="flex h-full w-[18px] sm:w-[20px] shrink-0 cursor-pointer items-center justify-center rounded-l-full transition-transform hover:scale-125 active:scale-90 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-black"
       >
-        <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-[#b71c1c]">
-          <path d="M18 4L6 12l12 8z" />
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 sm:h-[18px] sm:w-[18px] fill-[#b71c1c] shrink-0">
+          <path d="M16 4L6 12l10 8z" />
         </svg>
       </button>
-
-      <span className="text-[11px] font-black text-black font-mono leading-none tracking-tight">
+      <span className="flex-1 text-center font-mono text-[12px] sm:text-[13px] font-black leading-none tracking-tight text-black select-none">
         {String(value).padStart(2, "0")}
       </span>
-
       <button
         type="button"
         onClick={onIncrement}
-        disabled={disabled}
         aria-label={`Tambah ${label}`}
-        className="w-3 h-3 flex items-center justify-center hover:scale-110 active:scale-90 transition-transform cursor-pointer shrink-0 disabled:cursor-default disabled:opacity-30 disabled:hover:scale-100"
         title="Tambah"
+        className="flex h-full w-[18px] sm:w-[20px] shrink-0 cursor-pointer items-center justify-center rounded-r-full transition-transform hover:scale-125 active:scale-90 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-black"
       >
-        <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-[#1b5e20]">
-          <path d="M6 4l12 8-12 8z" />
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 sm:h-[18px] sm:w-[18px] fill-[#1b5e20] shrink-0">
+          <path d="M8 4l10 8-10 8z" />
         </svg>
       </button>
     </div>
   );
 };
+
+/** Angka statistik di tampilan baca saja (periode terkunci, Total). */
+const StaticCount = ({ value, variant = "green" }: { value: number; variant?: "green" | "red" }) => (
+  <div
+    className={`mx-auto flex h-[28px] sm:h-[30px] w-[64px] sm:w-[68px] select-none items-center justify-center rounded-full border px-0.5 ${
+      variant === "green" ? "border-[#a5d6a7] bg-[#c8e6c9]" : "border-[#ef9a9a] bg-[#ffcdd2]"
+    }`}
+  >
+    <span className="font-mono text-[12px] sm:text-[13px] font-black tracking-tight text-black">
+      {String(value).padStart(2, "0")}
+    </span>
+  </div>
+);
 
 const isColorDark = (hex: string) => {
   if (!hex || hex === "#ffffff") return false;
@@ -143,21 +165,27 @@ const isColorDark = (hex: string) => {
 };
 
 export const ScoringBoxScoreSection = ({
+  quarterTabs,
   snapshot,
+  view,
   readOnly,
+  canTap,
   onStep,
   onColorsChange,
   footer,
 }: ScoringBoxScoreSectionProps) => {
-  const exportRef = useRef<HTMLDivElement>(null);
-  const [isExporting, setIsExporting] = useState(false);
-  const [exportFormat, setExportFormat] = useState<"csv" | "pdf" | "png" | null>(null);
+  // Export PDF: lembar statis dirender di luar layar dulu, lalu difoto per halaman.
+  const sheetsRef = useRef<HTMLDivElement>(null);
+  const [exportFormat, setExportFormat] = useState<"csv" | "pdf" | null>(null);
+  const isExporting = exportFormat !== null;
 
   const team1 = snapshot.team1.name ?? "Team 1";
   const team2 = snapshot.team2.name ?? "Team 2";
+  const viewTitle = view === "total" ? "Total" : periodLabel(view);
   // Nama & nomor punggung dari server: nama mengikuti Teams, nomor mengikuti susunan pemain match ini.
-  const players1List = snapshot.team1.players;
-  const players2List = snapshot.team2.players;
+  // Angka statistik mengikuti tampilan: satu periode, atau Total semua periode.
+  const players1List = useMemo(() => linesForView(snapshot.team1.players, view), [snapshot.team1.players, view]);
+  const players2List = useMemo(() => linesForView(snapshot.team2.players, view), [snapshot.team2.players, view]);
 
   // Warna jersey: tampil langsung, disimpan ke server setelah berhenti mengetik/memilih.
   const [color1, setColor1] = useState(snapshot.team1.color);
@@ -197,7 +225,7 @@ export const ScoringBoxScoreSection = ({
   const stats2 = useMemo(() => toStats(players2List), [players2List]);
 
   const updateStat = (teamIdx: 1 | 2, playerId: string, statKey: StatKey, delta: 1 | -1) => {
-    if (readOnly) return;
+    if (!canTap) return;
     const player = (teamIdx === 1 ? players1List : players2List).find((p) => p.id === playerId);
     if (player) onStep(teamIdx, player, statKey, delta);
   };
@@ -220,348 +248,69 @@ export const ScoringBoxScoreSection = ({
     }, 0);
   };
 
+  // Skor di tampilan ini (periode atau Total) dan skor Total match untuk banner atas.
   const team1Score = getTeamTotalPoints(1, players1List);
   const team2Score = getTeamTotalPoints(2, players2List);
+  const sumPoints = (players: PlayerLine[]) => players.reduce((sum, player) => sum + player.points, 0);
+  const match1Score = sumPoints(snapshot.team1.players);
+  const match2Score = sumPoints(snapshot.team2.players);
 
-  // Handle Export to Image (PNG)
-  const handleExportPNG = async () => {
-    if (!exportRef.current || isExporting) return;
-    try {
-      setIsExporting(true);
-      setExportFormat("png");
-      const el = exportRef.current;
+  // Dari tab mana pun: satu file berisi Quarter 1–4 (+ OT kalau ada), lalu Total.
+  const sections = exportSections(snapshot);
+  const fileBase = exportFileName(snapshot);
 
-      // Temporarily enforce full unconstrained width during export so nothing wraps or shrinks
-      const originalWidth = el.style.width;
-      const originalMinWidth = el.style.minWidth;
-      // Use a definite width: max-content makes the percentage-column tables expand to ~1,000,000px
-      el.style.width = "1280px";
-      el.style.minWidth = "1280px";
-
-      // Force layout recalculation
-      void el.offsetHeight;
-
-      const dataUrl = await toPng(el, {
-        quality: 1,
-        pixelRatio: 2,
-        backgroundColor: "#ffffff",
-        cacheBust: true,
-        width: el.scrollWidth,
-        height: el.scrollHeight,
-      });
-
-      // Restore original inline styles
-      el.style.width = originalWidth;
-      el.style.minWidth = originalMinWidth;
-
-      const link = document.createElement("a");
-      link.download = `IBL_2K26_Table_${team1}_vs_${team2}.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error("Export PNG failed:", err);
-      alert("Gagal melakukan export gambar PNG. Silakan coba lagi.");
-    } finally {
-      setIsExporting(false);
-      setExportFormat(null);
-    }
-  };
-
-  // Handle Export to PDF
-  const handleExportPDF = async () => {
-    if (!exportRef.current || isExporting) return;
-    try {
-      setIsExporting(true);
-      setExportFormat("pdf");
-      const el = exportRef.current;
-
-      // Temporarily enforce full unconstrained width during export so nothing wraps or shrinks
-      const originalWidth = el.style.width;
-      const originalMinWidth = el.style.minWidth;
-      // Use a definite width: max-content makes the percentage-column tables expand to ~1,000,000px
-      el.style.width = "1280px";
-      el.style.minWidth = "1280px";
-
-      // Force layout recalculation
-      void el.offsetHeight;
-
-      const dataUrl = await toPng(el, {
-        quality: 1,
-        pixelRatio: 2,
-        backgroundColor: "#ffffff",
-        cacheBust: true,
-        width: el.scrollWidth,
-        height: el.scrollHeight,
-      });
-
-      // Restore original inline styles
-      el.style.width = originalWidth;
-      el.style.minWidth = originalMinWidth;
-
-      const img = new Image();
-      img.src = dataUrl;
-      await new Promise((resolve) => {
-        img.onload = resolve;
-      });
-
-      const pdf = new jsPDF({
-        orientation: "landscape",
-        unit: "mm",
-        format: "a4",
-      });
-
-      const pageWidth = pdf.internal.pageSize.getWidth(); // 297 mm
-      const pageHeight = pdf.internal.pageSize.getHeight(); // 210 mm
-
-      const margin = 8;
-      const availableWidth = pageWidth - margin * 2;
-      const availableHeight = pageHeight - margin * 2;
-
-      // Fit proportionately within available page dimensions
-      const widthRatio = availableWidth / img.naturalWidth;
-      const heightRatio = availableHeight / img.naturalHeight;
-      const scale = Math.min(widthRatio, heightRatio);
-
-      const renderWidth = img.naturalWidth * scale;
-      const renderHeight = img.naturalHeight * scale;
-
-      const xPos = (pageWidth - renderWidth) / 2;
-      const yPos = (pageHeight - renderHeight) / 2;
-
-      pdf.addImage(dataUrl, "PNG", xPos, yPos, renderWidth, renderHeight, undefined, "FAST");
-      pdf.save(`IBL_2K26_Table_${team1}_vs_${team2}.pdf`);
-    } catch (err) {
-      console.error("Export PDF failed:", err);
-      alert("Gagal melakukan export PDF. Silakan coba lagi.");
-    } finally {
-      setIsExporting(false);
-      setExportFormat(null);
-    }
-  };
-
-  // Handle Export to CSV & Excel (.xlsx) with clean columns and formatting
   const handleExportCSV = () => {
     if (isExporting) return;
     setExportFormat("csv");
-
-    const formatPercent = (made: number, att: number) => {
-      if (!att || att <= 0) return "0.0%";
-      return `${((made / att) * 100).toFixed(1)}%`;
-    };
-
-    const buildTeamData = (
-      teamName: string,
-      teamTotalScore: number,
-      playersList: PlayerLine[],
-      s: { [id: string]: PlayerStats }
-    ) => {
-      let totPts = 0;
-      let tot2PM = 0;
-      let tot2PMiss = 0;
-      let tot3PM = 0;
-      let tot3PMiss = 0;
-      let totFTM = 0;
-      let totFTMiss = 0;
-      let totAst = 0;
-      let totOreb = 0;
-      let totDreb = 0;
-      let totFoul = 0;
-
-      const playerRows = playersList.map((p) => {
-        const ps = s[p.id] || initialStats();
-        const pts = getPlayerPoints(ps);
-        const twoPM = ps.twoPointMade || 0;
-        const twoPMiss = ps.twoPointMiss || 0;
-        const twoPA = twoPM + twoPMiss;
-        const threePM = ps.threePointMade || 0;
-        const threePMiss = ps.threePointMiss || 0;
-        const threePA = threePM + threePMiss;
-        const ftM = ps.freethrowMade || 0;
-        const ftMiss = ps.freethrowMiss || 0;
-        const ftA = ftM + ftMiss;
-        const ast = ps.assist || 0;
-        const oreb = ps.reboundOff || 0;
-        const dreb = ps.reboundDef || 0;
-        const reb = oreb + dreb;
-        const foul = ps.foul || 0;
-
-        totPts += pts;
-        tot2PM += twoPM;
-        tot2PMiss += twoPMiss;
-        tot3PM += threePM;
-        tot3PMiss += threePMiss;
-        totFTM += ftM;
-        totFTMiss += ftMiss;
-        totAst += ast;
-        totOreb += oreb;
-        totDreb += dreb;
-        totFoul += foul;
-
-        return [
-          p.nopung || "-",
-          p.name || "-",
-          pts,
-          twoPM,
-          twoPMiss,
-          twoPA,
-          formatPercent(twoPM, twoPA),
-          threePM,
-          threePMiss,
-          threePA,
-          formatPercent(threePM, threePA),
-          ftM,
-          ftMiss,
-          ftA,
-          formatPercent(ftM, ftA),
-          ast,
-          oreb,
-          dreb,
-          reb,
-          foul,
-        ];
-      });
-
-      const tot2PA = tot2PM + tot2PMiss;
-      const tot3PA = tot3PM + tot3PMiss;
-      const totFTA = totFTM + totFTMiss;
-      const totReb = totOreb + totDreb;
-
-      const totalRow = [
-        "TOTAL",
-        `${teamName} TOTAL`,
-        totPts,
-        tot2PM,
-        tot2PMiss,
-        tot2PA,
-        formatPercent(tot2PM, tot2PA),
-        tot3PM,
-        tot3PMiss,
-        tot3PA,
-        formatPercent(tot3PM, tot3PA),
-        totFTM,
-        totFTMiss,
-        totFTA,
-        formatPercent(totFTM, totFTA),
-        totAst,
-        totOreb,
-        totDreb,
-        totReb,
-        totFoul,
-      ];
-
-      return {
-        playerRows,
-        totalRow,
-      };
-    };
-
-    const team1Data = buildTeamData(team1, team1Score, players1List, stats1);
-    const team2Data = buildTeamData(team2, team2Score, players2List, stats2);
-
-    const now = new Date();
-    const formattedDate = now.toLocaleDateString("id-ID", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-    const headers = [
-      "NO",
-      "NAMA PEMAIN",
-      "PTS",
-      "2PM",
-      "2PMISS",
-      "2PA",
-      "2P%",
-      "3PM",
-      "3PMISS",
-      "3PA",
-      "3P%",
-      "FTM",
-      "FTMISS",
-      "FTA",
-      "FT%",
-      "AST",
-      "OREB",
-      "DREB",
-      "REB",
-      "FOUL",
-    ];
-
-    // 1. Generate real Excel (.xlsx) file with separate columns and custom column widths
-    const aoaData: Array<Array<string | number>> = [
-      ["IBL 2K26 - OFFICIAL BASKETBALL BOX SCORE REPORT"],
-      ["Match", `${team1} vs ${team2}`],
-      ["Final Score", `${team1} (${team1Score}) - (${team2Score}) ${team2}`],
-      ["Tanggal & Waktu", formattedDate],
-      [],
-      [`--- TEAM: ${team1} (Total Points: ${team1Score}) ---`],
-      headers,
-      ...team1Data.playerRows,
-      team1Data.totalRow,
-      [],
-      [`--- TEAM: ${team2} (Total Points: ${team2Score}) ---`],
-      headers,
-      ...team2Data.playerRows,
-      team2Data.totalRow,
-    ];
-
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(aoaData);
-
-    // Auto-fit column widths so text is never truncated in Excel
-    ws["!cols"] = [
-      { wch: 8 },  // NO
-      { wch: 28 }, // NAMA PEMAIN
-      { wch: 8 },  // PTS
-      { wch: 8 },  // 2PM
-      { wch: 9 },  // 2PMISS
-      { wch: 8 },  // 2PA
-      { wch: 8 },  // 2P%
-      { wch: 8 },  // 3PM
-      { wch: 9 },  // 3PMISS
-      { wch: 8 },  // 3PA
-      { wch: 8 },  // 3P%
-      { wch: 8 },  // FTM
-      { wch: 9 },  // FTMISS
-      { wch: 8 },  // FTA
-      { wch: 8 },  // FT%
-      { wch: 8 },  // AST
-      { wch: 8 },  // OREB
-      { wch: 8 },  // DREB
-      { wch: 8 },  // REB
-      { wch: 8 },  // FOUL
-    ];
-
-    XLSX.utils.book_append_sheet(wb, ws, "Box Score");
-    XLSX.writeFile(wb, `BoxScore_${team1}_vs_${team2}.xlsx`);
-
-    // 2. Also export CSV with sep=, directive so Indonesian Windows Excel splits columns perfectly!
-    const csvRows = aoaData.map((row) =>
-      row
-        .map((cell) => {
-          const str = String(cell ?? "");
-          return str.includes(",") || str.includes('"') || str.includes("\n")
-            ? `"${str.replace(/"/g, '""')}"`
-            : str;
-        })
-        .join(",")
-    );
-
-    const csvContent = "\uFEFFsep=,\r\n" + csvRows.join("\r\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `BoxScore_${team1}_vs_${team2}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
+    downloadCsv(buildBoxScoreCsv(snapshot, sections), `${fileBase}.csv`);
     setTimeout(() => setExportFormat(null), 800);
+  };
+
+  const handleExportPdf = () => {
+    if (!isExporting) setExportFormat("pdf");
+  };
+
+  // Jalan setelah lembar export ikut dirender: satu halaman PDF per lembar.
+  useEffect(() => {
+    if (exportFormat !== "pdf") return;
+    const container = sheetsRef.current;
+    if (!container) return;
+    let active = true;
+    const run = async () => {
+      try {
+        await document.fonts?.ready;
+        await exportPdf(Array.from(container.children) as HTMLElement[], `${fileBase}.pdf`);
+      } catch (err) {
+        console.error("Export PDF gagal:", err);
+        alert("Gagal membuat file PDF. Silakan coba lagi.");
+      } finally {
+        if (active) setExportFormat(null);
+      }
+    };
+    void run();
+    return () => {
+      active = false;
+    };
+  }, [exportFormat, fileBase]);
+
+  /** Satu sel statistik: ◀ ▶ di periode aktif, angka saja di tampilan baca saja. */
+  const statCell = (teamIdx: 1 | 2, player: PlayerLine, stat: StatKey, variant: "green" | "red", teamName: string) => {
+    const value = player[stat] || 0;
+    return (
+      <div className="flex h-full min-h-[40px] w-full items-center justify-center">
+        {!canTap ? (
+          <StaticCount value={value} variant={variant} />
+        ) : (
+          <CounterPill
+            value={value}
+            variant={variant}
+            label={`${STAT_LABEL[stat]} ${player.name}, ${teamName}, ${viewTitle}`}
+            onIncrement={() => updateStat(teamIdx, player.id, stat, 1)}
+            onDecrement={() => updateStat(teamIdx, player.id, stat, -1)}
+          />
+        )}
+      </div>
+    );
   };
 
   const renderScoringTable = (
@@ -595,20 +344,14 @@ export const ScoringBoxScoreSection = ({
     return (
       <div className="w-full flex flex-col">
         <table className="w-full border-collapse border border-black bg-white text-black font-poppins text-[11px] table-fixed">
+          {/* Nama, NO, dan Total lebar tetap; 10 kolom statistik berbagi sisa lebar sama rata. */}
           <colgroup>
-            <col className="w-[13%]" />
-            <col className="w-[5%]" />
-            <col className="w-[6%]" />
-            <col className="w-[7.6%]" />
-            <col className="w-[7.6%]" />
-            <col className="w-[7.6%]" />
-            <col className="w-[7.6%]" />
-            <col className="w-[7.6%]" />
-            <col className="w-[7.6%]" />
-            <col className="w-[7.6%]" />
-            <col className="w-[7.6%]" />
-            <col className="w-[7.6%]" />
-            <col className="w-[7.6%]" />
+            <col style={{ width: 72 }} />
+            <col style={{ width: 26 }} />
+            <col style={{ width: 34 }} />
+            {Array.from({ length: 10 }, (_, index) => (
+              <col key={index} />
+            ))}
           </colgroup>
           <thead style={{ backgroundColor: headerBg, color: headerText }}>
             {/* Team Title Row */}
@@ -675,11 +418,11 @@ export const ScoringBoxScoreSection = ({
               return (
                 <tr
                   key={p.id}
-                  className={`transition-colors ${isEvenRow ? "bg-[#e8ecef]" : "bg-white"
+                  className={`h-[44px] transition-colors ${isEvenRow ? "bg-[#e8ecef]" : "bg-white"
                     } hover:brightness-95`}
                 >
                   {/* Nama (Static Text) */}
-                  <td className="border border-black px-2 py-1 text-[11px] font-semibold text-gray-900 truncate" title={p.name}>
+                  <td className="border border-black px-1.5 py-1 text-[11px] font-semibold text-gray-900 truncate" title={p.name}>
                     {p.name}
                   </td>
 
@@ -694,123 +437,53 @@ export const ScoringBoxScoreSection = ({
                   </td>
 
                   {/* 2 Point Made */}
-                  <td className="border border-black px-0.5 py-1 text-center align-middle overflow-hidden">
-                    <CounterPill
-                      value={pStats.twoPointMade}
-                      variant="green"
-                      label={`${STAT_LABEL.twoPointMade} ${p.name}, ${currentTeam}`}
-                      disabled={readOnly}
-                      onIncrement={() => updateStat(teamIdx, p.id, "twoPointMade", 1)}
-                      onDecrement={() => updateStat(teamIdx, p.id, "twoPointMade", -1)}
-                    />
+                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                    {statCell(teamIdx, p, "twoPointMade", "green", currentTeam)}
                   </td>
 
                   {/* 2 Point Miss */}
-                  <td className="border border-black px-0.5 py-1 text-center align-middle overflow-hidden">
-                    <CounterPill
-                      value={pStats.twoPointMiss}
-                      variant="red"
-                      label={`${STAT_LABEL.twoPointMiss} ${p.name}, ${currentTeam}`}
-                      disabled={readOnly}
-                      onIncrement={() => updateStat(teamIdx, p.id, "twoPointMiss", 1)}
-                      onDecrement={() => updateStat(teamIdx, p.id, "twoPointMiss", -1)}
-                    />
+                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                    {statCell(teamIdx, p, "twoPointMiss", "red", currentTeam)}
                   </td>
 
                   {/* 3 Point Made */}
-                  <td className="border border-black px-0.5 py-1 text-center align-middle overflow-hidden">
-                    <CounterPill
-                      value={pStats.threePointMade}
-                      variant="green"
-                      label={`${STAT_LABEL.threePointMade} ${p.name}, ${currentTeam}`}
-                      disabled={readOnly}
-                      onIncrement={() => updateStat(teamIdx, p.id, "threePointMade", 1)}
-                      onDecrement={() => updateStat(teamIdx, p.id, "threePointMade", -1)}
-                    />
+                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                    {statCell(teamIdx, p, "threePointMade", "green", currentTeam)}
                   </td>
 
                   {/* 3 Point Miss */}
-                  <td className="border border-black px-0.5 py-1 text-center align-middle overflow-hidden">
-                    <CounterPill
-                      value={pStats.threePointMiss}
-                      variant="red"
-                      label={`${STAT_LABEL.threePointMiss} ${p.name}, ${currentTeam}`}
-                      disabled={readOnly}
-                      onIncrement={() => updateStat(teamIdx, p.id, "threePointMiss", 1)}
-                      onDecrement={() => updateStat(teamIdx, p.id, "threePointMiss", -1)}
-                    />
+                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                    {statCell(teamIdx, p, "threePointMiss", "red", currentTeam)}
                   </td>
 
                   {/* Assist */}
-                  <td className="border border-black px-0.5 py-1 text-center align-middle overflow-hidden">
-                    <CounterPill
-                      value={pStats.assist}
-                      variant="green"
-                      label={`${STAT_LABEL.assist} ${p.name}, ${currentTeam}`}
-                      disabled={readOnly}
-                      onIncrement={() => updateStat(teamIdx, p.id, "assist", 1)}
-                      onDecrement={() => updateStat(teamIdx, p.id, "assist", -1)}
-                    />
+                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                    {statCell(teamIdx, p, "assist", "green", currentTeam)}
                   </td>
 
                   {/* Freethrow Made */}
-                  <td className="border border-black px-0.5 py-1 text-center align-middle overflow-hidden">
-                    <CounterPill
-                      value={pStats.freethrowMade}
-                      variant="green"
-                      label={`${STAT_LABEL.freethrowMade} ${p.name}, ${currentTeam}`}
-                      disabled={readOnly}
-                      onIncrement={() => updateStat(teamIdx, p.id, "freethrowMade", 1)}
-                      onDecrement={() => updateStat(teamIdx, p.id, "freethrowMade", -1)}
-                    />
+                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                    {statCell(teamIdx, p, "freethrowMade", "green", currentTeam)}
                   </td>
 
                   {/* Freethrow Miss */}
-                  <td className="border border-black px-0.5 py-1 text-center align-middle overflow-hidden">
-                    <CounterPill
-                      value={pStats.freethrowMiss}
-                      variant="red"
-                      label={`${STAT_LABEL.freethrowMiss} ${p.name}, ${currentTeam}`}
-                      disabled={readOnly}
-                      onIncrement={() => updateStat(teamIdx, p.id, "freethrowMiss", 1)}
-                      onDecrement={() => updateStat(teamIdx, p.id, "freethrowMiss", -1)}
-                    />
+                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                    {statCell(teamIdx, p, "freethrowMiss", "red", currentTeam)}
                   </td>
 
                   {/* Rebound Off */}
-                  <td className="border border-black px-0.5 py-1 text-center align-middle overflow-hidden">
-                    <CounterPill
-                      value={pStats.reboundOff}
-                      variant="green"
-                      label={`${STAT_LABEL.reboundOff} ${p.name}, ${currentTeam}`}
-                      disabled={readOnly}
-                      onIncrement={() => updateStat(teamIdx, p.id, "reboundOff", 1)}
-                      onDecrement={() => updateStat(teamIdx, p.id, "reboundOff", -1)}
-                    />
+                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                    {statCell(teamIdx, p, "reboundOff", "green", currentTeam)}
                   </td>
 
                   {/* Rebound Def */}
-                  <td className="border border-black px-0.5 py-1 text-center align-middle overflow-hidden">
-                    <CounterPill
-                      value={pStats.reboundDef}
-                      variant="green"
-                      label={`${STAT_LABEL.reboundDef} ${p.name}, ${currentTeam}`}
-                      disabled={readOnly}
-                      onIncrement={() => updateStat(teamIdx, p.id, "reboundDef", 1)}
-                      onDecrement={() => updateStat(teamIdx, p.id, "reboundDef", -1)}
-                    />
+                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                    {statCell(teamIdx, p, "reboundDef", "green", currentTeam)}
                   </td>
 
                   {/* Foul */}
-                  <td className="border border-black px-0.5 py-1 text-center align-middle overflow-hidden">
-                    <CounterPill
-                      value={pStats.foul}
-                      variant="red"
-                      label={`${STAT_LABEL.foul} ${p.name}, ${currentTeam}`}
-                      disabled={readOnly}
-                      onIncrement={() => updateStat(teamIdx, p.id, "foul", 1)}
-                      onDecrement={() => updateStat(teamIdx, p.id, "foul", -1)}
-                    />
+                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                    {statCell(teamIdx, p, "foul", "red", currentTeam)}
                   </td>
                 </tr>
               );
@@ -841,13 +514,14 @@ export const ScoringBoxScoreSection = ({
   return (
     <div className="flex flex-col w-full">
       {/* Main Box Score Card */}
-      <div className="relative bg-white rounded-[12px] shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)] w-full py-8 px-4 lg:px-8 flex flex-col items-center">
+      <div className="relative bg-white rounded-[12px] shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)] w-full py-6 px-2 sm:px-4 flex flex-col items-center">
+        {quarterTabs && <div className="mb-6 w-full flex justify-center">{quarterTabs}</div>}
 
         {/* Static Top Header (Teams & Score Banner with Color Pickers) */}
-        <div className="w-full max-w-full flex flex-row items-center justify-between gap-2 sm:gap-4 mb-8 px-1 sm:px-2">
+        <div className="w-full max-w-full flex flex-row items-center justify-between gap-2 sm:gap-4 mb-6 px-1 sm:px-2">
 
           {/* Team 1 Header with Custom Color Picker */}
-          <div className="flex items-center gap-2 sm:gap-3 relative flex-1 min-w-0 justify-start">
+          <div className="flex items-center gap-2 sm:gap-4 relative flex-1 min-w-0 justify-start">
             <div className="relative flex items-center gap-2 shrink-0">
               <button
                 type="button"
@@ -919,31 +593,25 @@ export const ScoringBoxScoreSection = ({
             </h2>
 
             <div
-              className="font-extrabold text-lg sm:text-xl md:text-2xl px-3 sm:px-4 lg:px-5 py-1 rounded-[10px] min-w-[45px] sm:min-w-[55px] text-center leading-tight shadow-md shrink-0"
-              style={{
-                backgroundColor: color1 === "#ffffff" ? "#afb3b6" : color1,
-                color: color1 === "#ffffff" ? "#1c1b1f" : "#ffffff",
-              }}
+              className="font-black text-xl sm:text-2xl md:text-3xl px-4 sm:px-6 py-1.5 sm:py-2 rounded-[10px] bg-[#aeb6b8] text-[#1c1b1f] min-w-[65px] sm:min-w-[80px] text-center leading-tight shadow-xs shrink-0 select-none"
             >
-              {team1Score}
+              {view === "total" ? match1Score : team1Score}
             </div>
           </div>
 
-          {/* Central VS */}
-          <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-[#8b0000] font-poppins leading-none select-none px-2 shrink-0">
-            VS
+          {/* Tengah: VS */}
+          <div className="flex shrink-0 items-center justify-center px-2 sm:px-4 font-poppins select-none">
+            <span className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-[#8b0000] leading-none tracking-wider">
+              VS
+            </span>
           </div>
 
           {/* Team 2 Header with Custom Color Picker */}
-          <div className="flex items-center gap-2 sm:gap-3 relative flex-1 min-w-0 justify-end">
+          <div className="flex items-center gap-2 sm:gap-4 relative flex-1 min-w-0 justify-end">
             <div
-              className="font-extrabold text-lg sm:text-xl md:text-2xl px-3 sm:px-4 lg:px-5 py-1 rounded-[10px] min-w-[45px] sm:min-w-[55px] text-center leading-tight shadow-md shrink-0"
-              style={{
-                backgroundColor: color2 === "#ffffff" ? "#afb3b6" : color2,
-                color: color2 === "#ffffff" ? "#1c1b1f" : "#ffffff",
-              }}
+              className="font-black text-xl sm:text-2xl md:text-3xl px-4 sm:px-6 py-1.5 sm:py-2 rounded-[10px] bg-[#aeb6b8] text-[#1c1b1f] min-w-[65px] sm:min-w-[80px] text-center leading-tight shadow-xs shrink-0 select-none"
             >
-              {team2Score}
+              {view === "total" ? match2Score : team2Score}
             </div>
 
             <h2
@@ -1021,54 +689,17 @@ export const ScoringBoxScoreSection = ({
 
         {/* Scrollable Container on Screen */}
         <div className="w-full overflow-x-auto pb-4">
-          {/* Target for PDF & PNG Export (Full Unclipped Width) */}
-          <div ref={exportRef} className="w-full min-w-[1280px] flex flex-col gap-4 bg-white p-5 rounded-xl">
-            {/* Match Header with Playing HMD Teams */}
-            <div className="w-full flex flex-row items-center justify-between px-3 pb-3 border-b-2 border-black">
-              <div className="flex items-center gap-3">
-                <h3
-                  className="font-black text-[22px] font-poppins uppercase tracking-wide whitespace-nowrap"
-                  style={{ color: color1 === "#ffffff" ? "#1c1b1f" : color1 }}
-                >
-                  {team1}
-                </h3>
-                <span
-                  className="font-extrabold text-[13px] font-poppins px-3 py-0.5 rounded text-white whitespace-nowrap shrink-0"
-                  style={{ backgroundColor: color1 === "#ffffff" ? "#202224" : color1 }}
-                >
-                  {team1Score} PTS
-                </span>
-              </div>
-
-              <span className="font-black text-[18px] text-[#8b0000] font-poppins whitespace-nowrap shrink-0 mx-4">
-                VS
-              </span>
-
-              <div className="flex items-center gap-3">
-                <span
-                  className="font-extrabold text-[13px] font-poppins px-3 py-0.5 rounded text-white whitespace-nowrap shrink-0"
-                  style={{ backgroundColor: color2 === "#ffffff" ? "#202224" : color2 }}
-                >
-                  {team2Score} PTS
-                </span>
-                <h3
-                  className="font-black text-[22px] font-poppins uppercase tracking-wide whitespace-nowrap"
-                  style={{ color: color2 === "#ffffff" ? "#1c1b1f" : color2 }}
-                >
-                  {team2}
-                </h3>
-              </div>
-            </div>
-
+          {/* min-w: kolom statistik tetap ≥ 49 px supaya tombol ◀ ▶ ≥ 24 px; di bawah 1366 px tabel digeser. */}
+          <div className="w-full min-w-[1280px] flex flex-col gap-3 bg-white p-1 rounded-xl">
             {/* Side-by-Side Dual Tables */}
-            <div className="flex flex-row items-start gap-4">
+            <div className="flex flex-row items-start gap-2">
               {/* Table Team 1 */}
-              <div className="flex-1 min-w-[600px]">
+              <div className="min-w-0 flex-1">
                 {renderScoringTable(1, team1, players1List, color1)}
               </div>
 
               {/* Table Team 2 */}
-              <div className="flex-1 min-w-[600px]">
+              <div className="min-w-0 flex-1">
                 {renderScoringTable(2, team2, players2List, color2)}
               </div>
             </div>
@@ -1085,7 +716,7 @@ export const ScoringBoxScoreSection = ({
             onClick={handleExportCSV}
             disabled={isExporting}
             className="shrink-0 group relative inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-white hover:bg-emerald-50 text-gray-800 hover:text-emerald-800 border border-gray-200 hover:border-emerald-300 font-poppins text-xs font-semibold shadow-xs hover:shadow-sm active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-            title="Unduh data dalam format CSV & Excel"
+            title="Satu file CSV berisi Quarter 1 sampai Total (bisa dibuka di Excel)"
           >
             <div className="w-7 h-7 rounded-full bg-emerald-100/90 text-emerald-700 flex items-center justify-center shrink-0">
               {exportFormat === "csv" ? (
@@ -1108,10 +739,10 @@ export const ScoringBoxScoreSection = ({
           {/* Export PDF */}
           <button
             type="button"
-            onClick={handleExportPDF}
+            onClick={handleExportPdf}
             disabled={isExporting}
             className="shrink-0 group relative inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-[#d92d20] hover:bg-[#b42318] text-white font-poppins text-xs font-semibold shadow-xs hover:shadow-md active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-            title="Unduh dokumen box score resmi ukuran A4 Landscape siap cetak"
+            title="Satu file PDF A4 landscape: satu halaman per quarter, lalu Total"
           >
             <div className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0">
               {exportFormat === "pdf" ? (
@@ -1133,37 +764,21 @@ export const ScoringBoxScoreSection = ({
             </div>
           </button>
 
-          {/* Export PNG */}
-          <button
-            type="button"
-            onClick={handleExportPNG}
-            disabled={isExporting}
-            className="shrink-0 group relative inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-[#202224] hover:bg-black text-white font-poppins text-xs font-semibold shadow-xs hover:shadow-md active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-            title="Unduh box score resolusi tinggi format gambar PNG"
-          >
-            <div className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0">
-              {exportFormat === "png" ? (
-                <svg className="w-3.5 h-3.5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5.04-6.71l-2.75 3.54-1.96-2.36L6.5 17h11l-3.54-4.71z" />
-                </svg>
-              )}
-            </div>
-            <div className="flex flex-col text-left">
-              <span className="font-bold text-[13px] leading-tight">
-                {exportFormat === "png" ? "Exporting..." : "Export PNG"}
-              </span>
-              <span className="text-[10px] text-white/80 font-normal leading-none mt-0.5">.png / HD Image</span>
-            </div>
-          </button>
           </div>
         </div>
 
       </div>
+
+      {/* Lembar export PDF: dirender di luar layar hanya selama export berjalan. */}
+      {exportFormat === "pdf" && (
+        <div aria-hidden="true" className="pointer-events-none fixed top-0 left-[-20000px]">
+          <div ref={sheetsRef} className="flex w-[1280px] flex-col gap-6 bg-white">
+            {sections.map((section) => (
+              <ScoringExportSheet key={String(section)} snapshot={snapshot} section={section} color1={color1} color2={color2} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
