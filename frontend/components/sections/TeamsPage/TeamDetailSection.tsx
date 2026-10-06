@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
+import { Pencil } from "lucide-react";
 
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
 import { canEditData, useAuthStore } from "@/lib/store/useAuthStore";
 import { getTeam } from "@/lib/teamsApi";
 import { TeamLogo } from "./TeamLogo";
+import { TeamEditInfoModal } from "./TeamEditInfoModal";
 
 interface TeamDetailSectionProps {
   teamId?: string;
@@ -21,6 +23,7 @@ export const TeamDetailSection = ({
   onEdit,
 }: TeamDetailSectionProps) => {
   const canEdit = canEditData(useAuthStore((state) => state.user?.role));
+  const [isEditInfoOpen, setIsEditInfoOpen] = useState(false);
   const lookup = teamId ?? teamName;
   const loadTeam = useCallback(() => getTeam(lookup), [lookup]);
   const { state, reload } = useAsyncData(loadTeam);
@@ -45,23 +48,47 @@ export const TeamDetailSection = ({
 
       {/* Main White Card Container */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 w-full">
-        {/* Card Header: Logo & Team Name */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="relative w-16 h-16">
-            <TeamLogo
-              src={team?.logo}
-              alt={`Logo ${displayTeamName}`}
-              sizes="64px"
-              className="object-contain drop-shadow-sm"
-            />
+        {/* Card Header: Logo, Team Name, Group, and Edit Button */}
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <div className="relative w-16 h-16 shrink-0">
+              <TeamLogo
+                src={team?.logo}
+                alt={`Logo ${displayTeamName}`}
+                sizes="64px"
+                className="object-contain drop-shadow-sm"
+              />
+            </div>
+            <div className="flex flex-col">
+              <h2 className="text-xl font-bold text-[#2d3748] tracking-wide uppercase">
+                {displayTeamName}
+              </h2>
+              <p className="text-gray-500 font-medium">{displayGroup}</p>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <h2 className="text-xl font-bold text-[#2d3748] tracking-wide uppercase">
-              {displayTeamName}
-            </h2>
-            <p className="text-gray-500 font-medium">{displayGroup}</p>
-          </div>
+
+          {canEdit && team && (
+            <button
+              type="button"
+              onClick={() => setIsEditInfoOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 hover:border-teal-600 bg-white hover:bg-teal-50 text-xs font-semibold text-gray-700 hover:text-teal-800 transition-colors shadow-2xs cursor-pointer shrink-0"
+            >
+              <Pencil className="w-3.5 h-3.5 text-teal-600" />
+              <span>Edit Nama & Grup</span>
+            </button>
+          )}
         </div>
+
+        {team && (
+          <TeamEditInfoModal
+            open={isEditInfoOpen}
+            team={team}
+            onClose={() => setIsEditInfoOpen(false)}
+            onSuccess={() => {
+              reload();
+            }}
+          />
+        )}
 
         <hr className="border-t border-[#94B8BC] opacity-50 mb-8" />
 

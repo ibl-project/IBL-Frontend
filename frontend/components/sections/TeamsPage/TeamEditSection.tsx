@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useRef, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
 import { canEditData, useAuthStore } from "@/lib/store/useAuthStore";
@@ -19,6 +19,7 @@ import {
 } from "@/lib/teamsApi";
 import { TeamLogo } from "./TeamLogo";
 import { TeamLogoField } from "./TeamLogoField";
+import { TeamEditInfoModal } from "./TeamEditInfoModal";
 
 interface TeamEditSectionProps {
   teamId?: string;
@@ -200,6 +201,11 @@ interface TeamEditFormProps {
 }
 
 const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => {
+  const [teamName, setTeamName] = useState(team.name);
+  const [teamGroup, setTeamGroup] = useState(team.group);
+  const [teamGroupId, setTeamGroupId] = useState(team.groupId);
+  const [isEditInfoOpen, setIsEditInfoOpen] = useState(false);
+
   const [rows, setRows] = useState<RosterRow[]>(() =>
     team.players.map((player) => ({
       key: player.id,
@@ -307,7 +313,7 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
           isCaptain: row.isCaptain,
         })),
       );
-      onSave?.();
+      onSave?.(teamName);
     } catch (err) {
       setSaveError(`Gagal menyimpan: ${errorMessage(err)}`);
       setIsSaving(false);
@@ -316,16 +322,39 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
 
   return (
     <>
-      {/* Card Header: Logo & Team Name (Read-only) */}
-      <div className="flex items-center gap-4 mb-6">
-        <div className="relative w-16 h-16 shrink-0">
-          <TeamLogo src={logo} alt={`Logo ${team.name}`} sizes="64px" className="object-contain drop-shadow-sm" />
+      {/* Card Header: Logo, Team Name, Group, and Edit Button */}
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <div className="relative w-16 h-16 shrink-0">
+            <TeamLogo src={logo} alt={`Logo ${teamName}`} sizes="64px" className="object-contain drop-shadow-sm" />
+          </div>
+          <div className="flex flex-col">
+            <h2 className="text-xl font-bold text-[#2d3748] tracking-wide uppercase">{teamName}</h2>
+            <p className="text-gray-500 font-medium">{teamGroup ?? "Belum masuk grup"}</p>
+          </div>
         </div>
-        <div className="flex flex-col">
-          <h2 className="text-xl font-bold text-[#2d3748] tracking-wide uppercase">{team.name}</h2>
-          <p className="text-gray-500 font-medium">{team.group ?? "Belum masuk grup"}</p>
-        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsEditInfoOpen(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 hover:border-teal-600 bg-white hover:bg-teal-50 text-xs font-semibold text-gray-700 hover:text-teal-800 transition-colors shadow-2xs cursor-pointer shrink-0"
+        >
+          <Pencil className="w-3.5 h-3.5 text-teal-600" />
+          <span>Edit Nama & Grup</span>
+        </button>
       </div>
+
+      <TeamEditInfoModal
+        open={isEditInfoOpen}
+        team={{ id: team.id, name: teamName, group: teamGroup, groupId: teamGroupId }}
+        onClose={() => setIsEditInfoOpen(false)}
+        onSuccess={(updated) => {
+          setTeamName(updated.name);
+          setTeamGroup(updated.group);
+          setTeamGroupId(updated.groupId);
+          onSave?.(updated.name);
+        }}
+      />
 
       <hr className="border-t border-[#94B8BC] opacity-50 mb-8" />
 
