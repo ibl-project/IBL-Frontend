@@ -19,7 +19,7 @@ This repository contains the frontend web application for the **IBL 2K26** editi
 - Base URL: `NEXT_PUBLIC_API_URL` (dev falls back to `http://localhost:4000/api`).
 - Call the API only through `lib/apiClient.ts` (`apiFetch`: bearer token, shared refresh on 401, raw file upload), `lib/teamsApi.ts`, and `lib/matchesApi.ts`. Never call `fetch` directly. Never put tokens in `localStorage` or `sessionStorage`: the access token stays in memory and the refresh token is an httpOnly cookie.
 - Live match data: `lib/hooks/useMatchLive.ts` (snapshot + SSE). Scoring writes: `lib/hooks/useScoringSession.ts` (one account per match, 30 s heartbeat) and `lib/hooks/useAutoSaveActions.ts` (one UUID `actionId` per tap, retried with the same id).
-- There are no quarters or periods: one match is one scoreboard. Save and Lock finishes a match; Unlock reopens it for correction.
+- Scoring is per period: Quarter 1–4, then OT1, OT2, … (periods 5–10) when the score is tied. Only the active period (the lowest one that is not locked) can be scored, reset, or locked; every tap sends its `quarter`. Save and Lock is per period: locking the last period finishes the match (or opens the next OT on a tie), and Unlock reopens one period for correction (status stays FINISHED). The Total tab (read-only) is the sum of all periods and is what standings and Teams use. Details: `docs/API.md` section 7 in IBL-Backend.
 - Times are shown in WIB through `lib/datetime.ts`; send ISO strings with `+07:00`.
 - Role checks such as `canEditData` only hide controls. The API is the real guard.
 - User-facing text is Indonesian.
