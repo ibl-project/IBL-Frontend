@@ -71,12 +71,27 @@ export interface MatchListItem {
   winnerTeamId: string | null;
 }
 
+/** Statistik satu pemain dalam satu periode (kuarter atau OT). */
+export interface PlayerQuarterLine extends StatCounts {
+  points: number;
+}
+
 export interface PlayerLine extends StatCounts {
   id: string;
   name: string;
   nopung: string;
   isCaptain: boolean;
+  /** Total semua periode. */
   points: number;
+  /** Rincian per periode: "1".."4" = Quarter 1–4, "5".. = OT1... Hanya ada di snapshot. */
+  quarters?: Record<string, PlayerQuarterLine>;
+}
+
+/** Status kunci satu periode (snapshot publik, tanpa nama pengunci). */
+export interface QuarterState {
+  quarter: number;
+  locked: boolean;
+  lockedAt: string | null;
 }
 
 export interface TeamSummary {
@@ -101,6 +116,8 @@ export interface TeamSummary {
 }
 
 export interface MatchSide extends MatchTeamSide {
+  /** Poin per periode: [Q1, Q2, Q3, Q4, OT1, ...], minimal 4. */
+  quarterScores: number[];
   summary: TeamSummary;
   players: PlayerLine[];
 }
@@ -114,6 +131,11 @@ export interface MatchSnapshot {
   group: { id: string; name: string } | null;
   playoffRound: PlayoffRound | null;
   status: MatchStatus;
+  /** Periode aktif (terkecil yang belum terkunci); null kalau belum dimulai atau semua terkunci. */
+  currentQuarter: number | null;
+  /** Periode match ini; kosong kalau belum dimulai. */
+  quarters: QuarterState[];
+  /** true kalau semua periode terkunci (match selesai). */
   locked: boolean;
   lockedAt: string | null;
   scheduledAt: string | null;
@@ -138,6 +160,9 @@ export interface ScoringBoardItem extends MatchListItem {
     leaseExpiresAt: string | null;
     lockedAt: string | null;
     lockedBy: Person | null;
+    /** Periode aktif; null kalau belum dimulai atau semua terkunci. */
+    currentQuarter: number | null;
+    quarters: Array<QuarterState & { lockedBy: Person | null }>;
   };
 }
 
@@ -163,6 +188,19 @@ export interface CreateScheduleInput extends ScheduleInput {
   playoffRound?: PlayoffRound;
 }
 
+/** Kuarter reguler; periode 5–10 adalah OT1–OT6. */
+export const REGULATION_QUARTERS = 4;
+
+/** "Quarter 1" … "Quarter 4", lalu "OT1", "OT2", … */
+export function periodLabel(quarter: number): string {
+  return quarter <= REGULATION_QUARTERS ? `Quarter ${quarter}` : `OT${quarter - REGULATION_QUARTERS}`;
+}
+
+/** Judul kolom tabel Result: "1st" … "4th", lalu "OT". */
+export function periodColumnLabel(quarter: number): string {
+  return ["1st", "2nd", "3rd", "4th"][quarter - 1] ?? "OT";
+}
+
 /** Label jenis pertandingan di kartu & detail: "Group B", "16 Besar", "Final", dst. */
 export function stageLabel(match: Pick<MatchListItem, "stage" | "group" | "playoffRound">): string {
   if (match.stage === "PLAYOFF") return match.playoffRound ? PLAYOFF_ROUND_LABEL[match.playoffRound] : "Playoff";
@@ -176,11 +214,36 @@ export interface LineupEntry {
   isCaptain: boolean;
 }
 
+export interface QuarterScore {
+  quarter: number;
+  team1: number;
+  team2: number;
+}
+
 export interface ActionResult {
   team1Score: number;
   team2Score: number;
+  /** Baris Total pemain setelah aksi. */
   player: PlayerLine;
+  /** Baris pemain di periode aksi. */
+  playerQuarter: PlayerQuarterLine & { quarter: number };
+  quarterScore: QuarterScore;
   duplicate?: boolean;
+}
+
+export interface LockQuarterResult {
+  quarter: number;
+  alreadyLocked: boolean;
+  finished: boolean;
+  /** Periode OT yang baru dibuka karena skor seri; null kalau tidak ada. */
+  overtimeOpened: number | null;
+  currentQuarter: number | null;
+  status: MatchStatus;
+  locked: boolean;
+  team1Score: number;
+  team2Score: number;
+  winnerTeamId: string | null;
+  quarters: QuarterState[];
 }
 
 export const RESULT_FILE_MAX_BYTES = 10 * 1024 * 1024;
@@ -189,7 +252,9 @@ export const RESULT_FILE_MAX_BYTES = 10 * 1024 * 1024;
 export function isSessionError(error: unknown): error is ApiError {
   return (
     error instanceof ApiError &&
-    ["SCORING_IN_USE", "SCORING_SESSION_REQUIRED", "MATCH_LOCKED"].includes(error.code)
+    ["SCORING_IN_USE", "SCORING_SESSION_REQUIRED", "MATCH_LOCKED", "QUARTER_LOCKED", "QUARTER_NOT_ACTIVE"].includes(
+      error.code,
+    )
   );
 }
 
@@ -230,7 +295,9 @@ export const deleteResultFile = (id: string) =>
 
 // --- Scoring -----------------------------------------------------------------
 
-export const getScoringBoard = () => apiFetch<ScoringBoard>("/scoring/matches");
+/** `date` = "YYYY-MM-DD" (WIB) untuk filter tanggal. */
+export const getScoringBoard = (date?: string) =>
+  apiFetch<ScoringBoard>(`/scoring/matches${date ? `?date=${date}` : ""}`);
 
 export const claimSession = (id: string) =>
   apiFetch<{ holder: Person; leaseExpiresAt: string; ttlSeconds: number; heartbeatSeconds: number }>(
@@ -249,7 +316,7 @@ export const startMatch = (id: string) =>
 
 export const recordAction = (
   id: string,
-  action: { actionId: string; playerId: string; teamId: string; actionType: StatKey; delta: 1 | -1 },
+  action: { actionId: string; playerId: string; teamId: string; quarter: number; actionType: StatKey; delta: 1 | -1 },
 ) => apiFetch<ActionResult>(`/matches/${id}/actions`, { method: "POST", body: action });
 
 export const updateColors = (id: string, colors: { team1Color?: string; team2Color?: string }) =>
@@ -258,8 +325,27 @@ export const updateColors = (id: string, colors: { team1Color?: string; team2Col
     body: colors,
   });
 
-export const lockMatch = (id: string) =>
-  apiFetch<{ locked: true; winnerTeamId: string | null }>(`/matches/${id}/lock`, { method: "POST" });
+/** "Save and Lock" satu periode. Kunci terakhir menyelesaikan match atau membuka OT kalau seri. */
+export const lockQuarter = (id: string, quarter: number) =>
+  apiFetch<LockQuarterResult>(`/matches/${id}/quarters/${quarter}/lock`, { method: "POST" });
 
-export const unlockMatch = (id: string) =>
-  apiFetch<{ locked: false }>(`/matches/${id}/unlock`, { method: "POST" });
+/** Buka satu periode untuk koreksi; akun ini jadi pemegang sesi. */
+export const unlockQuarter = (id: string, quarter: number) =>
+  apiFetch<{ quarter: number; changed: boolean; currentQuarter: number | null; quarters: QuarterState[] }>(
+    `/matches/${id}/quarters/${quarter}/unlock`,
+    { method: "POST" },
+  );
+
+/** "Reset all": semua statistik kedua tim di periode aktif jadi 0. */
+export const resetQuarter = (id: string, quarter: number) =>
+  apiFetch<{ quarter: number; voidedActions: number; team1Score: number; team2Score: number }>(
+    `/matches/${id}/quarters/${quarter}/reset`,
+    { method: "POST" },
+  );
+
+/** "Hapus match" (khusus admin): data scoring dikosongkan, match kembali belum dimulai. */
+export const resetMatch = (id: string, confirm: string) =>
+  apiFetch<{ status: MatchStatus; matchNumber: number; deletedActions: number }>(`/matches/${id}/reset`, {
+    method: "POST",
+    body: { confirm },
+  });

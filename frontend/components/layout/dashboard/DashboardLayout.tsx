@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardTopbar } from "./DashboardTopbar";
@@ -12,6 +12,20 @@ function isNarrowViewport(): boolean {
   if (typeof window === "undefined") return false;
   const width = window.innerWidth || document.documentElement.clientWidth || 0;
   return width > 0 && width < 1024;
+}
+
+/**
+ * Halaman yang butuh layar lebar (scoring desk) bisa menutup sidebar lewat
+ * useCollapseSidebar(). Pengguna tetap bisa membukanya lagi dari topbar.
+ */
+const SidebarCollapseContext = createContext<((collapsed: boolean) => void) | null>(null);
+
+/** Tutup sidebar saat komponen pemanggil dipasang. */
+export function useCollapseSidebar() {
+  const setCollapsed = useContext(SidebarCollapseContext);
+  useEffect(() => {
+    setCollapsed?.(true);
+  }, [setCollapsed]);
 }
 
 /**
@@ -82,7 +96,9 @@ export const DashboardLayout = ({
           isSidebarCollapsed={isSidebarCollapsed}
           onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
         />
-        <main className="flex-1 min-w-0">{children}</main>
+        <main className="flex-1 min-w-0">
+          <SidebarCollapseContext value={setIsSidebarCollapsed}>{children}</SidebarCollapseContext>
+        </main>
       </div>
     </div>
   );

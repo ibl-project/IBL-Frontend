@@ -9,6 +9,8 @@ export interface PendingAction {
   actionId: string;
   playerId: string;
   teamId: string;
+  /** Periode tempat ketukan dicatat (periode aktif saat diketuk). */
+  quarter: number;
   actionType: StatKey;
   delta: 1 | -1;
 }
@@ -33,7 +35,7 @@ export function newActionId(): string {
 }
 
 /**
- * Auto-save setiap ketukan ◀ ▶ di scoring desk.
+ * Auto-save setiap ketukan ◀ ▶ di scoring desk (dengan periodenya).
  *
  * Ketukan langsung tampil di layar (optimis), lalu dikirim satu per satu
  * sesuai urutan. Gagal karena jaringan/server → dikirim ulang dengan actionId
@@ -66,8 +68,10 @@ export function useAutoSaveActions(
         attempts = 0;
         // Pakai angka server hanya kalau tidak ada ketukan lain untuk pemain
         // ini yang masih antre (kalau ada, angka server masih tertinggal).
+        // Skor tim baru dipakai kalau antrean sudah kosong.
         if (!queueRef.current.some((next) => next.playerId === item.playerId)) {
-          setSnapshot((current) => (current ? withServerLine(current, result.player, result) : current));
+          const withScores = queueRef.current.length === 0;
+          setSnapshot((current) => (current ? withServerLine(current, result, withScores) : current));
         }
       } catch (error) {
         const retryable = !(error instanceof ApiError) || error.status === 0 || error.status >= 500;

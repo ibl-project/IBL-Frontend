@@ -104,6 +104,9 @@ export const listGroups = () => apiFetch<Group[]>("/groups", { auth: false });
 export const createTeam = (input: { name: string; group?: string; players: RosterEntry[] }) =>
   apiFetch<{ team: { id: string; name: string } }>("/teams", { method: "POST", body: input });
 
+export const updateTeam = (teamId: string, input: { name?: string; group?: string }) =>
+  apiFetch<Team>(`/teams/${teamId}`, { method: "PATCH", body: input });
+
 /** Simpan seluruh roster: pemain yang tidak dikirim dihapus backend. */
 export const saveRoster = (teamId: string, players: RosterEntry[]) =>
   apiFetch<Team>(`/teams/${teamId}/roster`, { method: "PUT", body: { players } });

@@ -4,7 +4,15 @@ import React, { useCallback, useState } from "react";
 
 import { formatWib } from "@/lib/datetime";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
-import { type MatchSide, type MatchSnapshot, deleteSchedule, getMatch, stageLabel } from "@/lib/matchesApi";
+import {
+  type MatchSide,
+  type MatchSnapshot,
+  REGULATION_QUARTERS,
+  deleteSchedule,
+  getMatch,
+  periodColumnLabel,
+  stageLabel,
+} from "@/lib/matchesApi";
 import { errorMessage } from "@/lib/teamsApi";
 import { Modal } from "@/components/ui/Modal";
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
@@ -45,6 +53,12 @@ const DetailBody = ({ match }: { match: MatchSnapshot }) => {
   const name1 = match.team1.name ?? "Team 1";
   const name2 = match.team2.name ?? "Team 2";
   const started = match.status !== "SCHEDULED";
+  // Kolom OT (jumlah semua overtime) hanya muncul kalau match ini punya OT.
+  const periodCount = Math.max(REGULATION_QUARTERS, match.team1.quarterScores.length, match.team2.quarterScores.length);
+  const overtimes = periodCount - REGULATION_QUARTERS;
+  const quarterCell = (side: MatchSide, quarter: number) => (started ? (side.quarterScores[quarter - 1] ?? 0) : "-");
+  const overtimeCell = (side: MatchSide) =>
+    started ? side.quarterScores.slice(REGULATION_QUARTERS).reduce((sum, points) => sum + points, 0) : "-";
 
   return (
     <>
@@ -79,13 +93,27 @@ const DetailBody = ({ match }: { match: MatchSnapshot }) => {
         <h3 id="detail-result" className="text-[15px] font-medium text-[#f99f1b]">
           Result
         </h3>
-        <table className="w-full max-w-[289px] border-collapse font-mono text-xs font-bold text-[#202224]">
+        <table
+          className={`w-full table-fixed border-collapse font-mono text-xs font-bold text-[#202224] ${
+            overtimes > 0 ? "max-w-[340px]" : "max-w-[300px]"
+          }`}
+        >
           <thead>
             <tr>
-              <th scope="col" className={`${cell} text-left`}>
+              <th scope="col" className={`${cell} w-[84px] text-left`}>
                 Team
               </th>
-              <th scope="col" className={`${cell} w-20 text-center`}>
+              {[1, 2, 3, 4].map((quarter) => (
+                <th key={quarter} scope="col" className={`${cell} text-center`}>
+                  {periodColumnLabel(quarter)}
+                </th>
+              ))}
+              {overtimes > 0 && (
+                <th scope="col" className={`${cell} text-center`} title={`${overtimes} kali overtime`}>
+                  OT
+                </th>
+              )}
+              <th scope="col" className={`${cell} w-[52px] text-center`}>
                 Total
               </th>
             </tr>
@@ -93,9 +121,15 @@ const DetailBody = ({ match }: { match: MatchSnapshot }) => {
           <tbody>
             {[match.team1, match.team2].map((side, index) => (
               <tr key={index}>
-                <th scope="row" className={`${cell} truncate text-left`}>
+                <th scope="row" className={`${cell} truncate text-left`} title={side.name ?? undefined}>
                   {side.name}
                 </th>
+                {[1, 2, 3, 4].map((quarter) => (
+                  <td key={quarter} className={`${cell} text-center`}>
+                    {quarterCell(side, quarter)}
+                  </td>
+                ))}
+                {overtimes > 0 && <td className={`${cell} text-center`}>{overtimeCell(side)}</td>}
                 <td className={`${cell} text-center`}>{started ? side.score : "-"}</td>
               </tr>
             ))}
@@ -230,7 +264,9 @@ const DetailContent = ({
               type="button"
               onClick={() => setConfirming(true)}
               disabled={!deletable}
-              title={deletable ? undefined : "Jadwal yang scoring-nya sudah dimulai tidak bisa dihapus"}
+              title={
+                deletable ? undefined : "Match yang sudah dimulai dikosongkan dulu lewat Hapus match di halaman Scoring (admin)"
+              }
               className="h-9 min-w-[76px] rounded-full bg-[#7a0000] px-5 text-xs font-semibold text-white transition-colors hover:bg-[#5c0000] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a0000] disabled:cursor-not-allowed disabled:opacity-50"
             >
               Delete

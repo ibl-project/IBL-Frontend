@@ -6,12 +6,18 @@ import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 
 interface MatchCardProps {
   match: MatchListItem;
-  /** Teks tombol oranye: "Detail" di Schedule Result, "Choose" di Scoring. */
+  /** Teks tombol oranye: "Detail" di Schedule Result, "Score" di Scoring. */
   actionLabel: string;
+  /** Ditambahkan ke label tombol untuk pembaca layar, mis. "Match 3". */
+  actionContext?: string;
   onAction: () => void;
   disabled?: boolean;
+  /** Baris kecil di atas label jenis, mis. "Match 3 · Berlangsung" di halaman Scoring. */
+  meta?: React.ReactNode;
   /** Keterangan kecil di bawah tombol, mis. "Dipakai Scorekeeper 1". */
   note?: string | null;
+  /** Tombol kecil di pojok kanan atas kartu, mis. sampah di halaman Scoring. */
+  corner?: React.ReactNode;
 }
 
 const TeamBlock = ({ team }: { team: MatchTeamSide }) => {
@@ -29,16 +35,27 @@ const TeamBlock = ({ team }: { team: MatchTeamSide }) => {
 };
 
 /** Kartu satu jadwal pertandingan (desain "Schedule Result [Display]"). */
-export const MatchCard = ({ match, actionLabel, onAction, disabled = false, note }: MatchCardProps) => {
+export const MatchCard = ({
+  match,
+  actionLabel,
+  actionContext,
+  onAction,
+  disabled = false,
+  meta,
+  note,
+  corner,
+}: MatchCardProps) => {
   const teams = `${match.team1.name ?? "TBD"} vs ${match.team2.name ?? "TBD"}`;
   return (
     <article
       aria-label={teams}
-      className="flex items-center justify-between gap-2 rounded-[24px] bg-white px-4 py-7 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] sm:px-6"
+      className="relative flex items-center justify-between gap-2 rounded-[24px] bg-white px-4 py-7 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] sm:px-6"
     >
+      {corner && <div className="absolute top-3 right-3">{corner}</div>}
       <TeamBlock team={match.team1} />
 
       <div className="flex min-w-0 flex-1 flex-col items-center gap-1 text-center">
+        {meta}
         <span
           className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wide ${
             match.stage === "PLAYOFF"
@@ -56,7 +73,7 @@ export const MatchCard = ({ match, actionLabel, onAction, disabled = false, note
           type="button"
           onClick={onAction}
           disabled={disabled}
-          aria-label={`${actionLabel} ${teams}`}
+          aria-label={`${actionLabel} ${actionContext ? `${actionContext}, ` : ""}${teams}`}
           className="mt-1 min-w-[76px] rounded-full bg-[#f26722] px-5 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-[#d8581a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f26722] disabled:cursor-not-allowed disabled:bg-gray-400"
         >
           {actionLabel}
