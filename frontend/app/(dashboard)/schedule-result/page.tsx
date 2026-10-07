@@ -1,63 +1,95 @@
 "use client";
 
-import React, { useState } from "react";
-import { ScheduleResultLandingSection } from "@/components/sections/ScheduleResultPage/ScheduleResultLandingSection";
+import React, { useCallback, useState } from "react";
+import { X } from "lucide-react";
+
+import { useAsyncData } from "@/lib/hooks/useAsyncData";
+import { listMatches } from "@/lib/matchesApi";
+import { canEditData, useAuthStore } from "@/lib/store/useAuthStore";
+import { listTeams } from "@/lib/teamsApi";
 import { ScheduleResultCreateSection } from "@/components/sections/ScheduleResultPage/ScheduleResultCreateSection";
 import { ScheduleResultDetailSection } from "@/components/sections/ScheduleResultPage/ScheduleResultDetailSection";
 import { ScheduleResultEditSection } from "@/components/sections/ScheduleResultPage/ScheduleResultEditSection";
+import { ScheduleResultLandingSection } from "@/components/sections/ScheduleResultPage/ScheduleResultLandingSection";
+
+type Dialog = { kind: "create" } | { kind: "detail"; id: string } | { kind: "edit"; id: string } | null;
 
 export default function ScheduleResultPage() {
-  const [modalView, setModalView] = useState<"none" | "create" | "detail" | "edit">("none");
-  const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
+  const canEdit = canEditData(useAuthStore((state) => state.user?.role));
+  const [dateFilter, setDateFilter] = useState("");
+  const [dialog, setDialog] = useState<Dialog>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  const handleOpenCreate = () => {
-    setModalView("create");
+  const loadMatches = useCallback(() => listMatches(dateFilter || undefined), [dateFilter]);
+  const { state: matches, reload } = useAsyncData(loadMatches);
+  const loadTeams = useCallback(() => listTeams(), []);
+  const { state: teamsState } = useAsyncData(loadTeams);
+  const teams = teamsState.status === "ready" ? teamsState.data : [];
+
+  const editing =
+    dialog?.kind === "edit" && matches.status === "ready"
+      ? (matches.data.find((match) => match.id === dialog.id) ?? null)
+      : null;
+
+  const finish = (message: string) => {
+    setDialog(null);
+    setNotice(message);
+    reload();
   };
 
-  const handleOpenDetail = (id: string) => {
-    setSelectedScheduleId(id);
-    setModalView("detail");
-  };
-
-  const handleOpenEdit = () => {
-    setModalView("edit");
-  };
-
-  const handleCloseModal = () => {
-    setModalView("none");
-  };
+  const noticeBanner = notice && (
+    <div
+      role="status"
+      className="flex items-start justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
+    >
+      <span>{notice}</span>
+      <button
+        type="button"
+        aria-label="Tutup pesan"
+        onClick={() => setNotice(null)}
+        className="shrink-0 rounded-full p-1 hover:bg-black/5"
+      >
+        <X aria-hidden="true" className="h-4 w-4" />
+      </button>
+    </div>
+  );
 
   return (
-    <div className="relative min-h-[calc(100vh-72px)] bg-slate-50">
-      {/* 1. Base Landing / List View */}
+    <div className="min-h-screen w-full bg-[#e1e7ea] px-6 py-6 md:px-[46px]">
       <ScheduleResultLandingSection
-        onOpenCreate={handleOpenCreate}
-        onOpenDetail={handleOpenDetail}
+        matches={matches}
+        dateFilter={dateFilter}
+        onDateChange={setDateFilter}
+        onReload={reload}
+        onAdd={canEdit ? () => setDialog({ kind: "create" }) : null}
+        onDetail={(id) => setDialog({ kind: "detail", id })}
+        notice={noticeBanner}
       />
 
-      {/* 2. Create Modal */}
-      {modalView === "create" && (
+      {canEdit && (
         <ScheduleResultCreateSection
-          onClose={handleCloseModal}
-          onSuccess={handleCloseModal}
+          open={dialog?.kind === "create"}
+          teams={teams}
+          onClose={() => setDialog(null)}
+          onCreated={finish}
         />
       )}
 
-      {/* 3. Detail Modal */}
-      {modalView === "detail" && selectedScheduleId && (
-        <ScheduleResultDetailSection
-          scheduleId={selectedScheduleId}
-          onClose={handleCloseModal}
-          onEdit={handleOpenEdit}
-        />
-      )}
+      <ScheduleResultDetailSection
+        matchId={dialog?.kind === "detail" ? dialog.id : null}
+        canEdit={canEdit}
+        onClose={() => setDialog(null)}
+        onEdit={(id) => setDialog({ kind: "edit", id })}
+        onDeleted={finish}
+      />
 
-      {/* 4. Edit Modal */}
-      {modalView === "edit" && selectedScheduleId && (
+      {canEdit && (
         <ScheduleResultEditSection
-          scheduleId={selectedScheduleId}
-          onClose={handleCloseModal}
-          onSuccess={() => setModalView("detail")}
+          match={editing}
+          teams={teams}
+          onClose={() => setDialog(null)}
+          onSaved={finish}
+          onFileChanged={reload}
         />
       )}
     </div>

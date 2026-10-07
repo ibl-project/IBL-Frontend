@@ -1,379 +1,324 @@
 "use client";
 
-import React, { useState } from "react";
-import Image from "next/image";
-import { X, FileText, Download, Trash2, AlertTriangle } from "lucide-react";
-import { useScheduleStore, ScheduleItem } from "@/lib/store/useScheduleStore";
+import React, { useCallback, useState } from "react";
+
+import { formatWib } from "@/lib/datetime";
+import { useAsyncData } from "@/lib/hooks/useAsyncData";
+import {
+  type MatchSide,
+  type MatchSnapshot,
+  REGULATION_QUARTERS,
+  deleteSchedule,
+  getMatch,
+  periodColumnLabel,
+  stageLabel,
+} from "@/lib/matchesApi";
+import { errorMessage } from "@/lib/teamsApi";
+import { Modal } from "@/components/ui/Modal";
+import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
+import { ResultFileCard } from "./ResultFileCard";
 
 interface ScheduleResultDetailSectionProps {
-  scheduleId: string;
+  matchId: string | null;
+  canEdit: boolean;
   onClose: () => void;
-  onEdit: () => void;
+  onEdit: (matchId: string) => void;
+  onDeleted: (message: string) => void;
 }
 
-export const ScheduleResultDetailSection: React.FC<ScheduleResultDetailSectionProps> = ({
-  scheduleId,
+const ratio = (made: number, attempted: number, percentage: number) =>
+  `${made}/${attempted} (${Number.isInteger(percentage) ? percentage : percentage.toFixed(1)}%)`;
+
+const SUMMARY_ROWS: Array<{ label: string; value: (side: MatchSide) => string }> = [
+  {
+    label: "Field Goals",
+    value: ({ summary: s }) => ratio(s.fieldGoalsMade, s.fieldGoalsAttempted, s.fieldGoalPercentage),
+  },
+  { label: "2 Points", value: ({ summary: s }) => ratio(s.twoPointMade, s.twoPointAttempted, s.twoPointPercentage) },
+  {
+    label: "3 Points",
+    value: ({ summary: s }) => ratio(s.threePointMade, s.threePointAttempted, s.threePointPercentage),
+  },
+  {
+    label: "Free Throws",
+    value: ({ summary: s }) => ratio(s.freeThrowsMade, s.freeThrowsAttempted, s.freeThrowPercentage),
+  },
+  { label: "Rebounds (O/D)", value: ({ summary: s }) => `${s.reboundOff}/${s.reboundDef}` },
+  { label: "Assist", value: ({ summary: s }) => String(s.assist) },
+];
+
+const cell = "border border-gray-400 px-2 py-1.5";
+
+const DetailBody = ({ match }: { match: MatchSnapshot }) => {
+  const name1 = match.team1.name ?? "Team 1";
+  const name2 = match.team2.name ?? "Team 2";
+  const started = match.status !== "SCHEDULED";
+  // Kolom OT (jumlah semua overtime) hanya muncul kalau match ini punya OT.
+  const periodCount = Math.max(REGULATION_QUARTERS, match.team1.quarterScores.length, match.team2.quarterScores.length);
+  const overtimes = periodCount - REGULATION_QUARTERS;
+  const quarterCell = (side: MatchSide, quarter: number) => (started ? (side.quarterScores[quarter - 1] ?? 0) : "-");
+  const overtimeCell = (side: MatchSide) =>
+    started ? side.quarterScores.slice(REGULATION_QUARTERS).reduce((sum, points) => sum + points, 0) : "-";
+
+  return (
+    <>
+      <div className="flex items-start justify-between gap-2">
+        {[match.team1, null, match.team2].map((side, index) =>
+          side ? (
+            <div key={index} className="flex w-24 shrink-0 flex-col items-center gap-2">
+              <div className="relative h-10 w-10">
+                <TeamLogo src={side.logo} sizes="40px" />
+              </div>
+              <span className="max-w-full truncate text-center text-base font-bold text-[#202224]">{side.name}</span>
+            </div>
+          ) : (
+            <div key="center" className="flex min-w-0 flex-1 flex-col items-center gap-1 pt-2 text-center">
+              <span
+                className={`inline-block rounded-full px-3 py-0.5 text-xs font-semibold ${
+                  match.stage === "PLAYOFF"
+                    ? "border border-amber-200 bg-amber-50 text-amber-700"
+                    : "border border-teal-200 bg-teal-50 text-teal-700"
+                }`}
+              >
+                {stageLabel(match)}
+              </span>
+              <p className="text-sm text-[#202224]">{match.venue ?? "Tempat belum diatur"}</p>
+              <p className="text-sm font-medium text-red-700">{formatWib(match.scheduledAt)}</p>
+            </div>
+          ),
+        )}
+      </div>
+
+      <section aria-labelledby="detail-result" className="mt-4 flex flex-col items-center gap-1.5">
+        <h3 id="detail-result" className="text-[15px] font-medium text-[#f99f1b]">
+          Result
+        </h3>
+        <table
+          className={`w-full table-fixed border-collapse font-mono text-xs font-bold text-[#202224] ${
+            overtimes > 0 ? "max-w-[340px]" : "max-w-[300px]"
+          }`}
+        >
+          <thead>
+            <tr>
+              <th scope="col" className={`${cell} w-[84px] text-left`}>
+                Team
+              </th>
+              {[1, 2, 3, 4].map((quarter) => (
+                <th key={quarter} scope="col" className={`${cell} text-center`}>
+                  {periodColumnLabel(quarter)}
+                </th>
+              ))}
+              {overtimes > 0 && (
+                <th scope="col" className={`${cell} text-center`} title={`${overtimes} kali overtime`}>
+                  OT
+                </th>
+              )}
+              <th scope="col" className={`${cell} w-[52px] text-center`}>
+                Total
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {[match.team1, match.team2].map((side, index) => (
+              <tr key={index}>
+                <th scope="row" className={`${cell} truncate text-left`} title={side.name ?? undefined}>
+                  {side.name}
+                </th>
+                {[1, 2, 3, 4].map((quarter) => (
+                  <td key={quarter} className={`${cell} text-center`}>
+                    {quarterCell(side, quarter)}
+                  </td>
+                ))}
+                {overtimes > 0 && <td className={`${cell} text-center`}>{overtimeCell(side)}</td>}
+                <td className={`${cell} text-center`}>{started ? side.score : "-"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section aria-labelledby="detail-summary" className="mt-6 flex flex-col items-center gap-1.5">
+        <h3 id="detail-summary" className="text-[15px] font-medium text-[#f99f1b]">
+          Summary
+        </h3>
+        <table className="border-collapse text-center font-mono text-[11px] text-[#202224] [&_td]:whitespace-nowrap">
+          <thead>
+            <tr className="font-bold">
+              <th scope="col" className={cell}>
+                {name1}
+              </th>
+              <th scope="col" className={cell}>
+                <span className="sr-only">Statistik</span>
+              </th>
+              <th scope="col" className={cell}>
+                {name2}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {SUMMARY_ROWS.map((row) => (
+              <tr key={row.label}>
+                <td className={cell}>{row.value(match.team1)}</td>
+                <th scope="row" className={`${cell} font-bold whitespace-nowrap`}>
+                  {row.label}
+                </th>
+                <td className={cell}>{row.value(match.team2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section aria-labelledby="detail-file" className="mt-6 flex flex-col gap-1.5">
+        <h3 id="detail-file" className="text-center text-[15px] font-medium text-[#f99f1b]">
+          Detailed Result
+        </h3>
+        <ResultFileCard file={match.resultFile} />
+      </section>
+    </>
+  );
+};
+
+/** Modal "Detail" satu jadwal (desain "Schedule Result [Detail]" / "[Filled]"). */
+export const ScheduleResultDetailSection = ({
+  matchId,
+  canEdit,
   onClose,
   onEdit,
-}) => {
-  const { getScheduleById, deleteSchedule } = useScheduleStore();
-  const schedule = getScheduleById(scheduleId);
+  onDeleted,
+}: ScheduleResultDetailSectionProps) => {
+  return (
+    <Modal open={matchId !== null} onClose={onClose} labelledBy="schedule-detail-title" className="max-w-[518px]">
+      {matchId && (
+        <DetailContent matchId={matchId} canEdit={canEdit} onClose={onClose} onEdit={onEdit} onDeleted={onDeleted} />
+      )}
+    </Modal>
+  );
+};
 
-  const [isConfirmDelete, setIsConfirmDelete] = useState(false);
+const DetailContent = ({
+  matchId,
+  canEdit,
+  onClose,
+  onEdit,
+  onDeleted,
+}: Omit<ScheduleResultDetailSectionProps, "matchId"> & { matchId: string }) => {
+  const load = useCallback(() => getMatch(matchId), [matchId]);
+  const { state, reload } = useAsyncData(load);
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const getFileBadge = (filename?: string) => {
-    const ext = filename?.split(".").pop()?.toLowerCase();
-    if (ext === "xlsx" || ext === "xls") {
-      return { label: "XLS", bg: "bg-emerald-600" };
+  const match = state.status === "ready" ? state.data : null;
+  const deletable = match?.status === "SCHEDULED";
+
+  const handleDelete = async () => {
+    if (!match) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteSchedule(match.id);
+      setConfirming(false);
+      onDeleted(`Jadwal ${match.team1.name} vs ${match.team2.name} dihapus.`);
+    } catch (error) {
+      setDeleteError(errorMessage(error));
+      setDeleting(false);
     }
-    if (ext === "csv") {
-      return { label: "CSV", bg: "bg-teal-600" };
-    }
-    return { label: "PDF", bg: "bg-red-500" };
-  };
-
-  if (!schedule) {
-    return null;
-  }
-
-  const handleDelete = () => {
-    deleteSchedule(scheduleId);
-    onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto animate-fade-in font-poppins">
-      <div className="bg-white rounded-3xl w-full max-w-lg p-6 md:p-8 shadow-2xl border border-slate-100 relative my-8">
-        {/* Close Button */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
-        >
-          <X className="w-4 h-4" />
-        </button>
+    <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-[24px] bg-white px-6 py-6 sm:px-8">
+      <h2 id="schedule-detail-title" className="sr-only">
+        Detail jadwal {match ? `${match.team1.name} vs ${match.team2.name}` : ""}
+      </h2>
 
-        {/* 1. Top Header: Teams, Venue & DateTime */}
-        <div className="flex items-center justify-between gap-2 pb-4 mb-4">
-          {/* Team 1 */}
-          <div className="flex flex-col items-center text-center min-w-[70px]">
-            <div className="w-12 h-12 relative mb-1 flex items-center justify-center">
-              <Image
-                src={schedule.team1Logo || "/images/LOGO_1.svg"}
-                alt={schedule.team1}
-                width={44}
-                height={44}
-                className="object-contain"
-              />
-            </div>
-            <span className="text-sm font-bold text-slate-800 line-clamp-1">
-              {schedule.team1}
-            </span>
-          </div>
-
-          {/* Center Info */}
-          <div className="flex flex-col items-center text-center flex-1 px-2">
-            <span className="text-xs font-semibold text-slate-700 mb-0.5">
-              {schedule.venue}
-            </span>
-            <span className="text-xs font-bold text-[#E63946]">
-              {schedule.date} {schedule.time}
-            </span>
-          </div>
-
-          {/* Team 2 */}
-          <div className="flex flex-col items-center text-center min-w-[70px]">
-            <div className="w-12 h-12 relative mb-1 flex items-center justify-center">
-              <Image
-                src={schedule.team2Logo || "/images/LOGO_1.svg"}
-                alt={schedule.team2}
-                width={44}
-                height={44}
-                className="object-contain"
-              />
-            </div>
-            <span className="text-sm font-bold text-slate-800 line-clamp-1">
-              {schedule.team2}
-            </span>
-          </div>
-        </div>
-
-        {/* 2. Result Section */}
-        <div className="mb-4">
-          <h3 className="text-xs font-bold text-[#F4631E] uppercase tracking-wider text-center mb-1.5">
-            Result
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-slate-300 text-xs text-slate-800 text-center">
-              <thead>
-                <tr className="bg-slate-50 font-bold text-slate-700">
-                  <th className="border border-slate-300 py-1 px-2 text-left w-1/4">
-                    Team
-                  </th>
-                  <th className="border border-slate-300 py-1 px-1.5">1st</th>
-                  <th className="border border-slate-300 py-1 px-1.5">2nd</th>
-                  <th className="border border-slate-300 py-1 px-1.5">3rd</th>
-                  <th className="border border-slate-300 py-1 px-1.5">4th</th>
-                  <th className="border border-slate-300 py-1 px-2 font-extrabold">
-                    Total
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="border border-slate-300 py-1 px-2 text-left font-bold">
-                    {schedule.team1}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-medium">
-                    {schedule.scores.team1.q1}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-medium">
-                    {schedule.scores.team1.q2}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-medium">
-                    {schedule.scores.team1.q3}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-medium">
-                    {schedule.scores.team1.q4}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-2 font-extrabold">
-                    {schedule.scores.team1.total}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-300 py-1 px-2 text-left font-bold">
-                    {schedule.team2}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-medium">
-                    {schedule.scores.team2.q1}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-medium">
-                    {schedule.scores.team2.q2}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-medium">
-                    {schedule.scores.team2.q3}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-medium">
-                    {schedule.scores.team2.q4}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-2 font-extrabold">
-                    {schedule.scores.team2.total}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* 3. Summary Section */}
-        <div className="mb-4">
-          <h3 className="text-xs font-bold text-[#F4631E] uppercase tracking-wider text-center mb-1.5">
-            Summary
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-slate-300 text-xs text-slate-800 text-center">
-              <thead>
-                <tr className="bg-slate-50 font-bold text-slate-700">
-                  <th className="border border-slate-300 py-1 px-2 w-[38%]">
-                    {schedule.team1}
-                  </th>
-                  <th className="border border-slate-300 py-1 px-2 w-[24%]">
-                    {/* Centered stat label header */}
-                  </th>
-                  <th className="border border-slate-300 py-1 px-2 w-[38%]">
-                    {schedule.team2}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="font-medium">
-                <tr>
-                  <td className="border border-slate-300 py-1 px-1.5">
-                    {schedule.summary.team1.fieldGoals || "0/0 (0%)"}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-bold text-slate-800">
-                    Field Goals
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5">
-                    {schedule.summary.team2.fieldGoals || "0/0 (0%)"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-300 py-1 px-1.5">
-                    {schedule.summary.team1.twoPoints || "0/0 (0%)"}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-bold text-slate-800">
-                    2 Points
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5">
-                    {schedule.summary.team2.twoPoints || "0/0 (0%)"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-300 py-1 px-1.5">
-                    {schedule.summary.team1.threePoints || "0/0 (0%)"}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-bold text-slate-800">
-                    3 Points
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5">
-                    {schedule.summary.team2.threePoints || "0/0 (0%)"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-300 py-1 px-1.5">
-                    {schedule.summary.team1.freeThrows || "0/0 (0%)"}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-bold text-slate-800">
-                    Free Throws
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5">
-                    {schedule.summary.team2.freeThrows || "0/0 (0%)"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-300 py-1 px-1.5">
-                    {schedule.summary.team1.rebounds || "0/0"}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-bold text-slate-800">
-                    Rebounds (O/D)
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5">
-                    {schedule.summary.team2.rebounds || "0/0"}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-slate-300 py-1 px-1.5">
-                    {schedule.summary.team1.assists || "0"}
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5 font-bold text-slate-800">
-                    Assist
-                  </td>
-                  <td className="border border-slate-300 py-1 px-1.5">
-                    {schedule.summary.team2.assists || "0"}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* 4. Detailed Result Section */}
-        <div className="mb-6">
-          <h3 className="text-xs font-bold text-[#F4631E] uppercase tracking-wider text-center mb-1.5">
-            Detailed Result
-          </h3>
-          {schedule.detailedResultFile ? (
-            <div className="border border-[#E08A5E] bg-white rounded-2xl p-3 flex items-center justify-between gap-3 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-10 h-10 rounded-xl ${
-                    getFileBadge(schedule.detailedResultFile.name).bg
-                  } text-white flex flex-col items-center justify-center font-bold text-[10px] tracking-wider shadow-sm shrink-0`}
-                >
-                  <span>{getFileBadge(schedule.detailedResultFile.name).label}</span>
-                </div>
-                <div>
-                  <p className="text-xs md:text-sm font-semibold text-slate-800 line-clamp-1">
-                    {schedule.detailedResultFile.name}
-                  </p>
-                  <p className="text-[11px] text-slate-400 font-medium">
-                    {schedule.detailedResultFile.size} - uploaded {schedule.detailedResultFile.uploadedAt ? `(${schedule.detailedResultFile.uploadedAt})` : ""}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  alert(`Mengunduh berkas ${schedule.detailedResultFile?.name}`);
-                }}
-                className="p-2 text-slate-500 hover:text-[#1A827E] hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-                title="Unduh Berkas"
-              >
-                <Download className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <div className="border border-[#E08A5E] rounded-2xl py-4 px-4 text-center">
-              <span className="text-xs font-medium text-slate-600">
-                Belum ada data
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* 5. Bottom Action Buttons */}
-        <div className="flex items-center justify-between gap-3 pt-2">
-          {/* Delete Button */}
+      {state.status === "loading" && (
+        <p role="status" className="py-16 text-center text-sm text-gray-600">
+          Memuat detail pertandingan...
+        </p>
+      )}
+      {state.status === "error" && (
+        <div role="alert" className="flex flex-col items-center gap-3 py-12 text-center">
+          <p className="text-sm font-medium text-red-700">Detail gagal dimuat: {state.message}</p>
           <button
             type="button"
-            onClick={() => setIsConfirmDelete(true)}
-            className="px-5 py-2 bg-[#7E0202] hover:bg-[#600101] text-white text-xs md:text-sm font-semibold rounded-full transition-colors cursor-pointer shadow-sm flex items-center gap-1.5"
+            onClick={reload}
+            className="rounded-full bg-[#2f9b9a] px-5 py-2 text-xs font-semibold text-white hover:bg-[#257f7e]"
           >
-            Delete
+            Coba Lagi
           </button>
+        </div>
+      )}
+      {match && <DetailBody match={match} />}
 
-          {/* Back & Edit Result Buttons */}
-          <div className="flex items-center gap-3">
+      {deleteError && (
+        <p role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-medium text-red-700">
+          {deleteError}
+        </p>
+      )}
+
+      <div className="mt-8 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          {canEdit && match && (
             <button
               type="button"
-              onClick={onClose}
-              className="px-6 py-2 bg-[#229799] hover:bg-[#1A827E] text-white text-xs md:text-sm font-semibold rounded-full transition-colors cursor-pointer shadow-sm"
+              onClick={() => setConfirming(true)}
+              disabled={!deletable}
+              title={
+                deletable ? undefined : "Match yang sudah dimulai dikosongkan dulu lewat Hapus match di halaman Scoring (admin)"
+              }
+              className="h-9 min-w-[76px] rounded-full bg-[#7a0000] px-5 text-xs font-semibold text-white transition-colors hover:bg-[#5c0000] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a0000] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Back
+              Delete
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-9 min-w-[76px] rounded-full bg-[#2f9b9a] px-5 text-xs font-semibold text-white transition-colors hover:bg-[#257f7e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f9b9a]"
+          >
+            Back
+          </button>
+        </div>
+        {canEdit && match && (
+          <button
+            type="button"
+            onClick={() => onEdit(match.id)}
+            className="h-9 rounded-full bg-[#f99f1b] px-4 text-xs font-semibold text-white transition-colors hover:bg-[#d98b16] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f99f1b]"
+          >
+            Edit Result
+          </button>
+        )}
+      </div>
+
+      <Modal open={confirming} onClose={() => setConfirming(false)} labelledBy="schedule-delete-title" className="max-w-sm">
+        <div className="rounded-3xl bg-white p-6 text-center">
+          <h3 id="schedule-delete-title" className="text-lg font-bold text-gray-900">
+            Hapus jadwal ini?
+          </h3>
+          <p className="mt-2 text-sm text-gray-600">
+            {match?.team1.name} vs {match?.team2.name} akan dihapus dari Schedule Result.
+          </p>
+          <div className="mt-6 flex gap-3">
+            <button
+              type="button"
+              onClick={() => setConfirming(false)}
+              disabled={deleting}
+              className="flex-1 rounded-full bg-gray-100 py-2.5 text-xs font-bold text-gray-700 hover:bg-gray-200"
+            >
+              Batal
             </button>
             <button
               type="button"
-              onClick={onEdit}
-              className="px-6 py-2 bg-[#F4631E] hover:bg-[#D85214] text-white text-xs md:text-sm font-semibold rounded-full transition-colors cursor-pointer shadow-sm hover:shadow"
+              onClick={handleDelete}
+              disabled={deleting}
+              className="flex-1 rounded-full bg-red-700 py-2.5 text-xs font-bold text-white hover:bg-red-800 disabled:opacity-70"
             >
-              Edit Result
+              {deleting ? "Menghapus..." : "Hapus"}
             </button>
           </div>
         </div>
-
-        {/* Delete Confirmation Modal Overlay (Gaya Scoring Table) */}
-        {isConfirmDelete && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 flex flex-col items-center text-center relative animate-in zoom-in-95 duration-150">
-              <button
-                type="button"
-                onClick={() => setIsConfirmDelete(false)}
-                className="absolute top-4 right-4 p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-4 mt-2 shadow-xs">
-                <Trash2 className="w-7 h-7 text-red-600" />
-              </div>
-
-              <h3 className="text-lg font-bold text-gray-900 mb-1">
-                Hapus Match {schedule.team1} vs {schedule.team2}?
-              </h3>
-              <p className="text-xs text-gray-500 mb-6 leading-relaxed">
-                Apakah Anda yakin ingin menghapus jadwal pertandingan ini? Seluruh data hasil skor dan file statistik akan dihapus secara permanen.
-              </p>
-
-              <div className="flex items-center gap-3 w-full">
-                <button
-                  type="button"
-                  onClick={() => setIsConfirmDelete(false)}
-                  className="flex-1 py-2.5 rounded-full text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  className="flex-1 py-2.5 rounded-full text-xs font-bold text-white bg-red-600 hover:bg-red-700 shadow-md transition-colors cursor-pointer"
-                >
-                  Hapus Match
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      </Modal>
     </div>
   );
 };
