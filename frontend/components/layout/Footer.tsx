@@ -102,7 +102,7 @@ const NAV_COL_1: FooterNavItem[] = [
       </>
     ),
     plainLabel: "Schedule & Result",
-    href: "#",
+    href: "/schedule-result-main",
   },
 ];
 
