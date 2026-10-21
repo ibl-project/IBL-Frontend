@@ -5,7 +5,7 @@ import { type AuthUser, useAuthStore } from "@/lib/store/useAuthStore";
  * KLIEN API BACKEND IBL 2K26 (IBL-Backend, Fastify)
  * =============================================================================
  * Semua komunikasi ke backend lewat file ini. Kontrak endpoint lengkap ada di
- * IBL-Backend/docs/API.md.
+ * repo IBL-apidocs (koleksi Bruno).
  *
  * Cara kerja sesi login:
  * - Access token (JWT, berlaku 15 menit) hanya disimpan di MEMORI modul ini,
@@ -41,7 +41,7 @@ export function assetUrl(path: string): string {
   return path.startsWith("/api/") ? `${API_ORIGIN}${path}` : path;
 }
 
-/** Error dari backend dengan status HTTP dan kode yang sama dengan docs/API.md. */
+/** Error dari backend dengan status HTTP dan kode yang sama dengan Docs koleksi IBL-apidocs. */
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;

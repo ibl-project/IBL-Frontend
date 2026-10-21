@@ -24,15 +24,15 @@ Buka [http://localhost:3000](http://localhost:3000) di browser untuk melihat has
 
 Login (`/login`) dan dashboard panitia (`/teams`, `/schedule-result`, `/scoring`) mengambil data dari API di repo **IBL-Backend**. Halaman publik (`/schedule-result-main`, klasemen, leaderboard) belum tersambung.
 
-1. Tidak perlu clone backend. `frontend/.env` sudah mengisi `NEXT_PUBLIC_API_URL` ke backend **staging** (`https://api-staging.ibl-its.id/api`, datanya salinan produksi). Untuk uji ke **produksi** (data asli), uncomment baris produksi di `frontend/.env`, comment baris staging, lalu restart `npm run dev`. Jangan commit `.env` dalam keadaan mengarah ke produksi.
-2. `NEXT_PUBLIC_API_URL` di `.env.local` mengalahkan `.env`. Hapus baris itu dari `.env.local` kalau ingin mengikuti `.env`. Jangan menyalin seluruh `.env.local.example`, karena placeholder `NEXT_PUBLIC_BACKEND_URL` di dalamnya akan menimpa URL form registrasi di `.env`. Menjalankan backend sendiri: ikuti `SETUP.md` di repo IBL-Backend dan pakai `http://localhost:4000/api`.
+1. Tidak perlu clone backend. Buat `.env.local` dari template: `cp .env.local.example .env.local`. **URL API (staging/produksi) tidak disimpan di repo: minta ke grup tim Webdev IBL atau Evan.** URL form registrasi (`NEXT_PUBLIC_BACKEND_URL`) sudah tidak dipakai sejak form ditutup. `.env` dan `.env.local` tidak di-commit.
+2. Untuk uji, pakai URL **staging** (datanya salinan produksi). Simpan baris produksi di `.env.local` dalam keadaan di-comment; aktifkan hanya kalau memang perlu menguji dengan data asli, lalu restart `npm run dev`. `NEXT_PUBLIC_API_URL` wajib diisi: frontend selalu memakai API staging atau produksi, tidak pernah backend lokal.
 3. Buka lewat **http://localhost:3000**, bukan `127.0.0.1` atau IP jaringan, supaya CORS cocok. Akun panitia diminta ke admin backend (akun staging = akun produksi). Login ke API staging/produksi dari laptop memakai cookie lintas site: sesi bertahan setelah reload hanya di browser yang mengizinkan cookie pihak ketiga (Chrome biasa); di Safari, Brave, atau incognito, reload membuat logout.
 
 Aturan untuk kode dashboard:
 - Panggil API lewat `lib/apiClient.ts` (`apiFetch`), `lib/teamsApi.ts`, atau `lib/matchesApi.ts`. Jangan memakai `fetch` langsung.
 - Jangan simpan token di `localStorage` atau `sessionStorage`. Access token hanya di memori; refresh token ada di cookie httpOnly yang diurus browser.
 - Menyembunyikan tombol berdasarkan role (`canEditData`) hanya untuk tampilan. Yang benar-benar menolak akses adalah API.
-- Kontrak endpoint ada di `docs/API.md` repo IBL-Backend.
+- Kontrak endpoint ada di repo **IBL-apidocs** (koleksi Bruno: request bisa langsung dicoba ke staging, plus Docs). Tidak perlu clone repo backend.
 
 ---
 

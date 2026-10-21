@@ -2,7 +2,7 @@ import { ApiError, apiFetch } from "@/lib/apiClient";
 
 /**
  * Endpoint tim, roster, grup, dan logo di backend.
- * Kontrak lengkap: IBL-Backend/docs/API.md bagian "Tim".
+ * Kontrak lengkap: repo IBL-apidocs (koleksi Bruno), folder "Tim".
  */
 
 export interface TeamStats {
