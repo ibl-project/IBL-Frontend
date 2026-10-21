@@ -102,7 +102,7 @@ const NAV_COL_1: FooterNavItem[] = [
       </>
     ),
     plainLabel: "Schedule & Result",
-    href: "#",
+    href: "/schedule-result-main",
   },
 ];
 
@@ -121,7 +121,7 @@ const NAV_COL_2: FooterNavItem[] = [
     plainLabel: "Groups & Standings",
     href: "#",
   },
-  { label: "Leaderboard", plainLabel: "Leaderboard", href: "#" },
+  { label: "Leaderboard", plainLabel: "Leaderboard", href: "/leaderboard" },
 ];
 
 const SOCIAL_LINKS = [

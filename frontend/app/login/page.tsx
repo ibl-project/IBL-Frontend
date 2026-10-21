@@ -1,35 +1,67 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+
+import { ApiError, login, restoreSession } from '@/lib/apiClient';
+
+/**
+ * Tujuan setelah login: halaman asal (?from=/scoring) atau /teams.
+ * Hanya path internal yang diterima, supaya link login tidak bisa dipakai
+ * untuk mengarahkan panitia ke situs lain (mis. ?from=//situs-palsu.com).
+ */
+function nextPath(): string {
+  const from = new URLSearchParams(window.location.search).get('from');
+  if (from && /^\/(?![\\/])/.test(from) && !from.startsWith('/login')) return from;
+  return '/teams';
+}
+
+function loginErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    // 0 = server tidak terjangkau, 401 = email/password salah,
+    // 403 = akun dinonaktifkan, 429 = terlalu banyak percobaan.
+    if ([0, 401, 403, 429].includes(error.status)) return error.message;
+    if (error.status === 400) return 'Format email atau password tidak valid.';
+    if (error.status >= 500) return 'Server sedang bermasalah. Coba lagi beberapa saat lagi.';
+  }
+  return 'Terjadi kesalahan. Coba lagi.';
+}
 
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Sudah login (sesi masih sah di backend)? Langsung lanjut ke dashboard.
+  useEffect(() => {
+    let active = true;
+    void restoreSession().then((user) => {
+      if (active && user) router.replace(nextPath());
+    });
+    return () => {
+      active = false;
+    };
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
-    // Set cookie dan localStorage auth_token
-    const rememberMeInput = document.getElementById("remember_me") as HTMLInputElement | null;
-    const isRemembered = rememberMeInput?.checked ?? false;
-    const maxAgeSeconds = isRemembered ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 7; // 30 hari vs 7 hari
-
-    document.cookie = `auth_token=true; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
     try {
-      localStorage.setItem("auth_token", "true");
-    } catch {
-      // Ignore if localStorage unavailable
+      // Email & password dicek backend terhadap database (POST /api/auth/login).
+      await login(email, password, rememberMe);
+      router.replace(nextPath());
+    } catch (err) {
+      setError(loginErrorMessage(err));
+      setIsLoading(false);
     }
-
-    // Alihkan langsung ke halaman Teams setelah login berhasil
-    router.push('/teams');
   };
 
   return (
@@ -97,9 +129,11 @@ export default function LoginPage() {
               >
                 Email
               </label>
-              <input 
-                type="email" 
-                id="email" 
+              <input
+                type="email"
+                id="email"
+                name="email"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="block w-full px-4 py-3.5 text-sm text-gray-900 bg-white rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500" 
@@ -115,9 +149,11 @@ export default function LoginPage() {
               >
                 Password
               </label>
-              <input 
-                type={showPassword ? "text" : "password"} 
-                id="password" 
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="block w-full px-4 py-3.5 text-sm text-gray-900 bg-white rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500" 
@@ -139,10 +175,12 @@ export default function LoginPage() {
 
             {/* Checkbox Remember Me */}
             <div className="flex items-center pt-2">
-              <input 
-                id="remember_me" 
-                name="remember_me" 
-                type="checkbox" 
+              <input
+                id="remember_me"
+                name="remember_me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
                 className="h-4 w-4 text-[#7A9EA8] focus:ring-[#7A9EA8] border-gray-400 rounded-sm cursor-pointer accent-[#7A9EA8]"
               />
               <label htmlFor="remember_me" className="ml-2.5 block text-sm text-gray-600 font-medium cursor-pointer">
@@ -150,14 +188,25 @@ export default function LoginPage() {
               </label>
             </div>
 
+            {/* Pesan error dari backend (password salah, akun nonaktif, server mati) */}
+            {error && (
+              <p
+                role="alert"
+                className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+              >
+                {error}
+              </p>
+            )}
+
             {/* Tombol Sign In */}
             <motion.button
-              whileHover={{ scale: 1.015 }}
-              whileTap={{ scale: 0.985 }}
+              whileHover={isLoading ? undefined : { scale: 1.015 }}
+              whileTap={isLoading ? undefined : { scale: 0.985 }}
               type="submit"
-              className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-full shadow-sm text-sm font-semibold text-white bg-[#7A9EA8] hover:bg-[#668790] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7A9EA8] transition-colors mt-6"
+              disabled={isLoading}
+              className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-full shadow-sm text-sm font-semibold text-white bg-[#7A9EA8] hover:bg-[#668790] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7A9EA8] transition-colors mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Sign In
+              {isLoading ? 'Memeriksa...' : 'Sign In'}
             </motion.button>
           </form>
         </motion.div>

@@ -1,24 +1,105 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import Image from "next/image";
+import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Search, Plus, Upload, FileSpreadsheet, X, Download, Trash2, Check } from "lucide-react";
 import * as XLSX from "xlsx";
 
-import { useTeamStore } from "@/lib/store/useTeamStore";
+import { ApiError } from "@/lib/apiClient";
+import { useAsyncData } from "@/lib/hooks/useAsyncData";
+import { canEditData, useAuthStore } from "@/lib/store/useAuthStore";
+import {
+  type ImportTeamInput,
+  JERSEY_PATTERN,
+  MAX_ROSTER,
+  createTeam,
+  deleteTeam,
+  errorMessage,
+  importTeams,
+  listGroups,
+  listTeams,
+  uploadTeamLogo,
+} from "@/lib/teamsApi";
+import { TeamLogo } from "./TeamLogo";
+import { TeamLogoField } from "./TeamLogoField";
 
 interface TeamsLandingSectionProps {
   onTeamClick?: (teamId: string, teamName: string) => void;
 }
 
+interface Notice {
+  tone: "success" | "error";
+  text: string;
+}
+
+// Urutan natural: "HMD 2" sebelum "HMD 10" (backend mengurutkan per huruf).
+const teamNameOrder = new Intl.Collator("id", { numeric: true, sensitivity: "base" });
+
+/**
+ * Ubah baris XLSX/CSV (NAMA_TIM, GROUP, NAMA_PEMAIN, NOPUNG, KAPTEN) menjadi
+ * payload POST /api/teams/import. Baris pemain dengan nomor punggung tidak
+ * valid dilaporkan, bukan diam-diam dilewati.
+ */
+function buildImportPayload(
+  rows: Array<{ line: number; teamName: string; group: string; playerName: string; nopung: string; isCaptain: boolean }>,
+): { teams: ImportTeamInput[]; problems: string[] } {
+  const byName = new Map<string, ImportTeamInput>();
+  const problems: string[] = [];
+
+  for (const row of rows) {
+    const key = row.teamName.toLowerCase();
+    let team = byName.get(key);
+    if (!team) {
+      team = { name: row.teamName, ...(row.group ? { group: row.group } : {}), players: [] };
+      byName.set(key, team);
+    }
+    if (!row.playerName) continue;
+
+    if (!JERSEY_PATTERN.test(row.nopung)) {
+      problems.push(`Baris ${row.line}: nomor punggung "${row.nopung || "(kosong)"}" untuk ${row.playerName} tidak valid`);
+      continue;
+    }
+    if (team.players.some((player) => player.jerseyNumber === row.nopung)) {
+      problems.push(`Baris ${row.line}: nomor punggung ${row.nopung} dipakai dua kali di ${row.teamName}`);
+      continue;
+    }
+    const isCaptain = row.isCaptain && !team.players.some((player) => player.isCaptain);
+    team.players.push({ name: row.playerName, jerseyNumber: row.nopung, isCaptain });
+  }
+
+  for (const team of byName.values()) {
+    if (team.players.length > MAX_ROSTER) {
+      problems.push(`${team.name}: ${team.players.length} pemain, maksimal ${MAX_ROSTER}`);
+    }
+  }
+
+  return { teams: [...byName.values()], problems };
+}
+
 export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const { teams, addTeam, deleteTeam, deleteTeams, importTeamsFromRawData } = useTeamStore();
+  const role = useAuthStore((state) => state.user?.role);
+  const canEdit = canEditData(role);
+
+  const loadTeams = useCallback(() => listTeams(), []);
+  const { state: teamsState, reload: reloadTeams } = useAsyncData(loadTeams);
+  const loadGroups = useCallback(() => listGroups(), []);
+  const { state: groupsState } = useAsyncData(loadGroups);
+  const teams = useMemo(
+    () =>
+      teamsState.status === "ready"
+        ? [...teamsState.data].sort((a, b) => teamNameOrder.compare(a.name, b.name))
+        : [],
+    [teamsState],
+  );
+  const groups = groupsState.status === "ready" ? groupsState.data : [];
+
+  const [notice, setNotice] = useState<Notice | null>(null);
 
   // Modals state
   const [isAddTeamModalOpen, setIsAddTeamModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Bulk Delete state
   const [isBulkDeleteMode, setIsBulkDeleteMode] = useState(false);
@@ -27,25 +108,34 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
 
   // Import Conflict state (Opsi Timpa atau Tidak)
   const [pendingConflictImport, setPendingConflictImport] = useState<{
-    rows: Array<{
-      teamName: string;
-      group?: string;
-      playerName?: string;
-      nopung?: string;
-      isCaptain?: boolean;
-    }>;
+    teams: ImportTeamInput[];
     fileName: string;
     conflictingTeams: string[];
   } | null>(null);
 
   // Add Team Form state
   const [newTeamName, setNewTeamName] = useState("");
-  const [newTeamGroup, setNewTeamGroup] = useState("Group A");
+  const [newTeamGroupId, setNewTeamGroupId] = useState<string | null>(null);
   const [newTeamPlayerCount, setNewTeamPlayerCount] = useState(15);
+  const [newTeamLogo, setNewTeamLogo] = useState<File | null>(null);
   const [addTeamError, setAddTeamError] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  // Default: grup pertama dari database (Group A).
+  const selectedGroupId = newTeamGroupId ?? groups[0]?.id ?? "";
+
+  const logoPreview = useMemo(
+    () => (newTeamLogo ? URL.createObjectURL(newTeamLogo) : null),
+    [newTeamLogo],
+  );
+  useEffect(() => {
+    return () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+    };
+  }, [logoPreview]);
 
   // Import state
   const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,46 +145,82 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
       (team.group && team.group.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const handleCreateTeam = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTeamName.trim()) {
-      setAddTeamError("Nama tim tidak boleh kosong!");
-      return;
-    }
-
-    // Check duplicate
-    const exists = teams.some(
-      (t) => t.name.toLowerCase() === newTeamName.trim().toLowerCase()
-    );
-    if (exists) {
-      setAddTeamError(`Tim dengan nama "${newTeamName.trim()}" sudah ada!`);
-      return;
-    }
-
-    // Generate initial players for this new team
-    const initialPlayers = Array.from({ length: Math.max(1, newTeamPlayerCount) }, (_, i) => ({
-      name: `Pemain ${i + 1}`,
-      nopung: String(i + 1),
-      isCaptain: i === 0,
-    }));
-
-    addTeam({
-      name: newTeamName.trim(),
-      group: newTeamGroup,
-      logo: "/images/LOGO_1.svg",
-      players: initialPlayers,
-    });
-
-    setNewTeamName("");
-    setNewTeamGroup("Group A");
-    setNewTeamPlayerCount(15);
-    setAddTeamError("");
+  const closeAddTeamModal = () => {
     setIsAddTeamModalOpen(false);
+    setNewTeamName("");
+    setNewTeamGroupId(null);
+    setNewTeamPlayerCount(15);
+    setNewTeamLogo(null);
+    setAddTeamError("");
   };
 
-  const handleConfirmDeleteTeam = () => {
-    if (teamToDelete) {
-      deleteTeam(teamToDelete.id);
+  const handleCreateTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = newTeamName.trim();
+    if (name.length < 2) {
+      setAddTeamError("Nama tim minimal 2 karakter.");
+      return;
+    }
+    if (teams.some((t) => t.name.toLowerCase() === name.toLowerCase())) {
+      setAddTeamError(`Tim dengan nama "${name}" sudah ada.`);
+      return;
+    }
+
+    setIsCreating(true);
+    setAddTeamError("");
+    try {
+      const count = Math.min(Math.max(newTeamPlayerCount, 1), MAX_ROSTER);
+      const players = Array.from({ length: count }, (_, i) => ({
+        name: `Pemain ${i + 1}`,
+        jerseyNumber: String(i + 1),
+        isCaptain: i === 0,
+      }));
+      const { team } = await createTeam({
+        name,
+        ...(selectedGroupId ? { group: selectedGroupId } : {}),
+        players,
+      });
+
+      // Logo diunggah setelah tim ada di database (butuh ID tim).
+      let logoProblem: string | null = null;
+      if (newTeamLogo) {
+        try {
+          await uploadTeamLogo(team.id, newTeamLogo);
+        } catch (err) {
+          logoProblem = errorMessage(err);
+        }
+      }
+
+      closeAddTeamModal();
+      reloadTeams();
+      setNotice(
+        logoProblem
+          ? {
+              tone: "error",
+              text: `Tim ${name} ditambahkan, tetapi logo gagal diunggah: ${logoProblem}. Unggah ulang dari halaman Edit tim.`,
+            }
+          : { tone: "success", text: `Tim ${name} berhasil ditambahkan.` },
+      );
+    } catch (err) {
+      setAddTeamError(
+        err instanceof ApiError && err.status === 409 ? `Tim dengan nama "${name}" sudah ada.` : errorMessage(err),
+      );
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleConfirmDeleteTeam = async () => {
+    if (!teamToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteTeam(teamToDelete.id);
+      setNotice({ tone: "success", text: `Tim ${teamToDelete.name} dihapus.` });
+      reloadTeams();
+    } catch (err) {
+      setNotice({ tone: "error", text: `Tim ${teamToDelete.name} gagal dihapus: ${errorMessage(err)}` });
+    } finally {
+      setIsDeleting(false);
       setTeamToDelete(null);
     }
   };
@@ -113,28 +239,54 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
     }
   };
 
-  const handleConfirmBulkDelete = () => {
-    if (selectedTeamIds.length > 0) {
-      deleteTeams(selectedTeamIds);
-      setSelectedTeamIds([]);
-      setIsBulkDeleteMode(false);
-      setIsConfirmBulkModalOpen(false);
+  const handleConfirmBulkDelete = async () => {
+    if (selectedTeamIds.length === 0) return;
+    setIsDeleting(true);
+    const ids = [...selectedTeamIds];
+    const results = await Promise.allSettled(ids.map((id) => deleteTeam(id)));
+    const nameOf = (id: string) => teams.find((t) => t.id === id)?.name ?? id;
+    const failed = results.flatMap((result, i) =>
+      result.status === "rejected" ? [`${nameOf(ids[i])} (${errorMessage(result.reason)})`] : [],
+    );
+    const removed = ids.length - failed.length;
+
+    setNotice(
+      failed.length > 0
+        ? { tone: "error", text: `${removed} tim dihapus. Gagal: ${failed.join("; ")}` }
+        : { tone: "success", text: `${removed} tim dihapus.` },
+    );
+    setIsDeleting(false);
+    setSelectedTeamIds([]);
+    setIsBulkDeleteMode(false);
+    setIsConfirmBulkModalOpen(false);
+    reloadTeams();
+  };
+
+  const runImport = async (payload: ImportTeamInput[], overwrite: boolean) => {
+    setIsImporting(true);
+    try {
+      const result = await importTeams(payload, overwrite);
+      const parts = [`${result.createdTeams} tim baru`];
+      if (overwrite) parts.push(`${result.updatedTeams} tim ditimpa`);
+      parts.push(`${result.createdPlayers} pemain baru`);
+      setImportStatus(`Berhasil mengimpor: ${parts.join(", ")}.`);
+      reloadTeams();
+      setTimeout(() => {
+        setIsImportModalOpen(false);
+        setImportStatus(null);
+      }, 1500);
+    } catch (err) {
+      setImportStatus(`Import gagal: ${errorMessage(err)}`);
+    } finally {
+      setIsImporting(false);
     }
   };
 
   const handleResolveConflictImport = (overwrite: boolean) => {
     if (!pendingConflictImport) return;
-    importTeamsFromRawData(pendingConflictImport.rows, overwrite);
-    setImportStatus(
-      overwrite
-        ? `Berhasil menimpa data ${pendingConflictImport.conflictingTeams.length} tim dan mengimpor ${pendingConflictImport.rows.length} data pemain!`
-        : `Berhasil mengimpor data ${pendingConflictImport.rows.length} pemain tanpa menimpa tim yang sudah ada!`
-    );
+    const { teams: payload } = pendingConflictImport;
     setPendingConflictImport(null);
-    setTimeout(() => {
-      setIsImportModalOpen(false);
-      setImportStatus(null);
-    }, 1500);
+    void runImport(payload, overwrite);
   };
 
   // Reusable file processing for both Click-to-upload & Drag-and-Drop
@@ -157,7 +309,7 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
       const workbook = XLSX.read(buffer, { type: "array" });
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
-      const rawJson = XLSX.utils.sheet_to_json<any>(worksheet, { header: 1 });
+      const rawJson = XLSX.utils.sheet_to_json<unknown[]>(worksheet, { header: 1 });
 
       if (!rawJson || rawJson.length <= 1) {
         setImportStatus("File kosong atau hanya berisi baris judul.");
@@ -165,7 +317,7 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
       }
 
       // Expected header format: NAMA_TIM, GROUP, NAMA_PEMAIN, NOPUNG, KAPTEN
-      const headers = (rawJson[0] as any[]).map((h) =>
+      const headers = (rawJson[0] as unknown[]).map((h) =>
         String(h || "").trim().toUpperCase()
       );
       const teamNameIdx = headers.findIndex((h) => h.includes("TIM") || h.includes("TEAM"));
@@ -185,61 +337,47 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
         (h) => h.includes("KAPTEN") || h.includes("CAPTAIN") || h.includes("CAP")
       );
 
-      const parsedRows: Array<{
-        teamName: string;
-        group?: string;
-        playerName?: string;
-        nopung?: string;
-        isCaptain?: boolean;
-      }> = [];
+      const parsedRows: Parameters<typeof buildImportPayload>[0] = [];
 
       for (let i = 1; i < rawJson.length; i++) {
-        const cols = (rawJson[i] as any[]) || [];
+        const cols = (rawJson[i] as unknown[]) || [];
         if (cols.length === 0) continue;
 
         const teamName = String(teamNameIdx !== -1 ? cols[teamNameIdx] : cols[0] || "").trim();
-        const group = String(groupIdx !== -1 ? cols[groupIdx] : cols[1] || "Group A").trim();
-        const playerName = String(playerIdx !== -1 ? cols[playerIdx] : cols[2] || "").trim();
-        const nopung = String(nopungIdx !== -1 ? cols[nopungIdx] : cols[3] || "").trim();
+        const group = String(groupIdx !== -1 ? cols[groupIdx] ?? "" : cols[1] || "").trim();
+        const playerName = String(playerIdx !== -1 ? cols[playerIdx] ?? "" : cols[2] || "").trim();
+        const nopung = String(nopungIdx !== -1 ? cols[nopungIdx] ?? "" : cols[3] ?? "").trim();
         const capVal = String(captainIdx !== -1 ? cols[captainIdx] : cols[4] || "").toLowerCase().trim();
         const isCaptain = capVal === "true" || capVal === "1" || capVal === "ya" || capVal === "yes";
 
         if (teamName) {
-          parsedRows.push({
-            teamName,
-            group: group || "Group A",
-            playerName,
-            nopung,
-            isCaptain,
-          });
+          parsedRows.push({ line: i + 1, teamName, group, playerName, nopung, isCaptain });
         }
       }
 
-      if (parsedRows.length > 0) {
-        // Cek apakah ada tim dalam file yang sudah terdaftar di sistem
-        const uploadedTeamNames = Array.from(new Set(parsedRows.map((r) => r.teamName)));
-        const existingTeamNames = uploadedTeamNames.filter((name) =>
-          teams.some((t) => t.name.toLowerCase() === name.toLowerCase())
-        );
-
-        if (existingTeamNames.length > 0) {
-          // Buka modal konfirmasi apakah ingin menimpa data atau tidak
-          setPendingConflictImport({
-            rows: parsedRows,
-            fileName: file.name,
-            conflictingTeams: existingTeamNames,
-          });
-        } else {
-          // Tidak ada tim yang bentrok, langsung import normal
-          importTeamsFromRawData(parsedRows, false);
-          setImportStatus(`Berhasil mengimpor ${parsedRows.length} data pemain & tim dari "${file.name}"!`);
-          setTimeout(() => {
-            setIsImportModalOpen(false);
-            setImportStatus(null);
-          }, 1500);
-        }
-      } else {
+      if (parsedRows.length === 0) {
         setImportStatus("Tidak ditemukan data valid dalam file.");
+        return;
+      }
+
+      const { teams: payload, problems } = buildImportPayload(parsedRows);
+      if (problems.length > 0) {
+        const shown = problems.slice(0, 3).join("; ");
+        const more = problems.length > 3 ? ` (+${problems.length - 3} lainnya)` : "";
+        setImportStatus(`Perbaiki file dulu: ${shown}${more}`);
+        return;
+      }
+
+      // Cek apakah ada tim dalam file yang sudah terdaftar di database
+      const existingTeamNames = payload
+        .map((team) => team.name)
+        .filter((name) => teams.some((t) => t.name.toLowerCase() === name.toLowerCase()));
+
+      if (existingTeamNames.length > 0) {
+        setImportStatus(null);
+        setPendingConflictImport({ teams: payload, fileName: file.name, conflictingTeams: existingTeamNames });
+      } else {
+        await runImport(payload, false);
       }
     } catch (err) {
       console.error("Error parsing file:", err);
@@ -278,6 +416,8 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
     document.body.removeChild(link);
   };
 
+  const conferences = [...new Map(groups.map((g) => [g.conference.id, g.conference.name])).entries()];
+
   return (
     <div className="w-full flex flex-col gap-6 pt-6">
       {/* 1. Header & Actions */}
@@ -285,11 +425,16 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
         <div>
           <h1 className="text-4xl font-bold text-[#2d3748]">Teams</h1>
           <p className="text-sm text-gray-500 font-poppins mt-1">
-            Total {teams.length} Tim Terdaftar dalam IBL 2K26
+            {teamsState.status === "ready"
+              ? `Total ${teams.length} Tim Terdaftar dalam IBL 2K26`
+              : teamsState.status === "loading"
+                ? "Memuat daftar tim..."
+                : "Daftar tim belum bisa dimuat"}
           </p>
         </div>
 
-        {/* Buttons Tambah Tim & Import & Hapus Banyak */}
+        {/* Buttons Tambah Tim & Import & Hapus Banyak (viewer hanya melihat) */}
+        {canEdit && (
         <div className="flex items-center gap-2.5 flex-wrap">
           {teams.length > 0 && (
             <button
@@ -331,7 +476,30 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
             <span>Tambah Tim</span>
           </button>
         </div>
+        )}
       </div>
+
+      {/* Hasil aksi terakhir (tambah/hapus/upload) */}
+      {notice && (
+        <div
+          role={notice.tone === "error" ? "alert" : "status"}
+          className={`flex items-start justify-between gap-3 rounded-2xl border px-4 py-3 text-sm font-poppins ${
+            notice.tone === "error"
+              ? "bg-red-50 border-red-200 text-red-800"
+              : "bg-emerald-50 border-emerald-200 text-emerald-800"
+          }`}
+        >
+          <span>{notice.text}</span>
+          <button
+            type="button"
+            onClick={() => setNotice(null)}
+            aria-label="Tutup pesan"
+            className="shrink-0 p-1 rounded-full hover:bg-black/5 transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Bulk Delete Bar */}
       {isBulkDeleteMode && (
@@ -387,6 +555,27 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
         />
       </div>
 
+      {/* Status daftar tim */}
+      {teamsState.status === "loading" && (
+        <div className="flex items-center gap-3 py-12 justify-center text-gray-600 font-poppins" role="status">
+          <div className="w-6 h-6 border-3 border-teal-600 border-t-transparent rounded-full animate-spin" />
+          <span>Memuat daftar tim dari server...</span>
+        </div>
+      )}
+
+      {teamsState.status === "error" && (
+        <div className="flex flex-col items-center gap-3 py-12 text-center font-poppins" role="alert">
+          <p className="text-red-700 font-medium">Daftar tim gagal dimuat: {teamsState.message}</p>
+          <button
+            type="button"
+            onClick={reloadTeams}
+            className="px-5 py-2 rounded-full text-sm font-semibold bg-[#389F9D] hover:bg-[#2C7D7B] text-white transition-colors cursor-pointer"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      )}
+
       {/* 3. Teams Grid (Original clean layout: Logo + Name with Bulk Select / Hover Delete Option) */}
       <div className="mt-8 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-6 gap-x-6 gap-y-12">
         {filteredTeams.map((team) => {
@@ -420,7 +609,7 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
                 >
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-              ) : (
+              ) : canEdit ? (
                 /* Tombol Hapus Tim Individual (Tanda Silang X) */
                 <button
                   type="button"
@@ -433,15 +622,10 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
-              )}
+              ) : null}
 
               <div className="relative w-24 h-24 mb-3 transition-transform duration-300 group-hover:scale-105">
-                <Image
-                  src={team.logo || "/images/LOGO_1.svg"}
-                  alt={team.name}
-                  fill
-                  className="object-contain drop-shadow-md"
-                />
+                <TeamLogo src={team.logo} sizes="96px" className="object-contain drop-shadow-md" />
               </div>
               <span className="text-[#2d3748] font-bold text-lg text-center font-poppins truncate max-w-full px-1">
                 {team.name}
@@ -451,9 +635,18 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
         })}
       </div>
 
-      {filteredTeams.length === 0 && (
-        <div className="text-center py-12 text-gray-500 font-poppins">
-          No teams found matching "{searchQuery}"
+      {teamsState.status === "ready" && teams.length === 0 && (
+        <div className="text-center py-12 text-gray-600 font-poppins">
+          <p className="font-semibold text-gray-700">Belum ada tim terdaftar.</p>
+          {canEdit && (
+            <p className="text-sm mt-1">Tambahkan tim lewat tombol Tambah Tim, atau import dari file XLSX/CSV.</p>
+          )}
+        </div>
+      )}
+
+      {teamsState.status === "ready" && teams.length > 0 && filteredTeams.length === 0 && (
+        <div className="text-center py-12 text-gray-600 font-poppins">
+          Tidak ada tim yang cocok dengan &quot;{searchQuery}&quot;.
         </div>
       )}
 
@@ -462,10 +655,11 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
       {/* ========================================================================= */}
       {isAddTeamModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs font-poppins animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 relative">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 relative max-h-[calc(100vh-2rem)] overflow-y-auto">
             <button
               type="button"
-              onClick={() => setIsAddTeamModalOpen(false)}
+              onClick={closeAddTeamModal}
+              aria-label="Tutup"
               className="absolute top-5 right-5 p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
@@ -483,16 +677,17 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
 
             <form onSubmit={handleCreateTeam} className="flex flex-col gap-4">
               {addTeamError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium">
+                <div role="alert" className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
                   {addTeamError}
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                <label htmlFor="new-team-name" className="block text-xs font-bold text-gray-700 uppercase mb-1">
                   Nama Tim <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="new-team-name"
                   type="text"
                   placeholder="Contoh: HMD 19 / Teknik Mesin"
                   value={newTeamName}
@@ -500,57 +695,87 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
                     setNewTeamName(e.target.value);
                     setAddTeamError("");
                   }}
+                  maxLength={100}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm"
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                <label htmlFor="new-team-group" className="block text-xs font-bold text-gray-700 uppercase mb-1">
                   Grup Pertandingan
                 </label>
                 <select
-                  value={newTeamGroup}
-                  onChange={(e) => setNewTeamGroup(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm bg-white cursor-pointer"
+                  id="new-team-group"
+                  value={selectedGroupId}
+                  onChange={(e) => setNewTeamGroupId(e.target.value)}
+                  disabled={groupsState.status !== "ready"}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm bg-white cursor-pointer disabled:cursor-wait"
                 >
-                  <option value="Group A">Group A</option>
-                  <option value="Group B">Group B</option>
-                  <option value="Group C">Group C</option>
-                  <option value="Group D">Group D</option>
+                  {groupsState.status === "loading" && <option value="">Memuat grup...</option>}
+                  {conferences.map(([conferenceId, conferenceName]) => (
+                    <optgroup key={conferenceId} label={conferenceName}>
+                      {groups
+                        .filter((group) => group.conference.id === conferenceId)
+                        .map((group) => (
+                          <option key={group.id} value={group.id}>
+                            {group.name}
+                          </option>
+                        ))}
+                    </optgroup>
+                  ))}
+                  <option value="">Tanpa grup (belum diundi)</option>
                 </select>
+                {groupsState.status === "error" && (
+                  <span className="text-[11px] text-red-700 mt-1 block">
+                    Daftar grup gagal dimuat; tim bisa disimpan tanpa grup dan diatur nanti.
+                  </span>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                <label htmlFor="new-team-players" className="block text-xs font-bold text-gray-700 uppercase mb-1">
                   Jumlah Pemain Awal
                 </label>
                 <input
+                  id="new-team-players"
                   type="number"
                   min={1}
-                  max={30}
+                  max={MAX_ROSTER}
                   value={newTeamPlayerCount}
                   onChange={(e) => setNewTeamPlayerCount(parseInt(e.target.value, 10) || 15)}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm"
                 />
                 <span className="text-[11px] text-gray-400 mt-1 block">
-                  Pemain dapat diedit nama dan statistiknya di halaman Edit Tim.
+                  Nama dan nomor punggung pemain bisa diubah di halaman Edit Tim.
                 </span>
               </div>
+
+              <TeamLogoField
+                inputId="new-team-logo"
+                previewSrc={logoPreview}
+                canRemove={newTeamLogo !== null}
+                busy={isCreating}
+                statusText={newTeamLogo ? `${newTeamLogo.name} siap diunggah` : null}
+                onSelect={setNewTeamLogo}
+                onRemove={() => setNewTeamLogo(null)}
+              />
 
               <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
                 <button
                   type="button"
-                  onClick={() => setIsAddTeamModalOpen(false)}
-                  className="px-5 py-2 rounded-full text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                  onClick={closeAddTeamModal}
+                  disabled={isCreating}
+                  className="px-5 py-2 rounded-full text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-60"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-full text-sm font-bold bg-[#389F9D] hover:bg-[#2C7D7B] text-white shadow-sm transition-colors cursor-pointer"
+                  disabled={isCreating}
+                  className="px-6 py-2 rounded-full text-sm font-bold bg-[#389F9D] hover:bg-[#2C7D7B] text-white shadow-sm transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Simpan Tim
+                  {isCreating ? "Menyimpan..." : "Simpan Tim"}
                 </button>
               </div>
             </form>
@@ -614,7 +839,7 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
 
               {/* Upload Dropzone with Drag and Drop Support */}
               <div
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => !isImporting && fileInputRef.current?.click()}
                 onDragOver={handleDragOver}
                 onDragEnter={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -629,7 +854,11 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
                   <Upload className={`w-8 h-8 ${isDragging ? "text-[#389F9D]" : "text-emerald-600"}`} />
                 </div>
                 <span className="text-sm font-semibold text-gray-700 text-center">
-                  {isDragging ? "Lepaskan file di sini untuk mengunggah" : "Klik untuk Memilih File atau Tarik (Drag & Drop) ke Sini"}
+                  {isImporting
+                    ? "Mengimpor ke database..."
+                    : isDragging
+                      ? "Lepaskan file di sini untuk mengunggah"
+                      : "Klik untuk Memilih File atau Tarik (Drag & Drop) ke Sini"}
                 </span>
                 <span className="text-xs text-gray-400 text-center">
                   (Mendukung berkas .xlsx, .xls, atau .csv)
@@ -643,16 +872,20 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
                     if (file) processFile(file);
                     e.target.value = "";
                   }}
-                  className="hidden"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  // Bukan `hidden`: WebKit iOS menolak .click() pada input yang tidak dirender (AGENTS.md).
+                  className="absolute pointer-events-none opacity-0 w-px h-px"
                 />
               </div>
 
               {importStatus && (
                 <div
+                  role={importStatus.startsWith("Berhasil") ? "status" : "alert"}
                   className={`p-3 rounded-xl text-xs font-medium text-center ${
                     importStatus.startsWith("Berhasil")
                       ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      : "bg-red-50 text-red-600 border border-red-200"
+                      : "bg-red-50 text-red-700 border border-red-200"
                   }`}
                 >
                   {importStatus}
@@ -698,13 +931,14 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
               Hapus Tim {teamToDelete.name}?
             </h3>
             <p className="text-xs text-gray-500 mb-6 leading-relaxed">
-              Apakah Anda yakin ingin menghapus tim <strong>{teamToDelete.name}</strong>? Seluruh data pemain dan statistik tim ini akan dihapus dari daftar.
+              Apakah Anda yakin ingin menghapus tim <strong>{teamToDelete.name}</strong>? Seluruh data pemain dan logo tim ini ikut terhapus. Tim yang sudah punya pertandingan tidak bisa dihapus.
             </p>
 
             <div className="flex items-center gap-3 w-full">
               <button
                 type="button"
                 onClick={() => setTeamToDelete(null)}
+                disabled={isDeleting}
                 className="flex-1 py-2.5 rounded-full text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
               >
                 Batal
@@ -712,9 +946,10 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
               <button
                 type="button"
                 onClick={handleConfirmDeleteTeam}
-                className="flex-1 py-2.5 rounded-full text-xs font-bold text-white bg-red-600 hover:bg-red-700 shadow-md transition-colors cursor-pointer"
+                disabled={isDeleting}
+                className="flex-1 py-2.5 rounded-full text-xs font-bold text-white bg-red-600 hover:bg-red-700 shadow-md transition-colors cursor-pointer disabled:opacity-70"
               >
-                Hapus Tim
+                {isDeleting ? "Menghapus..." : "Hapus Tim"}
               </button>
             </div>
           </div>
@@ -743,13 +978,14 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
               Hapus {selectedTeamIds.length} Tim Terpilih?
             </h3>
             <p className="text-xs text-gray-500 mb-6 leading-relaxed">
-              Apakah Anda yakin ingin menghapus <strong>{selectedTeamIds.length} tim</strong> yang dipilih? Seluruh data pemain dan statistik dalam tim-tim ini akan dihapus secara permanen.
+              Apakah Anda yakin ingin menghapus <strong>{selectedTeamIds.length} tim</strong> yang dipilih? Seluruh data pemain dan logo tim-tim ini akan dihapus secara permanen.
             </p>
 
             <div className="flex items-center gap-3 w-full">
               <button
                 type="button"
                 onClick={() => setIsConfirmBulkModalOpen(false)}
+                disabled={isDeleting}
                 className="flex-1 py-2.5 rounded-full text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
               >
                 Batal
@@ -757,9 +993,10 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
               <button
                 type="button"
                 onClick={handleConfirmBulkDelete}
-                className="flex-1 py-2.5 rounded-full text-xs font-bold text-white bg-red-600 hover:bg-red-700 shadow-md transition-colors cursor-pointer"
+                disabled={isDeleting}
+                className="flex-1 py-2.5 rounded-full text-xs font-bold text-white bg-red-600 hover:bg-red-700 shadow-md transition-colors cursor-pointer disabled:opacity-70"
               >
-                Hapus ({selectedTeamIds.length}) Tim
+                {isDeleting ? "Menghapus..." : `Hapus (${selectedTeamIds.length}) Tim`}
               </button>
             </div>
           </div>
@@ -788,7 +1025,7 @@ export const TeamsLandingSection = ({ onTeamClick }: TeamsLandingSectionProps) =
               Tim Sudah Terdaftar
             </h3>
             <p className="text-xs text-gray-500 mb-3 leading-relaxed">
-              Berkas <span className="font-semibold text-gray-800">"{pendingConflictImport.fileName}"</span> memuat <strong>{pendingConflictImport.conflictingTeams.length} tim</strong> yang sudah ada di sistem:
+              Berkas <span className="font-semibold text-gray-800">&quot;{pendingConflictImport.fileName}&quot;</span> memuat <strong>{pendingConflictImport.conflictingTeams.length} tim</strong> yang sudah ada di sistem:
             </p>
 
             {/* List nama tim yang bentrok */}
