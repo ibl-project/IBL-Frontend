@@ -24,7 +24,7 @@ Buka [http://localhost:3000](http://localhost:3000) di browser untuk melihat has
 
 Login (`/login`) dan dashboard panitia (`/teams`, `/schedule-result`, `/scoring`) mengambil data dari API di repo **IBL-Backend**. Halaman publik (`/schedule-result-main`, klasemen, leaderboard) belum tersambung.
 
-1. Tidak perlu clone backend. Buat `.env.local` dari template: `cp .env.local.example .env.local`. **URL API (staging/produksi) dan URL form registrasi tidak disimpan di repo: minta ke grup tim IT atau Evan.** `.env` dan `.env.local` tidak di-commit.
+1. Tidak perlu clone backend. Buat `.env.local` dari template: `cp .env.local.example .env.local`. **URL API (staging/produksi) tidak disimpan di repo: minta ke grup tim Webdev IBL atau Evan.** URL form registrasi (`NEXT_PUBLIC_BACKEND_URL`) sudah tidak dipakai sejak form ditutup. `.env` dan `.env.local` tidak di-commit.
 2. Untuk uji, pakai URL **staging** (datanya salinan produksi). Simpan baris produksi di `.env.local` dalam keadaan di-comment; aktifkan hanya kalau memang perlu menguji dengan data asli, lalu restart `npm run dev`. `NEXT_PUBLIC_API_URL` kosong = backend lokal (ikuti `SETUP.md` di repo IBL-Backend).
 3. Buka lewat **http://localhost:3000**, bukan `127.0.0.1` atau IP jaringan, supaya CORS cocok. Akun panitia diminta ke admin backend (akun staging = akun produksi). Login ke API staging/produksi dari laptop memakai cookie lintas site: sesi bertahan setelah reload hanya di browser yang mengizinkan cookie pihak ketiga (Chrome biasa); di Safari, Brave, atau incognito, reload membuat logout.
 
