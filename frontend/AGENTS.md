@@ -20,7 +20,7 @@ This repository contains the frontend web application for the **IBL 2K26** editi
 
 `/login` and the dashboard (`app/(dashboard)/`: Teams, Schedule Result, Scoring) use the IBL-Backend API. Its endpoint contract is `docs/API.md` and its setup guide is `SETUP.md`, both in that repository.
 
-- Base URL: `NEXT_PUBLIC_API_URL` (dev falls back to `http://localhost:4000/api`).
+- Base URL: `NEXT_PUBLIC_API_URL`. The shared `frontend/.env` points local dev at the staging API (`https://api-staging.ibl-its.id/api`); the production line is commented out. Vercel uses its own dashboard value. Without any value, dev falls back to `http://localhost:4000/api`.
 - Call the API only through `lib/apiClient.ts` (`apiFetch`: bearer token, shared refresh on 401, raw file upload), `lib/teamsApi.ts`, and `lib/matchesApi.ts`. Never call `fetch` directly. Never put tokens in `localStorage` or `sessionStorage`: the access token stays in memory and the refresh token is an httpOnly cookie.
 - Live match data: `lib/hooks/useMatchLive.ts` (snapshot + SSE). Scoring writes: `lib/hooks/useScoringSession.ts` (one account per match, 30 s heartbeat) and `lib/hooks/useAutoSaveActions.ts` (one UUID `actionId` per tap, retried with the same id).
 - Scoring is per period: Quarter 1–4, then OT1, OT2, … (periods 5–10) when the score is tied. Only the active period (the lowest one that is not locked) can be scored, reset, or locked; every tap sends its `quarter`. Save and Lock is per period: locking the last period finishes the match (or opens the next OT on a tie), and Unlock reopens one period for correction (status stays FINISHED). The Total tab (read-only) is the sum of all periods and is what standings and Teams use. Details: `docs/API.md` section 7 in IBL-Backend.
