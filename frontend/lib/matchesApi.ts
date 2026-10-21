@@ -2,7 +2,7 @@ import { ApiError, apiFetch } from "@/lib/apiClient";
 
 /**
  * Endpoint jadwal (Schedule Result), PDF hasil, dan sesi scoring di backend.
- * Kontrak lengkap: IBL-Backend/docs/API.md bagian "Pertandingan" & "Scoring".
+ * Kontrak lengkap: repo IBL-apidocs (koleksi Bruno), folder "Pertandingan" & "Scoring".
  */
 
 export type MatchStatus = "SCHEDULED" | "LIVE" | "FINISHED";

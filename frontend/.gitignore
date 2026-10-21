@@ -30,9 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (allow shared .env but ignore local overrides)
+# env files: .env lokal tidak di-commit (berisi URL internal). Template: .env.local.example
+.env
 .env*.local
-.env.local
 
 # vercel
 .vercel
