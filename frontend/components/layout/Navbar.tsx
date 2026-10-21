@@ -39,8 +39,7 @@ const NAV_ITEMS: NavItem[] = [
         Groups <span className="font-['Hobo_Std'] text-base font-medium tracking-widest">&amp;</span> Standings
       </>
     ),
-    href: "#",
-    soon: true,
+    href: "/groups-standings",
   },
   { plainLabel: "Leaderboard", label: "Leaderboard", href: "/leaderboard" },
 ];

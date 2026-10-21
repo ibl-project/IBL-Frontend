@@ -1,7 +1,11 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
 <!-- END:nextjs-agent-rules -->
 
 # Project Overview: IBL 2K26
@@ -16,7 +20,7 @@ This repository contains the frontend web application for the **IBL 2K26** editi
 
 `/login` and the dashboard (`app/(dashboard)/`: Teams, Schedule Result, Scoring) use the IBL-Backend API. Its endpoint contract is `docs/API.md` and its setup guide is `SETUP.md`, both in that repository.
 
-- Base URL: `NEXT_PUBLIC_API_URL` (dev falls back to `http://localhost:4000/api`).
+- Base URL: `NEXT_PUBLIC_API_URL`. The shared `frontend/.env` points local dev at the staging API (`https://api-staging.ibl-its.id/api`); the production line is commented out. Vercel uses its own dashboard value. Without any value, dev falls back to `http://localhost:4000/api`.
 - Call the API only through `lib/apiClient.ts` (`apiFetch`: bearer token, shared refresh on 401, raw file upload), `lib/teamsApi.ts`, and `lib/matchesApi.ts`. Never call `fetch` directly. Never put tokens in `localStorage` or `sessionStorage`: the access token stays in memory and the refresh token is an httpOnly cookie.
 - Live match data: `lib/hooks/useMatchLive.ts` (snapshot + SSE). Scoring writes: `lib/hooks/useScoringSession.ts` (one account per match, 30 s heartbeat) and `lib/hooks/useAutoSaveActions.ts` (one UUID `actionId` per tap, retried with the same id).
 - Scoring is per period: Quarter 1–4, then OT1, OT2, … (periods 5–10) when the score is tied. Only the active period (the lowest one that is not locked) can be scored, reset, or locked; every tap sends its `quarter`. Save and Lock is per period: locking the last period finishes the match (or opens the next OT on a tie), and Unlock reopens one period for correction (status stays FINISHED). The Total tab (read-only) is the sum of all periods and is what standings and Teams use. Details: `docs/API.md` section 7 in IBL-Backend.
@@ -72,3 +76,9 @@ To ensure the web app works inside restricted environments like the Google Searc
 - **Hidden File Inputs (Programmatic Clicks):** iOS WebKit blocks programmatic `.click()` actions on file inputs that are removed from the render tree via `display: none` (Tailwind `hidden`). Always use `className="absolute pointer-events-none opacity-0 w-px h-px"` to visually hide file inputs while keeping them strictly accessible to WebKit's interaction policies.
 - **Strict Z-Index Values:** Do not use invalid Tailwind utility classes (e.g., `z-100` instead of `z-[100]`). WKWebView's strict GPU stacking context rules require exact z-indexes to prevent touch events from bleeding through modal overlays or loading screens.
 - **IndexedDB Hang Prevention:** In private browsing or restricted WebViews, `indexedDB.open` can hang indefinitely without triggering success or error callbacks. Always wrap IndexedDB connection promises in a hard timeout (e.g., `1000ms`) and provide a graceful fallback to in-memory state.
+
+---
+
+## Development & Verification Rules
+
+- **No Browser Checking:** DO NOT use `browser_subagent` or browser tools to inspect, test, or verify changes. The user will check and test all UI and interactive changes directly themselves. Validate code using static type checking (`npx tsc --noEmit`) or linting when necessary, then complete the turn immediately.

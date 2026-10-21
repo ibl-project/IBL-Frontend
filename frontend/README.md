@@ -24,9 +24,9 @@ Buka [http://localhost:3000](http://localhost:3000) di browser untuk melihat has
 
 Login (`/login`) dan dashboard panitia (`/teams`, `/schedule-result`, `/scoring`) mengambil data dari API di repo **IBL-Backend**. Halaman publik (`/schedule-result-main`, klasemen, leaderboard) belum tersambung.
 
-1. Jalankan backend lebih dulu sesuai `SETUP.md` di repo IBL-Backend, lalu cek [http://localhost:4000/api/health](http://localhost:4000/api/health).
-2. Alamat API diambil dari `NEXT_PUBLIC_API_URL`. Di mode dev, tanpa variabel ini otomatis `http://localhost:4000/api`. Untuk menggantinya, tambahkan satu baris itu di `.env.local`. Jangan menyalin seluruh `.env.local.example`, karena placeholder `NEXT_PUBLIC_BACKEND_URL` di dalamnya akan menimpa URL form registrasi di `.env`.
-3. Buka lewat **http://localhost:3000**, bukan `127.0.0.1` atau IP jaringan, supaya cookie login dan CORS cocok. Akun panitia diminta ke admin backend.
+1. Tidak perlu clone backend. `frontend/.env` sudah mengisi `NEXT_PUBLIC_API_URL` ke backend **staging** (`https://api-staging.ibl-its.id/api`, datanya salinan produksi). Untuk uji ke **produksi** (data asli), uncomment baris produksi di `frontend/.env`, comment baris staging, lalu restart `npm run dev`. Jangan commit `.env` dalam keadaan mengarah ke produksi.
+2. `NEXT_PUBLIC_API_URL` di `.env.local` mengalahkan `.env`. Hapus baris itu dari `.env.local` kalau ingin mengikuti `.env`. Jangan menyalin seluruh `.env.local.example`, karena placeholder `NEXT_PUBLIC_BACKEND_URL` di dalamnya akan menimpa URL form registrasi di `.env`. Menjalankan backend sendiri: ikuti `SETUP.md` di repo IBL-Backend dan pakai `http://localhost:4000/api`.
+3. Buka lewat **http://localhost:3000**, bukan `127.0.0.1` atau IP jaringan, supaya CORS cocok. Akun panitia diminta ke admin backend (akun staging = akun produksi). Login ke API staging/produksi dari laptop memakai cookie lintas site: sesi bertahan setelah reload hanya di browser yang mengizinkan cookie pihak ketiga (Chrome biasa); di Safari, Brave, atau incognito, reload membuat logout.
 
 Aturan untuk kode dashboard:
 - Panggil API lewat `lib/apiClient.ts` (`apiFetch`), `lib/teamsApi.ts`, atau `lib/matchesApi.ts`. Jangan memakai `fetch` langsung.
