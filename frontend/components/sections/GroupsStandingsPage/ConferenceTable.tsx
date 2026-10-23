@@ -51,6 +51,17 @@ export function SingleGroupTable({ group }: { group: StandingsGroup }) {
             </tr>
           </thead>
           <tbody>
+            {group.standings.length === 0 && (
+              <tr className="border-t border-[#D3E2E9] bg-white">
+                <td
+                  colSpan={8}
+                  className="px-2 sm:px-3 py-1.5 sm:py-2 text-center text-[11px] sm:text-xs font-bold text-[#94A3B8]"
+                  style={{ fontFamily: "var(--font-poppins)" }}
+                >
+                  Belum ada tim
+                </td>
+              </tr>
+            )}
             {group.standings.map((row, idx) => (
               <tr
                 key={row.team.id}
@@ -118,7 +129,8 @@ export function SingleGroupTable({ group }: { group: StandingsGroup }) {
 
 export function GroupStageGrid({ groups }: GroupStageGridProps) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 sm:gap-x-8 gap-y-5 sm:gap-y-6 w-full max-w-[1020px] mx-auto">
+    // items-start: tiap kotak setinggi isinya sendiri, tidak ikut meregang setinggi grup di sebelahnya.
+    <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-x-6 sm:gap-x-8 gap-y-5 sm:gap-y-6 w-full max-w-[1020px] mx-auto">
       {groups.map((group) => (
         <SingleGroupTable key={group.id} group={group} />
       ))}
