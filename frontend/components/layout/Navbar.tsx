@@ -29,8 +29,7 @@ const NAV_ITEMS: NavItem[] = [
         Schedule <span className="font-['Hobo_Std'] text-base font-medium tracking-widest">&amp;</span> Result
       </>
     ),
-    href: "#",
-    soon: true,
+    href: "/schedule-result-main",
   },
   { plainLabel: "Teams", label: "Teams", href: "#", soon: true },
   {
@@ -42,7 +41,7 @@ const NAV_ITEMS: NavItem[] = [
     ),
     href: "/groups-standings",
   },
-  { plainLabel: "Leaderboard", label: "Leaderboard", href: "#", soon: true },
+  { plainLabel: "Leaderboard", label: "Leaderboard", href: "/leaderboard" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -105,10 +104,7 @@ export const Navbar = () => {
               width={82}
               height={89}
               className="object-contain"
-              style={{
-                width: "var(--navbar-logo-width)",
-                height: "auto",
-              }}
+              style={{ width: "var(--navbar-logo-width)", height: "auto" }}
               priority
             />
             <span
