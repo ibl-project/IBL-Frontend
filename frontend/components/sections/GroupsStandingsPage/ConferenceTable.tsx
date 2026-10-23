@@ -12,7 +12,13 @@ interface StandingsTableProps {
   groupLabel?: string;
 }
 
-export function SingleGroupTable({ group }: { group: StandingsGroup }) {
+/**
+ * `rows`: jumlah baris minimum. Grup yang timnya lebih sedikit diisi baris kosong
+ * setinggi baris tim, supaya semua kotak grup di satu conference sejajar.
+ */
+export function SingleGroupTable({ group, rows = 1 }: { group: StandingsGroup; rows?: number }) {
+  const fillerRows = Math.max(rows, 1) - group.standings.length;
+
   return (
     <div className="w-full rounded-[14px] border-[2px] border-[#658B9D] bg-white shadow-sm overflow-hidden">
       <div className="w-full overflow-x-auto scrollbar-none sm:scrollbar-thin">
@@ -51,17 +57,6 @@ export function SingleGroupTable({ group }: { group: StandingsGroup }) {
             </tr>
           </thead>
           <tbody>
-            {group.standings.length === 0 && (
-              <tr className="border-t border-[#D3E2E9] bg-white">
-                <td
-                  colSpan={8}
-                  className="px-2 sm:px-3 py-1.5 sm:py-2 text-center text-[11px] sm:text-xs font-bold text-[#94A3B8]"
-                  style={{ fontFamily: "var(--font-poppins)" }}
-                >
-                  Belum ada tim
-                </td>
-              </tr>
-            )}
             {group.standings.map((row, idx) => (
               <tr
                 key={row.team.id}
@@ -120,6 +115,24 @@ export function SingleGroupTable({ group }: { group: StandingsGroup }) {
                 </td>
               </tr>
             ))}
+            {Array.from({ length: Math.max(fillerRows, 0) }, (_, i) => {
+              const idx = group.standings.length + i;
+              return (
+                <tr
+                  key={`empty-${i}`}
+                  className={`border-t border-[#D3E2E9] ${idx % 2 === 1 ? "bg-[#FAFCFD]" : "bg-white"}`}
+                >
+                  {/* Ukuran teks & padding sama dengan sel angka, jadi tingginya sama dengan baris tim. */}
+                  <td
+                    colSpan={8}
+                    className="px-2 sm:px-3 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#94A3B8] whitespace-nowrap"
+                    style={{ fontFamily: "var(--font-poppins)" }}
+                  >
+                    {group.standings.length === 0 && i === 0 ? "Belum ada tim" : " "}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -128,11 +141,13 @@ export function SingleGroupTable({ group }: { group: StandingsGroup }) {
 }
 
 export function GroupStageGrid({ groups }: GroupStageGridProps) {
+  // Semua grup setinggi grup dengan tim terbanyak di conference ini.
+  const rows = Math.max(1, ...groups.map((group) => group.standings.length));
+
   return (
-    // items-start: tiap kotak setinggi isinya sendiri, tidak ikut meregang setinggi grup di sebelahnya.
     <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-x-6 sm:gap-x-8 gap-y-5 sm:gap-y-6 w-full max-w-[1020px] mx-auto">
       {groups.map((group) => (
-        <SingleGroupTable key={group.id} group={group} />
+        <SingleGroupTable key={group.id} group={group} rows={rows} />
       ))}
     </div>
   );
