@@ -559,7 +559,13 @@ export function GroupsStandingsSection() {
                   <BoardContent
                     state={playoffs}
                     onRetry={reloadPlayoffs}
-                    render={(data) => <PlayoffBracket data={toBracket(data)} />}
+                    render={(data) =>
+                      data ? (
+                        <PlayoffBracket data={toBracket(data)} />
+                      ) : (
+                        <BoardMessage>Bracket playoff belum tersedia.</BoardMessage>
+                      )
+                    }
                   />
                 </div>
 

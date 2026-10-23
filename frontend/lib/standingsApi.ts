@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/apiClient";
+import { ApiError, apiFetch } from "@/lib/apiClient";
 import type { MatchListItem, MatchTeamSide, PlayoffRound } from "@/lib/matchesApi";
 
 /**
@@ -76,8 +76,14 @@ export interface Playoffs {
   rounds: Array<{ round: PlayoffRound; label: string; slots: PlayoffSlot[] }>;
 }
 
-export function getPlayoffs(): Promise<Playoffs> {
-  return apiFetch<Playoffs>("/playoffs", { auth: false });
+/** null kalau backend belum punya endpoint /playoffs (404), supaya halaman menampilkan "belum tersedia". */
+export async function getPlayoffs(): Promise<Playoffs | null> {
+  try {
+    return await apiFetch<Playoffs>("/playoffs", { auth: false });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
 }
 
 // ---------------------------------------------------------------------------
