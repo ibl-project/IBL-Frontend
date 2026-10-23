@@ -3,14 +3,10 @@
 import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import {
-  PLAYOFF_TOURNAMENT_DATA,
-  type PlayoffTournamentData,
-  type PlayoffMatchTeam,
-} from "./mock-data";
+import type { PlayoffMatchTeam, PlayoffTournamentData } from "@/lib/standingsApi";
 
 interface PlayoffBracketProps {
-  data?: PlayoffTournamentData;
+  data: PlayoffTournamentData;
 }
 
 /** Mini basketball emblem icon */
@@ -362,7 +358,7 @@ function DuelBox({
   );
 }
 
-export function PlayoffBracket({ data = PLAYOFF_TOURNAMENT_DATA }: PlayoffBracketProps) {
+export function PlayoffBracket({ data }: PlayoffBracketProps) {
   const { left, right, final, thirdPlace } = data;
   const [activeStage, setActiveStage] = React.useState<"r16" | "qf" | "sf" | "final">("r16");
   const [dragOffset, setDragOffset] = React.useState<number>(0);

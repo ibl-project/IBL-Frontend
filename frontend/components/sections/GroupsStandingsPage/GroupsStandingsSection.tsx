@@ -4,11 +4,48 @@ import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { popSpringVariants, popPunchVariants } from "@/lib/animations";
-import { CONFERENCES, PLAYOFF_ROUNDS, getStandings } from "./mock-data";
+import { useAsyncData, type AsyncState } from "@/lib/hooks/useAsyncData";
+import { getPlayoffs, getStandings, toBracket } from "@/lib/standingsApi";
 import { GroupStageGrid, StandingsTable } from "./ConferenceTable";
 import { PlayoffBracket } from "./PlayoffBracket";
 
 type ViewMode = "conference" | "playoff";
+
+/** Teks di tengah papan selama data dimuat, gagal, atau masih kosong. */
+function BoardMessage({ children, onRetry }: { children: React.ReactNode; onRetry?: () => void }) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center gap-3 py-10 text-center text-sm sm:text-base font-bold text-[#658B9D]"
+      style={{ fontFamily: "var(--font-poppins)" }}
+    >
+      <p>{children}</p>
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="rounded-full border-2 border-[#658B9D] px-5 py-1.5 text-xs sm:text-sm uppercase hover:bg-[#658B9D] hover:text-white transition-colors cursor-pointer"
+        >
+          Coba lagi
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** Isi papan menurut status muat; `render` hanya dipanggil saat data siap. */
+function BoardContent<T>({
+  state,
+  onRetry,
+  render,
+}: {
+  state: AsyncState<T>;
+  onRetry: () => void;
+  render: (data: T) => React.ReactNode;
+}) {
+  if (state.status === "loading") return <BoardMessage>Memuat data...</BoardMessage>;
+  if (state.status === "error") return <BoardMessage onRetry={onRetry}>{state.message}</BoardMessage>;
+  return <>{render(state.data)}</>;
+}
 
 function WoodPlankBar({ position }: { position: "top" | "bottom" }) {
   return (
@@ -47,8 +84,12 @@ export function GroupsStandingsSection() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const activeConference = CONFERENCES[conferenceIdx] || CONFERENCES[0];
-  const standingsTeams = getStandings(activeConference);
+  const { state: standings, reload: reloadStandings } = useAsyncData(getStandings);
+  const { state: playoffs, reload: reloadPlayoffs } = useAsyncData(getPlayoffs);
+
+  const conferences = standings.status === "ready" ? standings.data.conferences : [];
+  const activeConference = conferences[conferenceIdx] ?? conferences[0];
+  const conferenceLabel = activeConference?.name ?? "Conference";
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -61,7 +102,7 @@ export function GroupsStandingsSection() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const activeLabel = viewMode === "playoff" ? "PLAYOFF" : activeConference.label.toUpperCase();
+  const activeLabel = viewMode === "playoff" ? "PLAYOFF" : conferenceLabel.toUpperCase();
 
   return (
     <section
@@ -222,9 +263,9 @@ export function GroupsStandingsSection() {
               <div
                 className="absolute left-1/2 -translate-x-1/2 top-[66px] sm:top-[74px] md:top-[80px] z-50 w-[280px] sm:w-[340px] md:w-[380px] bg-[#FAF5E8] border-[3px] border-[#877561] rounded-[16px] shadow-[0_12px_28px_rgba(0,0,0,0.4)] overflow-hidden animate-in fade-in zoom-in-95 duration-150"
               >
-                {CONFERENCES.map((conf, idx) => (
+                {conferences.map((conf, idx) => (
                   <button
-                    key={conf.label}
+                    key={conf.id}
                     type="button"
                     onClick={() => {
                       setViewMode("conference");
@@ -241,7 +282,7 @@ export function GroupsStandingsSection() {
                       WebkitTapHighlightColor: "transparent",
                     }}
                   >
-                    {conf.label}
+                    {conf.name}
                   </button>
                 ))}
                 <button
@@ -312,7 +353,7 @@ export function GroupsStandingsSection() {
                           filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
                         }}
                       >
-                        {activeConference.label}
+                        {conferenceLabel}
                       </span>
                     </div>
                     {/* Sub-label: GROUP STAGE */}
@@ -350,7 +391,17 @@ export function GroupsStandingsSection() {
                       background: "linear-gradient(180deg, #FFFFFF 0%, #FAF7F0 35%, #F4EDE1 100%)",
                     }}
                   >
-                    <GroupStageGrid groups={activeConference.groups} />
+                    <BoardContent
+                      state={standings}
+                      onRetry={reloadStandings}
+                      render={() =>
+                        activeConference && activeConference.groups.length > 0 ? (
+                          <GroupStageGrid groups={activeConference.groups} />
+                        ) : (
+                          <BoardMessage>Grup belum tersedia.</BoardMessage>
+                        )
+                      }
+                    />
                   </div>
 
                   {/* Bottom Wood Plank Bar */}
@@ -390,7 +441,7 @@ export function GroupsStandingsSection() {
                           filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
                         }}
                       >
-                        {activeConference.label}
+                        {conferenceLabel}
                       </span>
                     </div>
                     {/* Sub-label: STANDINGS */}
@@ -428,7 +479,17 @@ export function GroupsStandingsSection() {
                       background: "linear-gradient(180deg, #FFFFFF 0%, #FAF7F0 35%, #F4EDE1 100%)",
                     }}
                   >
-                    <StandingsTable teams={standingsTeams} groupLabel="GROUP A" />
+                    <BoardContent
+                      state={standings}
+                      onRetry={reloadStandings}
+                      render={() =>
+                        activeConference && activeConference.standings.length > 0 ? (
+                          <StandingsTable teams={activeConference.standings} />
+                        ) : (
+                          <BoardMessage>Klasemen belum tersedia.</BoardMessage>
+                        )
+                      }
+                    />
                   </div>
 
                   {/* Bottom Wood Plank Bar */}
@@ -495,7 +556,17 @@ export function GroupsStandingsSection() {
                     background: "linear-gradient(180deg, #FFFFFF 0%, #FAF7F0 35%, #F4EDE1 100%)",
                   }}
                 >
-                  <PlayoffBracket />
+                  <BoardContent
+                    state={playoffs}
+                    onRetry={reloadPlayoffs}
+                    render={(data) =>
+                      data ? (
+                        <PlayoffBracket data={toBracket(data)} />
+                      ) : (
+                        <BoardMessage>Bracket playoff belum tersedia.</BoardMessage>
+                      )
+                    }
+                  />
                 </div>
 
                 <WoodPlankBar position="bottom" />

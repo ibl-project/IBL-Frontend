@@ -1,18 +1,18 @@
 "use client";
 
 import React from "react";
-import { type Group, type TeamStat } from "./mock-data";
+import type { StandingRow, StandingsGroup } from "@/lib/standingsApi";
 
 interface GroupStageGridProps {
-  groups: Group[];
+  groups: StandingsGroup[];
 }
 
 interface StandingsTableProps {
-  teams: TeamStat[];
+  teams: StandingRow[];
   groupLabel?: string;
 }
 
-export function SingleGroupTable({ group }: { group: Group }) {
+export function SingleGroupTable({ group }: { group: StandingsGroup }) {
   return (
     <div className="w-full rounded-[14px] border-[2px] border-[#658B9D] bg-white shadow-sm overflow-hidden">
       <div className="w-full overflow-x-auto scrollbar-none sm:scrollbar-thin">
@@ -51,9 +51,9 @@ export function SingleGroupTable({ group }: { group: Group }) {
             </tr>
           </thead>
           <tbody>
-            {group.teams.map((team, idx) => (
+            {group.standings.map((row, idx) => (
               <tr
-                key={team.name}
+                key={row.team.id}
                 className={`border-t border-[#D3E2E9] transition-colors hover:bg-[#F2F7FA] ${
                   idx % 2 === 1 ? "bg-[#FAFCFD]" : "bg-white"
                 }`}
@@ -61,51 +61,51 @@ export function SingleGroupTable({ group }: { group: Group }) {
                 <td
                   className="px-2 sm:px-3 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] truncate max-w-[125px] min-[375px]:max-w-[145px] min-[390px]:max-w-[170px] sm:max-w-none whitespace-nowrap"
                   style={{ fontFamily: "var(--font-poppins)" }}
-                  title={team.name}
+                  title={row.team.name}
                 >
-                  {team.name}
+                  {row.team.name}
                 </td>
                 <td
                   className="px-1 sm:px-1.5 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.gp}
+                  {row.G}
                 </td>
                 <td
                   className="px-1 sm:px-1.5 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.w}
+                  {row.W}
                 </td>
                 <td
                   className="px-1 sm:px-1.5 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.l}
+                  {row.L}
                 </td>
                 <td
                   className="px-1 sm:px-1.5 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.pm > 0 ? `+${team.pm}` : team.pm}
+                  {row.PM}
                 </td>
                 <td
                   className="px-1 sm:px-1.5 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.pa}
+                  {row.PA}
                 </td>
                 <td
                   className="px-1 sm:px-1.5 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.pd}
+                  {row.PD}
                 </td>
                 <td
                   className="px-1 sm:pr-3 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-extrabold text-[#1E293B] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.pts}
+                  {row.PTS}
                 </td>
               </tr>
             ))}
@@ -120,7 +120,7 @@ export function GroupStageGrid({ groups }: GroupStageGridProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 sm:gap-x-8 gap-y-5 sm:gap-y-6 w-full max-w-[1020px] mx-auto">
       {groups.map((group) => (
-        <SingleGroupTable key={group.name} group={group} />
+        <SingleGroupTable key={group.id} group={group} />
       ))}
     </div>
   );
@@ -174,9 +174,9 @@ export function StandingsTable({ teams, groupLabel = "TIM" }: StandingsTableProp
             </tr>
           </thead>
           <tbody>
-            {teams.map((team, idx) => (
+            {teams.map((row, idx) => (
               <tr
-                key={team.name}
+                key={row.team.id}
                 className={`border-t border-[#D3E2E9] transition-colors hover:bg-[#F2F7FA] ${
                   idx % 2 === 1 ? "bg-[#FAFCFD]" : "bg-white"
                 }`}
@@ -185,56 +185,56 @@ export function StandingsTable({ teams, groupLabel = "TIM" }: StandingsTableProp
                   className="px-1 sm:px-2 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#658B9D] border-r border-[#D3E2E9] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {idx + 1}
+                  {row.rank}
                 </td>
                 <td
                   className="px-2 sm:px-3 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] truncate max-w-[115px] min-[375px]:max-w-[135px] min-[390px]:max-w-[160px] sm:max-w-none whitespace-nowrap"
                   style={{ fontFamily: "var(--font-poppins)" }}
-                  title={team.name}
+                  title={row.team.name}
                 >
-                  {team.name}
+                  {row.team.name}
                 </td>
                 <td
                   className="px-1 sm:px-1.5 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.gp}
+                  {row.G}
                 </td>
                 <td
                   className="px-1 sm:px-1.5 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.w}
+                  {row.W}
                 </td>
                 <td
                   className="px-1 sm:px-1.5 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.l}
+                  {row.L}
                 </td>
                 <td
                   className="px-1 sm:px-1.5 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.pm > 0 ? `+${team.pm}` : team.pm}
+                  {row.PM}
                 </td>
                 <td
                   className="px-1 sm:px-1.5 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.pa}
+                  {row.PA}
                 </td>
                 <td
                   className="px-1 sm:px-1.5 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#1E293B] border-r border-[#D3E2E9] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.pd}
+                  {row.PD}
                 </td>
                 <td
                   className="px-1 sm:pr-3 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-extrabold text-[#1E293B] whitespace-nowrap tabular-nums"
                   style={{ fontFamily: "var(--font-poppins)" }}
                 >
-                  {team.pts}
+                  {row.PTS}
                 </td>
               </tr>
             ))}
