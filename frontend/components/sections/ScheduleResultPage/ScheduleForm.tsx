@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ApiError } from "@/lib/apiClient";
 import { fromWibFields, toWibFields } from "@/lib/datetime";
@@ -9,7 +9,10 @@ import {
   type MatchListItem,
   PLAYOFF_ROUNDS,
   PLAYOFF_ROUND_LABEL,
+  PLAYOFF_SLOTS,
   type PlayoffRound,
+  bracketSideLabel,
+  listMatches,
 } from "@/lib/matchesApi";
 import { errorMessage, type Team } from "@/lib/teamsApi";
 import { DatePicker } from "@/components/ui/DatePicker";
@@ -17,7 +20,9 @@ import { OutlinedField } from "@/components/ui/OutlinedField";
 import { TeamCombobox, type TeamOption } from "@/components/ui/TeamCombobox";
 import { TimePicker } from "@/components/ui/TimePicker";
 
-type FieldErrors = Partial<Record<"team1" | "team2" | "stage" | "playoffRound" | "date" | "time" | "venue", string>>;
+type FieldErrors = Partial<
+  Record<"team1" | "team2" | "stage" | "playoffRound" | "bracketPosition" | "date" | "time" | "venue", string>
+>;
 
 interface ScheduleFormProps {
   /** Prefix id elemen supaya dua form tidak bentrok. */
@@ -53,6 +58,9 @@ export const ScheduleForm = ({
   const start = toWibFields(initial?.scheduledAt ?? null);
   const [stage, setStage] = useState<"GROUP" | "PLAYOFF">(initial?.stage === "PLAYOFF" ? "PLAYOFF" : "GROUP");
   const [playoffRound, setPlayoffRound] = useState<PlayoffRound>(initial?.playoffRound ?? "ROUND_OF_16");
+  // null = otomatis (slot kosong terkecil saat buat; tidak berubah saat edit).
+  const [bracketPosition, setBracketPosition] = useState<number | null>(initial?.bracketPosition ?? null);
+  const [playoffMatches, setPlayoffMatches] = useState<MatchListItem[]>([]);
   const [team1Id, setTeam1Id] = useState<string | null>(initial?.team1.id ?? null);
   const [team2Id, setTeam2Id] = useState<string | null>(initial?.team2.id ?? null);
   const [date, setDate] = useState(start.date);
@@ -86,6 +94,32 @@ export const ScheduleForm = ({
       .filter((team) => team.id !== team1Id && (!team1Id || team.groupId === groupOf(team1Id)))
       .map(toOption);
   }, [stage, teams, grouped, team1Id, groupOf]);
+
+  // Jadwal playoff yang sudah ada, untuk menandai slot yang terisi. Gagal dimuat
+  // tidak menghalangi submit: backend tetap menolak slot terisi (409).
+  useEffect(() => {
+    if (stage !== "PLAYOFF") return;
+    let active = true;
+    listMatches()
+      .then((all) => {
+        if (active) setPlayoffMatches(all.filter((match) => match.stage === "PLAYOFF"));
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [stage]);
+
+  /** Slot terisi di babak terpilih → "Tim A vs Tim B" (jadwal yang sedang diedit tidak dihitung). */
+  const takenSlots = useMemo(() => {
+    const taken = new Map<number, string>();
+    for (const match of playoffMatches) {
+      if (match.id === initial?.id || match.playoffRound !== playoffRound || !match.bracketPosition) continue;
+      const name = (side: MatchListItem["team1"]) => side.name ?? side.placeholder ?? "TBD";
+      taken.set(match.bracketPosition, `${name(match.team1)} vs ${name(match.team2)}`);
+    }
+    return taken;
+  }, [playoffMatches, playoffRound, initial?.id]);
 
   const clear = (field: keyof FieldErrors) => {
     setErrors((current) => ({ ...current, [field]: undefined }));
@@ -132,14 +166,16 @@ export const ScheduleForm = ({
         venue: venue.trim(),
         stage,
         ...(stage === "PLAYOFF" ? { playoffRound } : {}),
+        ...(stage === "PLAYOFF" && bracketPosition !== null ? { bracketPosition } : {}),
       });
     } catch (error) {
       const details = error instanceof ApiError ? error.details : undefined;
-      if (details?.team2Id || details?.team1Id || details?.playoffRound) {
+      if (details?.team2Id || details?.team1Id || details?.playoffRound || details?.bracketPosition) {
         setErrors({
           team1: details.team1Id,
           team2: details.team2Id,
           playoffRound: details.playoffRound,
+          bracketPosition: details.bracketPosition,
         });
         setFormError(error instanceof ApiError ? error.message : null);
       } else {
@@ -208,7 +244,10 @@ export const ScheduleForm = ({
             disabled={isEdit}
             onChange={(event) => {
               setPlayoffRound(event.target.value as PlayoffRound);
+              // Nomor slot berbeda arti per babak.
+              setBracketPosition(null);
               clear("playoffRound");
+              clear("bracketPosition");
             }}
             className="w-full cursor-pointer bg-transparent text-sm text-[#1c1b1f] outline-none disabled:cursor-not-allowed"
           >
@@ -217,6 +256,37 @@ export const ScheduleForm = ({
                 {PLAYOFF_ROUND_LABEL[round]}
               </option>
             ))}
+          </select>
+        </OutlinedField>
+      )}
+
+      {/* Slot bracket menentukan sisi kiri/kanan di halaman Groups & Standings */}
+      {stage === "PLAYOFF" && (
+        <OutlinedField
+          label="Slot Bracket"
+          htmlFor={`${idPrefix}-bracket-position`}
+          error={errors.bracketPosition}
+          className="sm:max-w-md"
+        >
+          <select
+            id={`${idPrefix}-bracket-position`}
+            value={bracketPosition ?? ""}
+            onChange={(event) => {
+              setBracketPosition(event.target.value ? Number(event.target.value) : null);
+              clear("bracketPosition");
+            }}
+            className="w-full cursor-pointer bg-transparent text-sm text-[#1c1b1f] outline-none"
+          >
+            <option value="">{isEdit ? "Tidak diubah" : "Otomatis (slot kosong pertama)"}</option>
+            {Array.from({ length: PLAYOFF_SLOTS[playoffRound] }, (_, index) => {
+              const position = index + 1;
+              const taken = takenSlots.get(position);
+              return (
+                <option key={position} value={position} disabled={taken !== undefined}>
+                  {`Slot ${position} · ${bracketSideLabel(playoffRound, position)}${taken ? ` — terisi: ${taken}` : ""}`}
+                </option>
+              );
+            })}
           </select>
         </OutlinedField>
       )}
@@ -305,6 +375,7 @@ export const ScheduleForm = ({
       {!teamsLocked && stage === "PLAYOFF" && (
         <p className="-mt-3 text-xs text-gray-600">
           Pertandingan playoff mempertemukan tim dari grup mana saja. Setiap tim hanya dapat bertanding 1 kali di babak yang sama.
+          Pilih slot bracket supaya pertandingan tampil di sisi yang benar: slot Kiri untuk Conference 1, slot Kanan untuk Conference 2.
         </p>
       )}
 

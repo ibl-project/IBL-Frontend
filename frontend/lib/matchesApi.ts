@@ -19,6 +19,25 @@ export const PLAYOFF_ROUND_LABEL: Record<PlayoffRound, string> = {
   FINAL: "Final",
 };
 
+/** Jumlah slot bracket per babak (sama dengan backend). */
+export const PLAYOFF_SLOTS: Record<PlayoffRound, number> = {
+  ROUND_OF_16: 8,
+  QUARTERFINAL: 4,
+  SEMIFINAL: 2,
+  THIRD_PLACE: 1,
+  FINAL: 1,
+};
+
+/**
+ * Sisi bracket sebuah slot, sama dengan `side` di GET /playoffs: separuh slot
+ * pertama kiri (Conference 1), separuh kedua kanan (Conference 2).
+ */
+export function bracketSideLabel(round: PlayoffRound, position: number): string {
+  const slots = PLAYOFF_SLOTS[round];
+  if (slots === 1) return "Tengah";
+  return position <= slots / 2 ? "Kiri (Conference 1)" : "Kanan (Conference 2)";
+}
+
 export const STAT_KEYS = [
   "twoPointMade",
   "twoPointMiss",
@@ -180,6 +199,8 @@ export interface ScheduleInput {
   /** ISO dengan zona waktu, mis. "2026-09-02T11:00:00+07:00". */
   scheduledAt: string;
   venue: string;
+  /** Slot bracket (hanya PLAYOFF). Tidak dikirim = slot kosong terkecil (saat buat) / tidak berubah (saat edit). */
+  bracketPosition?: number;
 }
 
 /** Jenis hanya dipilih saat membuat jadwal; Edit tidak bisa mengubahnya. */
