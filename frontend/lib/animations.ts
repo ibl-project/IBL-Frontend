@@ -18,7 +18,7 @@ export const popSpringVariants: Variants = {
       mass: 0.6,
     },
   },
-  visible: (customDelay: any = 0) => {
+  visible: (customDelay: number | { delay?: number } = 0) => {
     const delay = typeof customDelay === "number" ? customDelay : (customDelay?.delay ?? 0);
     return {
       scale: 1,
@@ -39,7 +39,7 @@ export const popSpringVariants: Variants = {
  * Punchy Pop Variants (with dynamic rotation for stickers/badges/shoes/ball)
  */
 export const popPunchVariants: Variants = {
-  hidden: (custom: any = -4) => {
+  hidden: (custom: number | { rotation?: number } = -4) => {
     const rot = typeof custom === "number" ? custom : (custom?.rotation ?? -4);
     return {
       scale: 0.5,
@@ -53,7 +53,7 @@ export const popPunchVariants: Variants = {
       },
     };
   },
-  visible: (custom: any = {}) => {
+  visible: (custom: number | { delay?: number } = {}) => {
     const delay = typeof custom === "number" ? custom : (custom?.delay ?? 0);
     return {
       scale: 1,
