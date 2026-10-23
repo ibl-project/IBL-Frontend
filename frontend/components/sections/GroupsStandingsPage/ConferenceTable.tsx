@@ -115,24 +115,43 @@ export function SingleGroupTable({ group, rows = 1 }: { group: StandingsGroup; r
                 </td>
               </tr>
             ))}
-            {Array.from({ length: Math.max(fillerRows, 0) }, (_, i) => {
-              const idx = group.standings.length + i;
-              return (
-                <tr
-                  key={`empty-${i}`}
-                  className={`border-t border-[#D3E2E9] ${idx % 2 === 1 ? "bg-[#FAFCFD]" : "bg-white"}`}
-                >
-                  {/* Ukuran teks & padding sama dengan sel angka, jadi tingginya sama dengan baris tim. */}
-                  <td
-                    colSpan={8}
-                    className="px-2 sm:px-3 py-1.5 sm:py-2 text-center text-[11.5px] sm:text-xs font-bold text-[#94A3B8] whitespace-nowrap"
+            {group.standings.length === 0 ? (
+              // Grup kosong: satu sel setinggi `rows` baris tim, "Belum ada tim" di tengahnya.
+              <tr className="border-t border-[#D3E2E9] bg-white">
+                <td colSpan={8} className="relative p-0">
+                  {Array.from({ length: Math.max(rows, 1) }, (_, i) => (
+                    <div
+                      key={i}
+                      aria-hidden
+                      className={`py-1.5 sm:py-2 text-[11.5px] sm:text-xs ${i > 0 ? "border-t border-transparent" : ""}`}
+                    >
+                      {" "}
+                    </div>
+                  ))}
+                  <span
+                    className="absolute inset-0 flex items-center justify-center text-[11.5px] sm:text-xs font-bold text-[#94A3B8]"
                     style={{ fontFamily: "var(--font-poppins)" }}
                   >
-                    {group.standings.length === 0 && i === 0 ? "Belum ada tim" : " "}
-                  </td>
-                </tr>
-              );
-            })}
+                    Belum ada tim
+                  </span>
+                </td>
+              </tr>
+            ) : (
+              Array.from({ length: Math.max(fillerRows, 0) }, (_, i) => {
+                const idx = group.standings.length + i;
+                return (
+                  <tr
+                    key={`empty-${i}`}
+                    className={`border-t border-[#D3E2E9] ${idx % 2 === 1 ? "bg-[#FAFCFD]" : "bg-white"}`}
+                  >
+                    {/* Ukuran teks & padding sama dengan sel angka, jadi tingginya sama dengan baris tim. */}
+                    <td colSpan={8} className="py-1.5 sm:py-2 text-[11.5px] sm:text-xs">
+                      {" "}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
