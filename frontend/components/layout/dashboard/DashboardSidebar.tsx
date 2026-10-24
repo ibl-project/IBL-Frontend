@@ -94,8 +94,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         },
         {
           name: "Playoff",
-          href: "#",
-          hasRoute: false,
+          href: "/playoff",
+          hasRoute: true,
           icon: (
             <svg
               className="w-5 h-5 shrink-0 text-white"
