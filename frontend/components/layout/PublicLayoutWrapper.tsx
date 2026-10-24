@@ -22,10 +22,11 @@ export function PublicLayoutWrapper({
 }) {
   const pathname = usePathname();
 
-  // Cek apakah halaman saat ini merupakan bagian dari dashboard (Teams, Scoring, Schedule Result) atau halaman login
+  // Cek apakah halaman saat ini merupakan bagian dari dashboard (Teams, Scoring, Schedule Result, Playoff) atau halaman login
   const isDashboardRoute =
     pathname?.startsWith("/teams") ||
     pathname?.startsWith("/scoring") ||
+    pathname?.startsWith("/playoff") ||
     (pathname === "/schedule-result" || pathname?.startsWith("/schedule-result/")) ||
     pathname?.startsWith("/login");
 
