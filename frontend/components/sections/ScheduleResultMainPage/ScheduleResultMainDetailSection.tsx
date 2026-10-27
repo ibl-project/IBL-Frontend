@@ -148,12 +148,12 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
           custom={0}
           className="relative z-20 w-full max-w-[820px] drop-shadow-[0_12px_32px_rgba(0,0,0,0.25)]"
         >
-          {/* Main Coordinate Frame 1080 x 1160 */}
-          <div className="relative w-full aspect-[1080/1160]">
-            {/* Layer 1: Red Textbox Summary Box (Positioned under backboard, beneath ring and net) */}
-            <div className="absolute left-0 top-[39.5%] z-10 w-full aspect-[1074/650]">
+          {/* Main Coordinate Frame 1080 x 1280 */}
+          <div className="relative w-full aspect-[1080/1280]">
+            {/* Layer 1: Red Textbox Summary Box (Big full-width, under backboard rim) */}
+            <div className="absolute left-0 top-[33.6%] z-10 w-full aspect-[1611/1223]">
               <Image
-                src="/images/Textbox%20summary.png"
+                src="/images/textboxsummary.png"
                 alt="Summary Box"
                 fill
                 priority
@@ -238,24 +238,13 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
               </div>
             </div>
 
-            {/* Layer 3: Cyan Summary Table (Inside Red Box, with generous margins) */}
-            <div className="absolute left-1/2 top-[53.2%] z-25 w-[70.4%] -translate-x-1/2 aspect-[760/390]">
-              <Image
-                src="/svg/figma/Tabel%20Summary.svg"
-                alt="Match Summary Table"
-                fill
-                priority
-                className="object-contain select-none"
-              />
-            </div>
-
-            {/* Layer 4: SUMMARY 3D Banner (Overlapping the net and top of the red box) */}
+            {/* Layer 3: SUMMARY 3D Banner (Right in front of the basketball net) */}
             <motion.div
               initial="hidden"
               animate="visible"
               variants={popPunchVariants}
               custom={{ delay: 0.15, rotation: 0 }}
-              className="absolute left-1/2 top-[41.8%] z-30 w-[51.8%] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]"
+              className="absolute left-1/2 top-[43.8%] z-30 w-[44.5%] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]"
             >
               <Image
                 src="/svg/figma/summary.svg"
@@ -266,6 +255,17 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
                 priority
               />
             </motion.div>
+
+            {/* Layer 4: Cyan Summary Table (Inside Red Box, beneath SUMMARY banner) */}
+            <div className="absolute left-1/2 top-[52%] z-25 w-[70.4%] -translate-x-1/2 aspect-[760/390]">
+              <Image
+                src="/svg/figma/Tabel%20Summary.svg"
+                alt="Match Summary Table"
+                fill
+                priority
+                className="object-contain select-none"
+              />
+            </div>
           </div>
         </motion.article>
       </div>
