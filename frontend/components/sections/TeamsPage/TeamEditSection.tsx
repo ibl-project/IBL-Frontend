@@ -5,6 +5,7 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
 import { canEditData, useAuthStore } from "@/lib/store/useAuthStore";
+import { errorMessage } from "@/lib/errors";
 import {
   type PlayerStats,
   type Team,
@@ -12,7 +13,6 @@ import {
   JERSEY_PATTERN,
   MAX_ROSTER,
   deleteTeamLogo,
-  errorMessage,
   getTeam,
   saveRoster,
   uploadTeamLogo,

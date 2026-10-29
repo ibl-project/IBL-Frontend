@@ -21,7 +21,7 @@ import {
   unlockQuarter,
   updateColors,
 } from "@/lib/matchesApi";
-import { errorMessage } from "@/lib/teamsApi";
+import { errorMessage } from "@/lib/errors";
 import { useCollapseSidebar } from "@/components/layout/dashboard/DashboardLayout";
 import { Modal } from "@/components/ui/Modal";
 import { ScoringBoxScoreSection } from "./ScoringBoxScoreSection";

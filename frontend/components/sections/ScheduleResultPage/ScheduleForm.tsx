@@ -14,7 +14,8 @@ import {
   bracketSideLabel,
   listMatches,
 } from "@/lib/matchesApi";
-import { errorMessage, type Team } from "@/lib/teamsApi";
+import { errorMessage } from "@/lib/errors";
+import { type Team } from "@/lib/teamsApi";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { OutlinedField } from "@/components/ui/OutlinedField";
 import { TeamCombobox, type TeamOption } from "@/components/ui/TeamCombobox";

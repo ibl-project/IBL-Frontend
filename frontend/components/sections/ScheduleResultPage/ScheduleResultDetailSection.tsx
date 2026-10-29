@@ -13,7 +13,8 @@ import {
   periodColumnLabel,
   stageLabel,
 } from "@/lib/matchesApi";
-import { errorMessage } from "@/lib/teamsApi";
+import { errorMessage } from "@/lib/errors";
+import { SUMMARY_ROWS } from "@/lib/matchDisplay";
 import { Modal } from "@/components/ui/Modal";
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 import { ResultFileCard } from "./ResultFileCard";
@@ -25,27 +26,6 @@ interface ScheduleResultDetailSectionProps {
   onEdit: (matchId: string) => void;
   onDeleted: (message: string) => void;
 }
-
-const ratio = (made: number, attempted: number, percentage: number) =>
-  `${made}/${attempted} (${Number.isInteger(percentage) ? percentage : percentage.toFixed(1)}%)`;
-
-const SUMMARY_ROWS: Array<{ label: string; value: (side: MatchSide) => string }> = [
-  {
-    label: "Field Goals",
-    value: ({ summary: s }) => ratio(s.fieldGoalsMade, s.fieldGoalsAttempted, s.fieldGoalPercentage),
-  },
-  { label: "2 Points", value: ({ summary: s }) => ratio(s.twoPointMade, s.twoPointAttempted, s.twoPointPercentage) },
-  {
-    label: "3 Points",
-    value: ({ summary: s }) => ratio(s.threePointMade, s.threePointAttempted, s.threePointPercentage),
-  },
-  {
-    label: "Free Throws",
-    value: ({ summary: s }) => ratio(s.freeThrowsMade, s.freeThrowsAttempted, s.freeThrowPercentage),
-  },
-  { label: "Rebounds (O/D)", value: ({ summary: s }) => `${s.reboundOff}/${s.reboundDef}` },
-  { label: "Assist", value: ({ summary: s }) => String(s.assist) },
-];
 
 const cell = "border border-gray-400 px-2 py-1.5";
 

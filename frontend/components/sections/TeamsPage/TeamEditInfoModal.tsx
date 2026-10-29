@@ -4,7 +4,8 @@ import React, { useCallback, useMemo, useState } from "react";
 import { Pencil, X } from "lucide-react";
 
 import { type AsyncState, useAsyncData } from "@/lib/hooks/useAsyncData";
-import { type Group, type Team, errorMessage, listGroups, updateTeam } from "@/lib/teamsApi";
+import { errorMessage } from "@/lib/errors";
+import { type Group, type Team, listGroups, updateTeam } from "@/lib/teamsApi";
 
 type EditableTeam = {
   id: string;

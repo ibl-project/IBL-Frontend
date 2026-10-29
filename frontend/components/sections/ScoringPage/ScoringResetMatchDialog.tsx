@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 
 import { type ScoringBoardItem, resetMatch } from "@/lib/matchesApi";
-import { errorMessage } from "@/lib/teamsApi";
+import { errorMessage } from "@/lib/errors";
 import { Modal } from "@/components/ui/Modal";
 
 interface ScoringResetMatchDialogProps {
