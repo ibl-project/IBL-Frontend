@@ -56,6 +56,10 @@ export const FormSection = () => {
             width: "883px",
           }}
         >
+          {/* Registration closed on 2026-07-10. The full form (hooks/useRegistrationForm.ts plus
+              FormNavigation, FormStepFields, FormSuccessScreen, UploadStep, PortfolioReminderModal,
+              SubmitLoadingScreen and ValidationErrorToast in this folder) is parked, not dead.
+              To reopen it, revert this file's change in commit acb141e. */}
           <FormClosed />
         </motion.div>
       </div>

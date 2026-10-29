@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -163,6 +163,17 @@ const Scoreboard = ({
   );
 };
 
+type CountdownOverride = "auto" | "running" | "expired" | "demo";
+
+// URL tidak berubah tanpa reload, jadi tidak ada yang perlu di-subscribe.
+const subscribeNoop = () => () => {};
+
+/** Baca ?countdown=expired | running | demo (selain itu "auto"). */
+function readCountdownParam(): CountdownOverride {
+  const param = new URLSearchParams(window.location.search).get("countdown");
+  return param === "expired" || param === "running" || param === "demo" ? param : "auto";
+}
+
 export const CountdownSection = () => {
   /**
    * Mode Uji Coba Manual:
@@ -172,27 +183,12 @@ export const CountdownSection = () => {
    */
   const DEBUG_COUNTDOWN_MODE: "auto" | "running" | "expired" = "auto";
 
-  const [overrideMode, setOverrideMode] = useState<"auto" | "running" | "expired" | "demo">("auto");
-  const [demoTarget, setDemoTarget] = useState<Date | null>(null);
+  // Server & render pertama selalu "auto" (aman dari hydration mismatch), lalu nilai dari URL.
+  const overrideMode = useSyncExternalStore(subscribeNoop, readCountdownParam, () => "auto" as const);
+  // Demo countdown 10 detik dari saat komponen dipasang
+  const [demoTarget] = useState(() => new Date(Date.now() + 10000));
 
-  // Deteksi URL parameter (?countdown=expired, ?countdown=running, ?countdown=demo)
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const paramMode = params.get("countdown");
-      if (paramMode === "expired") {
-        setOverrideMode("expired");
-      } else if (paramMode === "running") {
-        setOverrideMode("running");
-      } else if (paramMode === "demo") {
-        setOverrideMode("demo");
-        // Demo countdown 10 detik dari sekarang
-        setDemoTarget(new Date(Date.now() + 10000));
-      }
-    }
-  }, []);
-
-  const activeTarget = overrideMode === "demo" && demoTarget ? demoTarget : COUNTDOWN_TARGET;
+  const activeTarget = overrideMode === "demo" ? demoTarget : COUNTDOWN_TARGET;
   const { time: remaining, isFinished } = useCountdown(activeTarget);
 
   // Menentukan apakah pendaftaran sudah dibuka (waktu habis):
