@@ -46,20 +46,6 @@ function MatchCard({ match, frame, dateKey }: { match: MatchListItem; frame: str
             className={`absolute top-[22%] aspect-[73/77] h-[38%] ${index === 0 ? "left-[8%]" : "right-[8%]"}`}
           >
             <TeamLogo src={side.logo} alt={`Logo ${teamLabel(side)}`} sizes="80px" />
-            <motion.div
-              animate={{ rotate: [-18, -14, -18], scale: [1, 1.04, 1] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: index * 0.3 }}
-              className="absolute left-[31%] top-[37%] w-[62%] pointer-events-none"
-            >
-              <Image
-                src="/images/ibl2k26login.png"
-                alt=""
-                width={552}
-                height={523}
-                className="w-full h-auto"
-                loading="eager"
-              />
-            </motion.div>
           </div>
         ))}
 
