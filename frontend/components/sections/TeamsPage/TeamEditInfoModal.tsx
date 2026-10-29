@@ -1,26 +1,57 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Pencil, X } from "lucide-react";
 
-import { useAsyncData } from "@/lib/hooks/useAsyncData";
+import { type AsyncState, useAsyncData } from "@/lib/hooks/useAsyncData";
 import { type Group, type Team, errorMessage, listGroups, updateTeam } from "@/lib/teamsApi";
+
+type EditableTeam = {
+  id: string;
+  name: string;
+  groupId?: string | null;
+  group?: string | null;
+};
 
 interface TeamEditInfoModalProps {
   open: boolean;
-  team: {
-    id: string;
-    name: string;
-    groupId?: string | null;
-    group?: string | null;
-  };
+  team: EditableTeam;
   onClose: () => void;
   onSuccess: (updatedTeam: Team) => void;
 }
 
+/** Grup awal: team.groupId, kalau tidak ada cocokkan nama team.group, kalau tidak "" (tanpa grup). */
+function deriveGroupId(team: EditableTeam, groups: Group[]): string {
+  if (team.groupId) return team.groupId;
+  if (!team.group) return "";
+  const groupName = team.group.toLowerCase();
+  return groups.find((g) => g.name.toLowerCase() === groupName)?.id ?? "";
+}
+
 export const TeamEditInfoModal = ({ open, team, onClose, onSuccess }: TeamEditInfoModalProps) => {
+  // Grup dimuat sekali per halaman, bukan setiap kali modal dibuka.
   const loadGroups = useCallback(() => listGroups(), []);
   const { state: groupsState } = useAsyncData(loadGroups);
+
+  if (!open) return null;
+
+  // Form dipasang ulang setiap modal dibuka (atau tim berganti), jadi isinya selalu mulai dari data tim.
+  return (
+    <TeamEditInfoForm
+      key={team.id}
+      team={team}
+      groupsState={groupsState}
+      onClose={onClose}
+      onSuccess={onSuccess}
+    />
+  );
+};
+
+interface TeamEditInfoFormProps extends Omit<TeamEditInfoModalProps, "open"> {
+  groupsState: AsyncState<Group[]>;
+}
+
+function TeamEditInfoForm({ team, groupsState, onClose, onSuccess }: TeamEditInfoFormProps) {
   const groups: Group[] = useMemo(
     () => (groupsState.status === "ready" ? groupsState.data : []),
     [groupsState],
@@ -32,28 +63,11 @@ export const TeamEditInfoModal = ({ open, team, onClose, onSuccess }: TeamEditIn
   );
 
   const [name, setName] = useState(team.name);
-  const [groupId, setGroupId] = useState<string>("");
+  // null = belum dipilih user; selama itu grup mengikuti data tim (termasuk saat daftar grup baru selesai dimuat).
+  const [pickedGroupId, setPickedGroupId] = useState<string | null>(null);
+  const groupId = pickedGroupId ?? deriveGroupId(team, groups);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Sync state whenever modal opens or team changes
-  useEffect(() => {
-    if (open) {
-      setName(team.name);
-      setError(null);
-      // Temukan groupId berdasarkan team.groupId atau nama team.group
-      if (team.groupId) {
-        setGroupId(team.groupId);
-      } else if (team.group && groups.length > 0) {
-        const found = groups.find((g) => g.name.toLowerCase() === team.group?.toLowerCase());
-        setGroupId(found?.id ?? "");
-      } else {
-        setGroupId("");
-      }
-    }
-  }, [open, team, groups]);
-
-  if (!open) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,7 +159,7 @@ export const TeamEditInfoModal = ({ open, team, onClose, onSuccess }: TeamEditIn
             <select
               id="edit-team-group"
               value={groupId}
-              onChange={(e) => setGroupId(e.target.value)}
+              onChange={(e) => setPickedGroupId(e.target.value)}
               disabled={isSaving || groupsState.status !== "ready"}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm bg-white cursor-pointer disabled:cursor-wait transition-all"
             >
@@ -191,4 +205,4 @@ export const TeamEditInfoModal = ({ open, team, onClose, onSuccess }: TeamEditIn
       </div>
     </div>
   );
-};
+}
