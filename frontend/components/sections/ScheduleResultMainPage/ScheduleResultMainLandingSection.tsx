@@ -1,9 +1,16 @@
 "use client";
 
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { popSpringVariants, popPunchVariants } from "@/lib/animations";
+import { todayWib } from "@/lib/datetime";
+import { useAsyncData } from "@/lib/hooks/useAsyncData";
+import { listMatches } from "@/lib/matchesApi";
+import { groupMatchesByWibDay, pickDefaultDay } from "@/lib/scheduleDays";
+import { CalendarStrip } from "./CalendarStrip";
 
 interface MatchFixture {
   id: number;
@@ -130,6 +137,69 @@ function MatchCard({ fixture }: { fixture: MatchFixture }) {
   );
 }
 
+const LIVE_REFRESH_MS = 60_000;
+
+/**
+ * Kalender hari pertandingan dari GET /matches. Hari terpilih disimpan di ?date= supaya
+ * bertahan saat reload. Data diperbarui diam-diam saat tab kembali aktif dan tiap 60 detik
+ * selama ada laga LIVE di hari terpilih (gagal refresh tidak mengganti tampilan dengan error).
+ */
+function MatchDayCalendar() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const { state, reload, setState } = useAsyncData(listMatches);
+  const days = useMemo(
+    () => (state.status === "ready" ? groupMatchesByWibDay(state.data).days : []),
+    [state],
+  );
+
+  const [today] = useState(todayWib);
+  const [picked, setPicked] = useState<string | null>(null);
+  const selectedKey = pickDefaultDay(days, picked ?? searchParams.get("date"), today);
+  const selectedDay = days.find((day) => day.dateKey === selectedKey);
+
+  const selectDay = (dateKey: string) => {
+    setPicked(dateKey);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("date", dateKey);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const refreshSilently = useCallback(() => {
+    listMatches().then(
+      (data) => setState({ status: "ready", data }),
+      () => {},
+    );
+  }, [setState]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refreshSilently();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [refreshSilently]);
+
+  const hasLiveMatch = selectedDay?.matches.some((match) => match.status === "LIVE") ?? false;
+  useEffect(() => {
+    if (!hasLiveMatch) return;
+    const timer = setInterval(refreshSilently, LIVE_REFRESH_MS);
+    return () => clearInterval(timer);
+  }, [hasLiveMatch, refreshSilently]);
+
+  return (
+    <CalendarStrip
+      days={days}
+      selectedKey={selectedKey}
+      onSelect={selectDay}
+      status={state.status}
+      onRetry={reload}
+    />
+  );
+}
+
 export const ScheduleResultMainLandingSection = () => {
   return (
     <section
@@ -179,17 +249,12 @@ export const ScheduleResultMainLandingSection = () => {
           viewport={{ once: true, amount: 0.15 }}
           variants={popSpringVariants}
           custom={0.12}
-          className="relative z-0 -mt-0 w-[96vw] max-w-[978px] md:-mt-[3vw] md:w-[70vw] lg:-mt-[1.2vw] lg:w-[978px]"
+          className="relative z-0 -mt-0 w-[min(96vw,978px)] drop-shadow-[0_6px_16px_rgba(0,0,0,0.1)] md:-mt-[3vw] lg:-mt-[1.2vw]"
         >
-          <Image
-            src="/svg/figma/calendar grouping.svg"
-            alt="Jadwal pertandingan Senin 5 sampai Jumat 9 Oktober, satu sampai lima pertandingan per hari"
-            width={978}
-            height={243}
-            sizes="(max-width: 639px) 96vw, (max-width: 1023px) 70vw, 978px"
-            className="block h-auto w-full drop-shadow-[0_6px_16px_rgba(0,0,0,0.1)]"
-            priority
-          />
+          {/* useSearchParams (?date=) butuh Suspense supaya halaman tetap bisa di-prerender. */}
+          <Suspense fallback={<CalendarStrip days={[]} selectedKey={null} onSelect={() => {}} status="loading" />}>
+            <MatchDayCalendar />
+          </Suspense>
         </motion.div>
 
         {/* MATCHES Banner (Entrance Punch Animation only, no continuous float) */}
