@@ -2,7 +2,7 @@ import { type Dispatch, type SetStateAction, useCallback, useEffect, useRef, use
 
 import { ApiError } from "@/lib/apiClient";
 import { type MatchSnapshot, type StatKey, recordAction } from "@/lib/matchesApi";
-import { errorMessage } from "@/lib/teamsApi";
+import { errorMessage } from "@/lib/errors";
 import { withServerLine } from "./useMatchLive";
 
 export interface PendingAction {

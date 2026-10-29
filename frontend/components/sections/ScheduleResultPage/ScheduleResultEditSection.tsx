@@ -10,7 +10,8 @@ import {
   uploadResultFile,
   validateResultFile,
 } from "@/lib/matchesApi";
-import { errorMessage, type Team } from "@/lib/teamsApi";
+import { errorMessage } from "@/lib/errors";
+import { type Team } from "@/lib/teamsApi";
 import { Modal } from "@/components/ui/Modal";
 import { ResultFileCard } from "./ResultFileCard";
 import { ScheduleForm } from "./ScheduleForm";

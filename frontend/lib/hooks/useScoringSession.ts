@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { ApiError } from "@/lib/apiClient";
 import { claimSession, releaseSession } from "@/lib/matchesApi";
-import { errorMessage } from "@/lib/teamsApi";
+import { errorMessage } from "@/lib/errors";
 
 export type SessionState =
   | { status: "idle" }

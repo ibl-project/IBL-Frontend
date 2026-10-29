@@ -9,7 +9,7 @@ import {
   type QuarterState,
   getMatch,
 } from "@/lib/matchesApi";
-import { errorMessage } from "@/lib/teamsApi";
+import { errorMessage } from "@/lib/errors";
 
 /** Angka dari server setelah satu ketukan (respons POST /actions, event score_update). */
 export interface ServerLine {

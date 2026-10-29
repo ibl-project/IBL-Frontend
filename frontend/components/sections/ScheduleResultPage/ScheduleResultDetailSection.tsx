@@ -13,7 +13,7 @@ import {
   periodColumnLabel,
   stageLabel,
 } from "@/lib/matchesApi";
-import { errorMessage } from "@/lib/teamsApi";
+import { errorMessage } from "@/lib/errors";
 import { Modal } from "@/components/ui/Modal";
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 import { ResultFileCard } from "./ResultFileCard";
