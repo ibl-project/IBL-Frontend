@@ -6,27 +6,15 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { popSpringVariants, popPunchVariants } from "@/lib/animations";
-import { todayWib, toWibFields } from "@/lib/datetime";
+import { todayWib } from "@/lib/datetime";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
+import { formatKickoff, teamLabel } from "@/lib/matchDisplay";
 import { type MatchListItem, type MatchTeamSide, listMatches } from "@/lib/matchesApi";
-import { MONTHS_ID_SHORT, formatMatchDay, groupMatchesByWibDay, pickDefaultDay } from "@/lib/scheduleDays";
+import { formatMatchDay, groupMatchesByWibDay, pickDefaultDay } from "@/lib/scheduleDays";
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 import { CalendarStrip } from "./CalendarStrip";
 
 const CARD_FRAMES = ["/svg/figma/Box Tim 12.svg", "/svg/figma/Box Tim 34.svg"];
-
-/** Nama tim; di playoff sisi yang belum ditentukan memakai placeholder, mis. "Pemenang QF1". */
-function teamLabel(side: MatchTeamSide): string {
-  return side.name ?? side.placeholder ?? "TBD";
-}
-
-/** "05 Okt 2026 19.00 WIB" (format kartu jadwal). */
-function formatKickoff(iso: string | null): string {
-  if (!iso) return "Jadwal belum diatur";
-  const { date, time } = toWibFields(iso);
-  const [year, month, day] = date.split("-");
-  return `${day} ${MONTHS_ID_SHORT[Number(month) - 1]} ${year} ${time.replace(":", ".")} WIB`;
-}
 
 function MatchCard({ match, frame, dateKey }: { match: MatchListItem; frame: string; dateKey: string }) {
   const { team1, team2, status } = match;
