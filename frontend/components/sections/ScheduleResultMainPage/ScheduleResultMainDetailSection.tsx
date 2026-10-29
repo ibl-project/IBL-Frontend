@@ -1,76 +1,141 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { popSpringVariants, popPunchVariants } from "@/lib/animations";
+import { ApiError } from "@/lib/apiClient";
+import { useAsyncData } from "@/lib/hooks/useAsyncData";
+import { teamLabel } from "@/lib/matchDisplay";
+import { type MatchSide, type MatchSnapshot, REGULATION_QUARTERS, getMatch } from "@/lib/matchesApi";
+import { isDateKey } from "@/lib/scheduleDays";
+import { MatchHeader } from "./MatchHeader";
+import { SummaryTable } from "./SummaryTable";
 
-interface MatchFixtureData {
-  id: number;
-  team1: string;
-  team2: string;
-  venue: string;
-  date: string;
-  quarterScores: {
-    team1: (number | string)[];
-    team2: (number | string)[];
-  };
-  stats: {
-    label: string;
-    team1: string;
-    team2: string;
-  }[];
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const LIVE_REFRESH_MS = 60_000;
+
+/** Match dari API; null kalau id tidak valid atau tidak ada (404/400). Error lain tetap dilempar. */
+function loadMatch(id: string | null): Promise<MatchSnapshot | null> {
+  if (!id || !UUID.test(id)) return Promise.resolve(null);
+  return getMatch(id).catch((error: unknown) => {
+    if (error instanceof ApiError && (error.status === 404 || error.status === 400)) return null;
+    throw error;
+  });
 }
 
-const matchFixturesData: Record<number, MatchFixtureData> = {
-  1: {
-    id: 1,
-    team1: "Team 1",
-    team2: "Team 2",
-    venue: "lapangan ITS",
-    date: "10 Okt 2026 19.00 WIB",
-    quarterScores: {
-      team1: ["-", "-", "-", "-", "-"],
-      team2: ["-", "-", "-", "-", "-"],
-    },
-    stats: [
-      { label: "Field Goals", team1: "0/0 (0%)", team2: "0/0 (0%)" },
-      { label: "2 Points", team1: "0/0 (0%)", team2: "0/0 (0%)" },
-      { label: "3 Points", team1: "0/0 (0%)", team2: "0/0 (0%)" },
-      { label: "Free Throws", team1: "0/0 (0%)", team2: "0/0 (0%)" },
-      { label: "Rebounds (O/D)", team1: "0/0", team2: "0/0" },
-      { label: "Assist", team1: "0", team2: "0" },
-    ],
-  },
-  2: {
-    id: 2,
-    team1: "Team 3",
-    team2: "Team 4",
-    venue: "lapangan ITS",
-    date: "10 Okt 2026 19.00 WIB",
-    quarterScores: {
-      team1: ["-", "-", "-", "-", "-"],
-      team2: ["-", "-", "-", "-", "-"],
-    },
-    stats: [
-      { label: "Field Goals", team1: "0/0 (0%)", team2: "0/0 (0%)" },
-      { label: "2 Points", team1: "0/0 (0%)", team2: "0/0 (0%)" },
-      { label: "3 Points", team1: "0/0 (0%)", team2: "0/0 (0%)" },
-      { label: "Free Throws", team1: "0/0 (0%)", team2: "0/0 (0%)" },
-      { label: "Rebounds (O/D)", team1: "0/0", team2: "0/0" },
-      { label: "Assist", team1: "0", team2: "0" },
-    ],
-  },
-};
+const QUARTER_CELL = "border-r border-[#7E0202]/50 px-0.5 py-0.5";
+
+/** Tabel skor per kuarter (Q1–Q4, OT kalau ada, Total). "-" sebelum laga dimulai. */
+function QuarterTable({ match }: { match: MatchSnapshot | null }) {
+  const started = !!match && match.status !== "SCHEDULED";
+  const periods = match
+    ? Math.max(REGULATION_QUARTERS, match.team1.quarterScores.length, match.team2.quarterScores.length)
+    : REGULATION_QUARTERS;
+  const hasOvertime = periods > REGULATION_QUARTERS;
+  const quarter = (side: MatchSide, index: number) => (started ? (side.quarterScores[index] ?? 0) : "-");
+  const overtime = (side: MatchSide) =>
+    started ? side.quarterScores.slice(REGULATION_QUARTERS).reduce((sum, points) => sum + points, 0) : "-";
+
+  const rows: Array<{ side: MatchSide | null }> = [{ side: match?.team1 ?? null }, { side: match?.team2 ?? null }];
+  const headers = ["1st", "2nd", "3rd", "4th", ...(hasOvertime ? ["OT"] : []), "Total"];
+
+  return (
+    <table className="h-full w-full table-fixed border-collapse text-center">
+      <thead>
+        <tr className="font-poppins text-[length:max(0.5625rem,1.92cqw)] font-black text-[#101010]">
+          <th className="w-[28%] border-b border-r border-[#7E0202]/50 px-1 py-0.5">Team</th>
+          {headers.map((label, index) => (
+            <th
+              key={label}
+              className={`border-b border-[#7E0202]/50 px-0.5 py-0.5 ${index < headers.length - 1 ? "border-r" : ""}`}
+            >
+              {label}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody className="font-poppins text-[length:max(0.5625rem,1.84cqw)] font-bold text-[#101010]">
+        {rows.map(({ side }, rowIndex) => {
+          const name = side ? teamLabel(side) : "";
+          const cells: Array<number | string> = side
+            ? [0, 1, 2, 3].map((index) => quarter(side, index))
+            : ["-", "-", "-", "-"];
+          if (hasOvertime) cells.push(side ? overtime(side) : "-");
+          cells.push(side && started ? side.score : "-");
+          return (
+            <tr key={rowIndex} className={rowIndex === 0 ? "border-b border-[#7E0202]/50" : ""}>
+              <td
+                title={name}
+                className={`${QUARTER_CELL} overflow-hidden text-ellipsis whitespace-nowrap px-1 font-black text-[#7E0202]`}
+              >
+                {name}
+              </td>
+              {cells.map((value, index) => (
+                <td key={index} className={index < cells.length - 1 ? QUARTER_CELL : "px-0.5 py-0.5"}>
+                  {value}
+                </td>
+              ))}
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+function MessageCard({ title, children }: { title: string; children?: React.ReactNode }) {
+  return (
+    <div
+      role="status"
+      className="mt-6 flex w-full max-w-[560px] flex-col items-center gap-4 rounded-2xl border-2 border-[#760807] bg-[#fff5df] px-6 py-8 text-center font-poppins text-[#760807] shadow-[3px_3px_0_#380606]"
+    >
+      <p className="text-base font-bold sm:text-lg">{title}</p>
+      {children}
+    </div>
+  );
+}
 
 export const ScheduleResultMainDetailSection: React.FC = () => {
   const searchParams = useSearchParams();
-  const idParam = searchParams.get("id");
-  const fixtureId = idParam ? parseInt(idParam, 10) : 1;
-  const fixture = matchFixturesData[fixtureId] || matchFixturesData[1];
+  const id = searchParams.get("id");
+  const date = searchParams.get("date");
+  const backHref = isDateKey(date) ? `/schedule-result-main?date=${date}` : "/schedule-result-main";
+
+  const load = useCallback(() => loadMatch(id), [id]);
+  const { state, reload, setState } = useAsyncData(load);
+  const match = state.status === "ready" ? state.data : null;
+
+  // Laga LIVE: perbarui diam-diam tiap 60 detik dan saat tab kembali aktif; gagal refresh
+  // tidak mengganti tampilan dengan pesan error.
+  const refreshSilently = useCallback(() => {
+    loadMatch(id).then(
+      (data) => {
+        if (data) setState({ status: "ready", data });
+      },
+      () => {},
+    );
+  }, [id, setState]);
+
+  const isLive = match?.status === "LIVE";
+  useEffect(() => {
+    if (!isLive) return;
+    const timer = setInterval(refreshSilently, LIVE_REFRESH_MS);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refreshSilently();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [isLive, refreshSilently]);
+
+  const notFound = state.status === "ready" && state.data === null;
+  const loading = state.status === "loading";
 
   return (
     <section
@@ -128,11 +193,11 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
         </motion.div>
       </motion.div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-[920px] flex-col items-center px-3 sm:px-6">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1128px] flex-col items-center px-3 sm:px-6">
         {/* Navigation & Back Action */}
-        <div className="mb-2 flex w-full max-w-[820px] justify-start sm:mb-4">
+        <div className="mb-2 flex w-full max-w-[1080px] justify-start sm:mb-4">
           <Link
-            href="/schedule-result-main"
+            href={backHref}
             className="group inline-flex items-center gap-2 rounded-full border-2 border-[#760807] bg-[#fff5df] px-3.5 py-1.5 font-poppins text-xs font-bold text-[#760807] shadow-[2px_2px_0_#380606] transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[3px_3px_0_#380606] sm:text-sm"
           >
             <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-1 sm:size-4" />
@@ -140,136 +205,110 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
           </Link>
         </div>
 
-        {/* Unified Match Graphic (Backboard + Ring + Net + Red Summary Box + Table) */}
-        <motion.article
-          initial="hidden"
-          animate="visible"
-          variants={popSpringVariants}
-          custom={0}
-          className="relative z-20 w-full max-w-[820px] drop-shadow-[0_12px_32px_rgba(0,0,0,0.25)]"
-        >
-          {/* Main Coordinate Frame 1080 x 1280 */}
-          <div className="relative w-full aspect-[1080/1280]">
-            {/* Layer 1: Red Textbox Summary Box (Big full-width, under backboard rim) */}
-            <div className="absolute left-0 top-[33.6%] z-10 w-full aspect-[1611/1223]">
-              <Image
-                src="/images/textboxsummary.png"
-                alt="Summary Box"
-                fill
-                priority
-                className="pointer-events-none object-contain select-none"
-              />
-            </div>
+        {notFound && (
+          <MessageCard title="Pertandingan tidak ditemukan">
+            <p className="text-sm">Tautan mungkin salah atau jadwalnya sudah dihapus.</p>
+          </MessageCard>
+        )}
 
-            {/* Layer 2: Basketball Backboard + Ring & Net (In front of Red Box, behind SUMMARY) */}
-            <div className="absolute left-0 top-0 z-20 w-full aspect-[1080/761]">
-              <Image
-                src="/images/ring.png"
-                alt="Basketball Backboard"
-                fill
-                priority
-                className="pointer-events-none relative z-10 object-contain select-none"
-              />
+        {state.status === "error" && (
+          <MessageCard title="Detail pertandingan gagal dimuat">
+            <button
+              type="button"
+              onClick={reload}
+              className="rounded-full bg-[#760807] px-5 py-2 text-sm font-bold text-white hover:bg-[#8a0a09]"
+            >
+              Coba lagi
+            </button>
+          </MessageCard>
+        )}
 
-              {/* Team 1 & 2 Header with Venue and Logos (team12 group.svg) */}
-              <div className="absolute left-1/2 top-[10.5%] z-20 w-[73.5%] -translate-x-1/2 aspect-[794/211]">
+        {(loading || match) && (
+          /* Unified Match Graphic (Backboard + Ring + Net + Red Summary Box + Table) */
+          <motion.article
+            initial="hidden"
+            animate="visible"
+            variants={popSpringVariants}
+            custom={0}
+            aria-busy={loading}
+            className="relative z-20 w-full max-w-[1080px] drop-shadow-[0_12px_32px_rgba(0,0,0,0.25)]"
+          >
+            {/* Frame 1080 × 1280 (1 unit = 1 px Figma desktop); container "detail" untuk ukuran isinya. */}
+            <div className="@container/detail relative w-full aspect-[1080/1280]">
+              {/* Layer 1: Red Textbox Summary Box (Big full-width, under backboard rim) */}
+              <div className="absolute left-0 top-[33.6%] z-10 w-full aspect-[1611/1223]">
                 <Image
-                  src="/svg/figma/team12%20group.svg"
-                  alt="Teams Match Header"
-                  fill
-                  priority
-                  className="object-contain select-none"
-                />
-              </div>
-
-              {/* Quarter Scores Table Box (tablebox ring.svg) */}
-              <div className="absolute left-1/2 top-[36.5%] z-20 w-[67.6%] -translate-x-1/2 aspect-[730/233]">
-                <Image
-                  src="/svg/figma/tablebox%20ring.svg"
+                  src="/images/textboxsummary.png"
                   alt=""
                   fill
                   priority
                   className="pointer-events-none object-contain select-none"
                 />
+              </div>
 
-                {/* Table Content inside the tablebox frame */}
-                <div className="absolute left-[3.5%] top-[8.5%] h-[72.5%] w-[93%] overflow-hidden">
-                  <table className="h-full w-full border-collapse text-center">
-                    <thead>
-                      <tr className="font-poppins text-[clamp(7px,1.15vw,14px)] font-black text-[#101010]">
-                        <th className="w-[28%] border-b border-r border-[#7E0202]/50 px-1 py-0.5">Team</th>
-                        <th className="w-[14.4%] border-b border-r border-[#7E0202]/50 px-0.5 py-0.5">1st</th>
-                        <th className="w-[14.4%] border-b border-r border-[#7E0202]/50 px-0.5 py-0.5">2nd</th>
-                        <th className="w-[14.4%] border-b border-r border-[#7E0202]/50 px-0.5 py-0.5">3rd</th>
-                        <th className="w-[14.4%] border-b border-r border-[#7E0202]/50 px-0.5 py-0.5">4th</th>
-                        <th className="w-[14.4%] border-b border-[#7E0202]/50 px-0.5 py-0.5">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody className="font-poppins text-[clamp(7px,1.1vw,14px)] font-bold text-[#101010]">
-                      <tr className="border-b border-[#7E0202]/50">
-                        <td className="border-r border-[#7E0202]/50 px-1 py-0.5 font-black text-[#7E0202]">
-                          {fixture.team1}
-                        </td>
-                        {fixture.quarterScores.team1.map((score, idx) => (
-                          <td
-                            key={idx}
-                            className={`${idx < 4 ? "border-r border-[#7E0202]/50" : ""} px-0.5 py-0.5`}
-                          >
-                            {score}
-                          </td>
-                        ))}
-                      </tr>
-                      <tr>
-                        <td className="border-r border-[#7E0202]/50 px-1 py-0.5 font-black text-[#7E0202]">
-                          {fixture.team2}
-                        </td>
-                        {fixture.quarterScores.team2.map((score, idx) => (
-                          <td
-                            key={idx}
-                            className={`${idx < 4 ? "border-r border-[#7E0202]/50" : ""} px-0.5 py-0.5`}
-                          >
-                            {score}
-                          </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
+              {/* Layer 2: Basketball Backboard + Ring & Net (In front of Red Box, behind SUMMARY) */}
+              <div className="absolute left-0 top-0 z-20 w-full aspect-[1080/761]">
+                <Image
+                  src="/images/ring.png"
+                  alt=""
+                  fill
+                  priority
+                  className="pointer-events-none relative z-10 object-contain select-none"
+                />
+
+                {/* Quarter Scores Table Box (tablebox ring.svg) */}
+                <div className="@container/quarters absolute left-1/2 top-[36.5%] z-20 w-[67.6%] -translate-x-1/2 aspect-[730/233]">
+                  <Image
+                    src="/svg/figma/tablebox%20ring.svg"
+                    alt=""
+                    fill
+                    priority
+                    className="pointer-events-none object-contain select-none"
+                  />
+                  {match?.status === "LIVE" && (
+                    <span className="absolute bottom-full left-1/2 mb-[1.5cqw] -translate-x-1/2 rounded-[4px] bg-[#c51610] px-[0.5em] py-[0.15em] font-poppins text-[length:max(0.5625rem,1.92cqw)] font-bold tracking-wider text-white">
+                      LIVE
+                    </span>
+                  )}
+                  <div className="absolute left-[3.5%] top-[8.5%] h-[72.5%] w-[93%] overflow-hidden">
+                    <QuarterTable match={match} />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Layer 3: SUMMARY 3D Banner (Right in front of the basketball net) */}
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={popPunchVariants}
-              custom={{ delay: 0.15, rotation: 0 }}
-              className="absolute left-1/2 top-[43.8%] z-30 w-[44.5%] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]"
-            >
-              <Image
-                src="/svg/figma/summary.svg"
-                alt="SUMMARY"
-                width={432}
-                height={99}
-                className="h-auto w-full select-none"
-                priority
-              />
-            </motion.div>
+              {/* Header: logos, team names, venue, time (IMPLEMENTATION_DETAIL.md §3.2, §4) */}
+              <div className="absolute left-[15.13%] top-[7%] z-[26] w-[68.52%] @max-[480px]/detail:left-[3.55%] @max-[480px]/detail:top-[5.2%] @max-[480px]/detail:w-[92.9%]">
+                <MatchHeader
+                  data={match ? { team1: match.team1, team2: match.team2, venue: match.venue, scheduledAt: match.scheduledAt } : null}
+                />
+              </div>
 
-            {/* Layer 4: Cyan Summary Table (Inside Red Box, beneath SUMMARY banner) */}
-            <div className="absolute left-1/2 top-[52%] z-25 w-[70.4%] -translate-x-1/2 aspect-[760/390]">
-              <Image
-                src="/svg/figma/Tabel%20Summary.svg"
-                alt="Match Summary Table"
-                fill
-                priority
-                className="object-contain select-none"
-              />
+              {/* Layer 3: SUMMARY 3D Banner (Right in front of the basketball net) */}
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={popPunchVariants}
+                custom={{ delay: 0.15, rotation: 0 }}
+                className="absolute left-1/2 top-[43.8%] z-30 w-[44.5%] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]"
+              >
+                <Image
+                  src="/svg/figma/summary.svg"
+                  alt="SUMMARY"
+                  width={432}
+                  height={99}
+                  className="h-auto w-full select-none"
+                  priority
+                />
+              </motion.div>
+
+              {/* Layer 4: Summary Table (Inside Red Box, beneath SUMMARY banner) */}
+              <div className="absolute left-1/2 top-[52%] z-[25] w-[70.4%] -translate-x-1/2">
+                <SummaryTable teams={match ? { team1: match.team1, team2: match.team2 } : null} />
+              </div>
             </div>
-          </div>
-        </motion.article>
+          </motion.article>
+        )}
       </div>
     </section>
   );
 };
-
