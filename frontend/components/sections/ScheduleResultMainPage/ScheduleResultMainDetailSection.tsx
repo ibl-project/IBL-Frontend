@@ -283,6 +283,20 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
                 />
               </div>
 
+              {/* TEMPORARY alignment overlay (?overlay=1) — DO NOT COMMIT. Old images at 40% in their old slots. */}
+              {searchParams.get("overlay") === "1" && (
+                <>
+                  <div className="pointer-events-none absolute left-0 top-0 z-[60] w-full aspect-[1080/761] opacity-40">
+                    <div className="absolute left-1/2 top-[10.5%] w-[73.5%] -translate-x-1/2 aspect-[794/211]">
+                      <Image src="/svg/figma/team12%20group.svg" alt="" fill className="object-contain" />
+                    </div>
+                  </div>
+                  <div className="pointer-events-none absolute left-1/2 top-[52%] z-[60] w-[70.4%] -translate-x-1/2 aspect-[760/390] opacity-40">
+                    <Image src="/svg/figma/Tabel%20Summary.svg" alt="" fill className="object-contain" />
+                  </div>
+                </>
+              )}
+
               {/* Layer 3: SUMMARY 3D Banner (Right in front of the basketball net) */}
               <motion.div
                 initial="hidden"
