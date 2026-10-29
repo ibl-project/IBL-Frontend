@@ -11,7 +11,8 @@ import {
   saveLineup,
   startMatch,
 } from "@/lib/matchesApi";
-import { JERSEY_PATTERN, errorMessage } from "@/lib/teamsApi";
+import { errorMessage } from "@/lib/errors";
+import { JERSEY_PATTERN } from "@/lib/teamsApi";
 
 interface ScoringLineupSectionProps {
   match: ScoringBoardItem;

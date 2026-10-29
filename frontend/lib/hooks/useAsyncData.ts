@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { errorMessage } from "@/lib/teamsApi";
+import { errorMessage } from "@/lib/errors";
 
 export type AsyncState<T> =
   | { status: "loading" }
