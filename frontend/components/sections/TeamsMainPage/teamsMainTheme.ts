@@ -45,6 +45,8 @@ export const ARTBOARD = {
       height: 95,
       border: 5.82,
       radius: 28.05,
+      innerInsetX: 4.6,
+      innerInsetY: 4.5,
       innerRadius: 24.85,
       labelLeft: 25,
       labelTop: 10,
@@ -57,6 +59,8 @@ export const ARTBOARD = {
       stripRadius: 6.65,
       captionLeft: 12,
       caption: 15.58,
+      // basketapi.svg (370 x 489, dipakai juga di Leaderboard): bola menggantung di sudut kanan bawah bar.
+      fireball: { left: 1054, top: -78, width: 209 },
     },
     grid: { offset: 38, columns: 8, pitch: 125.3, logo: 67, logoGap: 11.6, name: 14.46, nameLine: 16, nameStroke: 1, rowGap: 4 },
     banner: {
@@ -123,6 +127,8 @@ export const ARTBOARD = {
       height: 41.05,
       border: 1.9,
       radius: 7.8,
+      innerInsetX: 1.4,
+      innerInsetY: 1.9,
       innerRadius: 6.91,
       labelLeft: 9,
       labelTop: 4,
@@ -135,6 +141,7 @@ export const ARTBOARD = {
       stripRadius: 2.4,
       captionLeft: 0,
       caption: 0,
+      fireball: { left: 316, top: -6, width: 56.5 },
     },
     grid: { offset: 50, columns: 3, pitch: 93, logo: 50, logoGap: 8, name: 10.79, nameLine: 12, nameStroke: 0.74, rowGap: 6 },
     banner: {

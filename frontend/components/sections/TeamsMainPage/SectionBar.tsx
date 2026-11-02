@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 
 import { ARTBOARD, TEAMS_COLORS, TEXT_FILLS, type ArtboardVariant } from "./teamsMainTheme";
 import { OutlinedText } from "./OutlinedText";
@@ -20,6 +21,7 @@ export function SectionBar({ variant, label, caption }: SectionBarProps) {
         marginTop: bar.offset,
         width: bar.width,
         height: bar.height,
+        boxSizing: "content-box",
         background: TEAMS_COLORS.teal,
         border: `${bar.border}px solid #000`,
         borderRadius: bar.radius,
@@ -27,8 +29,12 @@ export function SectionBar({ variant, label, caption }: SectionBarProps) {
     >
       <div
         aria-hidden
-        className="absolute inset-0"
-        style={{ background: "linear-gradient(180deg, #CB0404 -1.23%, #650202 98.77%)", borderRadius: bar.innerRadius }}
+        className="absolute"
+        style={{
+          inset: `${bar.innerInsetY}px ${bar.innerInsetX}px`,
+          background: "linear-gradient(180deg, #CB0404 -1.23%, #650202 98.77%)",
+          borderRadius: bar.innerRadius,
+        }}
       />
       <OutlinedText
         as="h2"
@@ -65,6 +71,13 @@ export function SectionBar({ variant, label, caption }: SectionBarProps) {
             {caption}
           </p>
         )}
+      </div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute z-10"
+        style={{ left: bar.fireball.left, top: bar.fireball.top, width: bar.fireball.width }}
+      >
+        <Image src="/svg/figma/basketapi.svg" alt="" width={370} height={489} className="h-auto w-full" />
       </div>
     </div>
   );
