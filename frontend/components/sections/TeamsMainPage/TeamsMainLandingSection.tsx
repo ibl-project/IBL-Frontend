@@ -29,13 +29,13 @@ export function TeamsMainLandingSection() {
   const { state, reload } = useAsyncData(listTeams);
 
   return (
-    <TeamsArtboard>
+    <TeamsArtboard page="list">
       {(variant) => {
         const { board, grid } = ARTBOARD[variant];
         return (
           <>
             <TeamsTitle variant={variant} />
-            <PaperBoard variant={variant} overlap={board.overlap}>
+            <PaperBoard variant={variant} page="list" overlap={board.overlap}>
               <SectionBar variant={variant} label="All Teams" caption="Himpunan Mahasiswa" />
               <div style={{ marginTop: grid.offset }}>
                 {state.status === "loading" && <BoardMessage variant={variant}>Memuat tim...</BoardMessage>}

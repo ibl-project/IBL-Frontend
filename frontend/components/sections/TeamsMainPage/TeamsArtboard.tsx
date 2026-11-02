@@ -3,21 +3,58 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 
 import { useArtboard } from "./useArtboard";
-import { ARTBOARD, TEAMS_ASSETS, type ArtboardVariant } from "./teamsMainTheme";
-
-const CHECKER_SVG =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2'%3E" +
-  "%3Crect width='1' height='1' fill='%23EC5D12'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%23EC5D12'/%3E%3C/svg%3E\")";
+import {
+  ARTBOARD,
+  HALFTONE_ASPECT,
+  PAGE_BACKGROUND,
+  TEAMS_ASSETS,
+  type ArtboardVariant,
+  type TeamsPage,
+} from "./teamsMainTheme";
+import { CheckerBand } from "./CheckerBand";
 
 interface TeamsArtboardProps {
+  page: TeamsPage;
   children: (variant: ArtboardVariant) => React.ReactNode;
 }
 
-/** Lebar satu ulangan foto halftone, dalam piksel desain. */
-const HALFTONE_SIZE = 700;
+/**
+ * Lapisan latar di belakang konten, dalam koordinat artboard (ikut diskalakan):
+ * satu layer halftone (Figma `image 4`/`image 5`, 30%) dan pita checker atas. Pita bawah ada di PaperBoard
+ * karena menempel ke tepi bawah papan.
+ */
+function TeamsBackdrop({ page, variant }: { page: TeamsPage; variant: ArtboardVariant }) {
+  const bg = PAGE_BACKGROUND[page][variant];
+  const { halftone } = bg;
+  return (
+    <>
+      {/* multiply + opacity pada gambar hitam-putih = titik hitam transparan dengan opacity yang sama (Figma: normal 30%). */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute mix-blend-multiply"
+        style={{
+          left: halftone.left,
+          top: halftone.top,
+          width: halftone.width,
+          height: halftone.width * HALFTONE_ASPECT,
+          opacity: 0.3,
+          backgroundImage: `url('${TEAMS_ASSETS.halftone}')`,
+          backgroundSize: "100% 100%",
+        }}
+      />
+      <CheckerBand
+        tile={ARTBOARD[variant].checker}
+        centerX={ARTBOARD[variant].width / 2}
+        left={bg.board.left}
+        width={bg.board.width}
+        top={bg.checkerTop.top}
+      />
+    </>
+  );
+}
 
-/** Latar halaman selebar layar, ditambah artboard berukuran Figma yang diskalakan ke lebar kontainer. */
-export function TeamsArtboard({ children }: TeamsArtboardProps) {
+/** Latar putih selebar layar, ditambah artboard berukuran Figma yang diskalakan ke lebar kontainer. */
+export function TeamsArtboard({ page, children }: TeamsArtboardProps) {
   const { ref, metrics } = useArtboard<HTMLDivElement>();
   const contentRef = useRef<HTMLDivElement>(null);
   const [contentHeight, setContentHeight] = useState(0);
@@ -35,28 +72,17 @@ export function TeamsArtboard({ children }: TeamsArtboardProps) {
 
   const variant = metrics?.variant ?? "desktop";
   const scale = metrics?.scale ?? 1;
-  const { width, checker } = ARTBOARD[variant];
+  const { width } = ARTBOARD[variant];
 
   return (
-    <section
-      className="relative min-h-screen w-full overflow-hidden pt-[var(--navbar-height)]"
-      style={{
-        backgroundColor: "#FFFFFF",
-        backgroundImage: CHECKER_SVG,
-        backgroundSize: `${checker * scale}px ${checker * scale}px`,
-      }}
-    >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-30"
-        style={{ backgroundImage: `url('${TEAMS_ASSETS.halftone}')`, backgroundSize: `${HALFTONE_SIZE * scale}px auto` }}
-      />
+    <section className="relative min-h-screen w-full overflow-hidden bg-white pt-[var(--navbar-height)]">
       <div ref={ref} className="relative w-full">
         <div
           className="relative mx-auto"
           style={{ width: width * scale, height: contentHeight * scale, visibility: metrics ? "visible" : "hidden" }}
         >
-          <div ref={contentRef} style={{ width, transform: `scale(${scale})`, transformOrigin: "0 0" }}>
+          <div ref={contentRef} className="relative flow-root" style={{ width, transform: `scale(${scale})`, transformOrigin: "0 0" }}>
+            <TeamsBackdrop page={page} variant={variant} />
             {children(variant)}
           </div>
         </div>

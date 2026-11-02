@@ -22,7 +22,7 @@ export function TeamsMainDetailSection() {
   const { state, reload } = useAsyncData(load);
 
   return (
-    <TeamsArtboard>
+    <TeamsArtboard page="detail">
       {(variant) => {
         const { banner, detail, table, backLink } = ARTBOARD[variant];
         const team = state.status === "ready" ? state.data : null;
@@ -44,7 +44,7 @@ export function TeamsMainDetailSection() {
               </Link>
               {team ? <TeamBanner team={team} variant={variant} /> : <div style={{ height: banner.top }} />}
             </div>
-            <PaperBoard variant={variant} overlap={team ? banner.boardOverlap : 0}>
+            <PaperBoard variant={variant} page="detail" overlap={team ? banner.boardOverlap : 0}>
               <div style={{ paddingTop: detail.tablesOffset }}>
                 {state.status === "loading" && <BoardMessage variant={variant}>Memuat data tim...</BoardMessage>}
                 {state.status === "error" && (

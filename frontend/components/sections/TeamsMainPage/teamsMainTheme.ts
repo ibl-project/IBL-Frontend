@@ -13,9 +13,14 @@ export const TEAMS_COLORS = {
 } as const;
 
 export const TEAMS_ASSETS = {
-  /** Foto halftone yang dipakai layer Figma `image 2` / `image 4`. */
-  halftone: "/images/groups-standings/board-texture.png",
+  /** Halftone halaman (layer Figma `image 4` / `image 5`), digenerate oleh tools/teams-bg/generate.mjs. */
+  halftone: "/images/teams/halftone.png",
+  /** Serat papan (layer Figma `image 2`), digenerate oleh tools/teams-bg/generate.mjs; setengah resolusi. */
+  grain: "/images/teams/board-grain.png",
 } as const;
+
+/** Rasio tinggi/lebar halftone.png (1622 x 1009). */
+export const HALFTONE_ASPECT = 1009 / 1622;
 
 /** Ukuran Figma dalam piksel desain, diukur dari bawah navbar. */
 export const ARTBOARD = {
@@ -39,7 +44,7 @@ export const ARTBOARD = {
       artH: 73,
       artTop: 9,
     },
-    board: { overlap: 43, minHeight: 660, paperInset: 28, paddingBottom: 72 },
+    board: { overlap: 43, minHeight: 660, paddingBottom: 72 },
     bar: {
       offset: 55,
       width: 1125,
@@ -130,7 +135,7 @@ export const ARTBOARD = {
       artH: 28,
       artTop: 3.4,
     },
-    board: { overlap: 20, minHeight: 560, paperInset: 18, paddingBottom: 40 },
+    board: { overlap: 20, minHeight: 560, paddingBottom: 40 },
     bar: {
       offset: 43,
       width: 335.09,
@@ -216,6 +221,71 @@ export const ARTBOARD = {
 } as const;
 
 export type TableSpec = (typeof ARTBOARD)[ArtboardVariant]["table"];
+
+export type TeamsPage = "list" | "detail";
+
+/**
+ * Latar halaman per halaman dan varian, dari ekspor CSS Figma (teams-*.txt, detail-teams-*.txt).
+ * Koordinat dalam piksel desain artboard (frame Figma dikurangi tinggi navbar: 60 desktop, 55 mobile).
+ * Frame mobile Figma bukan layout yang diperkecil: isinya potongan 390 px dari komposisi yang sama (skala ~0,92),
+ * jadi papan, kertas, dan halftone mobile berada jauh di kiri (left negatif besar).
+ *
+ * Papan sengaja TIDAK dimiringkan (Figma: 0,81 derajat). Kemiringan itu bertabrakan dengan navbar, footer,
+ * pita checker, dan konten yang semuanya lurus, sehingga margin tan menjadi baji. Semua garis dibuat sejajar.
+ */
+export interface PageBackground {
+  /** Layer halftone: kiri-atas dan lebar; tinggi = lebar x HALFTONE_ASPECT. Opacity 30%. */
+  halftone: { left: number; top: number; width: number };
+  /** Pita checker atas (3 baris): jarak dari atas artboard. Kolomnya dipusatkan di tengah artboard. */
+  checkerTop: { top: number };
+  /** Pita checker bawah (3 baris): mulai sekian px di atas tepi bawah papan. */
+  checkerBottom: { aboveBoardBottom: number };
+  /** Papan: kiri dan lebar (berhenti di ujung komposisi Figma), skala bayangan. */
+  board: { left: number; width: number; shadowScale: number };
+  /** Kertas di dalam papan: kiri (dari tepi kiri papan), lebar, margin tan yang terlihat di atas/bawah kertas. */
+  paper: { left: number; width: number; top: number; bottom: number };
+  /** Lebar tampil serat papan (layer Figma `image 2`). */
+  grainWidth: number;
+}
+
+export const PAGE_BACKGROUND: Record<TeamsPage, Record<ArtboardVariant, PageBackground>> = {
+  list: {
+    desktop: {
+      halftone: { left: -19, top: -119, width: 1622 },
+      checkerTop: { top: -1 },
+      checkerBottom: { aboveBoardBottom: 69.1 },
+      board: { left: -218.51, width: 1900.9, shadowScale: 1 },
+      paper: { left: 97.08, width: 1867, top: 28.69, bottom: 30.12 },
+      grainWidth: 1816.06,
+    },
+    mobile: {
+      halftone: { left: -886.3, top: -162, width: 1491.97 },
+      checkerTop: { top: -2 },
+      checkerBottom: { aboveBoardBottom: 1 },
+      board: { left: -1021, width: 1705.54, shadowScale: 0.9 },
+      paper: { left: 86.88, width: 1754.28, top: 18.03, bottom: 9.44 },
+      grainWidth: 1629.42,
+    },
+  },
+  detail: {
+    desktop: {
+      halftone: { left: -153, top: -74, width: 1622 },
+      checkerTop: { top: -7 },
+      checkerBottom: { aboveBoardBottom: 65.75 },
+      board: { left: -178.24, width: 1830.78, shadowScale: 0.96 },
+      paper: { left: 93.5, width: 1798.13, top: 27.78, bottom: 29.19 },
+      grainWidth: 1753.97,
+    },
+    mobile: {
+      halftone: { left: -966.3, top: -161, width: 1491.97 },
+      checkerTop: { top: -1 },
+      checkerBottom: { aboveBoardBottom: 1.3 },
+      board: { left: -1084, width: 1674.03, shadowScale: 0.88 },
+      paper: { left: 85.28, width: 1721.88, top: 17.7, bottom: 9.26 },
+      grainWidth: 1599.32,
+    },
+  },
+};
 
 /** Isi teks bergaris tepi (lihat OutlinedText). */
 export const TEXT_FILLS = {
