@@ -1,0 +1,110 @@
+import type { CSSProperties } from "react";
+
+export type ArtboardVariant = "desktop" | "mobile";
+
+/** Container widths below this use the mobile (390) artboard. */
+export const MOBILE_MAX_WIDTH = 768;
+
+export const TEAMS_COLORS = {
+  maroon: "#7E0202",
+  orange: "#EC5D12",
+  ivory: "#FDF6DD",
+  slate: "#799BA7",
+  ink: "#2F3C41",
+  teal: "#50A28C",
+} as const;
+
+export const TEAMS_ASSETS = {
+  bgTexture: "/images/groups-standings/board-texture.png",
+  boardTexture: "/images/groups-standings/board-texture.png",
+} as const;
+
+/** Ukuran Figma dalam piksel desain, diukur dari bawah navbar. */
+export const ARTBOARD = {
+  desktop: {
+    width: 1440,
+    checker: 103,
+    title: { top: 26, plateW: 308.73, plateH: 75.47, plateBorder: 3.03, font: 67.09, line: 77, stroke: 3.63, shadow: 4.83 },
+    board: { overlap: 28, minHeight: 660, paperInset: 28, paddingBottom: 72 },
+    bar: {
+      offset: 55,
+      width: 1125,
+      height: 95,
+      border: 5.82,
+      radius: 28.05,
+      innerRadius: 24.85,
+      labelLeft: 25,
+      labelTop: 10,
+      label: 24.94,
+      labelStroke: 1.66,
+      stripLeft: 33,
+      stripTop: 40,
+      stripW: 1048.71,
+      stripH: 43.53,
+      stripRadius: 6.65,
+      captionLeft: 12,
+      caption: 15.58,
+    },
+    grid: { offset: 38, columns: 8, pitch: 125.3, logo: 67, logoGap: 11.6, name: 14.46, nameLine: 16, rowGap: 4 },
+    message: 18,
+  },
+  mobile: {
+    width: 390,
+    checker: 38,
+    title: { top: 19, plateW: 117.8, plateH: 28.8, plateBorder: 1.15, font: 25.6, line: 29, stroke: 1.38, shadow: 1.85 },
+    board: { overlap: 26, minHeight: 560, paperInset: 18, paddingBottom: 40 },
+    bar: {
+      offset: 43,
+      width: 335.09,
+      height: 41.05,
+      border: 1.9,
+      radius: 7.8,
+      innerRadius: 6.91,
+      labelLeft: 9,
+      labelTop: 4,
+      label: 8.04,
+      labelStroke: 0.54,
+      stripLeft: 11,
+      stripTop: 19,
+      stripW: 312.37,
+      stripH: 16.1,
+      stripRadius: 2.4,
+      captionLeft: 0,
+      caption: 0,
+    },
+    grid: { offset: 50, columns: 3, pitch: 93, logo: 50, logoGap: 8, name: 10.79, nameLine: 12, rowGap: 6 },
+    message: 14,
+  },
+} as const;
+
+/** "ALL TEAMS" dan nama tim: gradasi emas-toska dengan garis tepi gelap. */
+export function goldTealText(strokePx: number): CSSProperties {
+  return {
+    fontFamily: "var(--font-drowner)",
+    backgroundImage: "linear-gradient(168.07deg, #44D1D1 21.6%, #F4CB81 91.28%)",
+    WebkitBackgroundClip: "text",
+    backgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    WebkitTextStroke: `${strokePx}px #060606`,
+    paintOrder: "stroke fill",
+  };
+}
+
+/** Judul "TEAMS": gradasi toska, garis tepi gading, bayangan. */
+export function tealTitleText(strokePx: number, shadowPx: number): CSSProperties {
+  return {
+    fontFamily: "var(--font-hollywood)",
+    letterSpacing: "-0.02em",
+    backgroundImage: "linear-gradient(198.35deg, #44D1D1 15.83%, #23637B 90.1%)",
+    WebkitBackgroundClip: "text",
+    backgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    WebkitTextStroke: `${strokePx}px ${TEAMS_COLORS.ivory}`,
+    paintOrder: "stroke fill",
+    filter: `drop-shadow(0 ${shadowPx}px ${shadowPx}px rgba(0, 0, 0, 0.5))`,
+  };
+}
+
+export function teamDetailHref(teamId: string): string {
+  return `/teams-main/detail-team?id=${encodeURIComponent(teamId)}`;
+}
