@@ -11,7 +11,7 @@ import { TeamsArtboard } from "./TeamsArtboard";
 import { PaperBoard } from "./PaperBoard";
 import { TeamBanner } from "./TeamBanner";
 import { PlayerStatsTable } from "./PlayerStatsTable";
-import { AVERAGE_COLUMNS, TOTAL_COLUMNS } from "./playerStatsColumns";
+import { AVERAGE_COLUMNS, PLAYER_COLUMN_WIDTH, TOTAL_COLUMNS } from "./playerStatsColumns";
 import { BoardMessage } from "./BoardMessage";
 
 const MISSING_ID_MESSAGE = "Tim tidak ditemukan.";
@@ -59,7 +59,7 @@ export function TeamsMainDetailSection() {
                       title="Totals"
                       columns={TOTAL_COLUMNS}
                       players={team.players}
-                      playerColumnPercent={40}
+                      playerColumnWidth={PLAYER_COLUMN_WIDTH.totals}
                       minWidth={table.minWidthTotals}
                     />
                     <PlayerStatsTable
@@ -67,7 +67,7 @@ export function TeamsMainDetailSection() {
                       title="Average"
                       columns={AVERAGE_COLUMNS}
                       players={team.players}
-                      playerColumnPercent={30}
+                      playerColumnWidth={PLAYER_COLUMN_WIDTH.average}
                       minWidth={table.minWidthAverage}
                     />
                   </div>

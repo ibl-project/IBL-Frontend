@@ -10,7 +10,8 @@ interface PlayerStatsTableProps {
   title: string;
   columns: StatColumn[];
   players: TeamPlayer[];
-  playerColumnPercent: number;
+  /** Lebar kolom PLAYER di Figma (px), dibandingkan dengan lebar kolom lain. */
+  playerColumnWidth: number;
   /** Lebar minimum tabel; jika lebih lebar dari kotaknya, tabel digulir ke samping. 0 = tanpa batas. */
   minWidth: number;
 }
@@ -26,11 +27,12 @@ function cellStyle(table: TableSpec): CSSProperties {
 }
 
 /** Tabel statistik pemain. Nilai dari backend sudah siap tampil ("15.0", "50%", "-"). */
-export function PlayerStatsTable({ variant, title, columns, players, playerColumnPercent, minWidth }: PlayerStatsTableProps) {
+export function PlayerStatsTable({ variant, title, columns, players, playerColumnWidth, minWidth }: PlayerStatsTableProps) {
   const table = ARTBOARD[variant].table;
   const titleId = useId();
-  const statPercent = (100 - playerColumnPercent) / columns.length;
-  const gridTemplateColumns = `${playerColumnPercent}% repeat(${columns.length}, ${statPercent}%)`;
+  const gridTemplateColumns = [playerColumnWidth, ...columns.map((column) => column.width)]
+    .map((width) => `minmax(0, ${width}fr)`)
+    .join(" ");
   const label = (text: string, fontSize: number) => (
     <OutlinedText
       outline={table.outline}
