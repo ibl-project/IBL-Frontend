@@ -40,45 +40,58 @@ function MatchCard({ match, frame, dateKey }: { match: MatchListItem; frame: str
         loading="eager"
       />
       <div className="absolute inset-0 text-center text-[#101010]">
-        {[team1, team2].map((side, index) => (
-          <div
-            key={index}
-            className={`absolute top-[22%] aspect-[73/77] h-[38%] ${index === 0 ? "left-[8%]" : "right-[8%]"}`}
-          >
-            <TeamLogo src={side.logo} alt={`Logo ${teamLabel(side)}`} sizes="80px" />
-          </div>
-        ))}
+        {/* Sisi Kiri: Logo Tim 1 & Nama Tim 1 (Sepenuhnya di dalam boks kuning) */}
+        <div className="absolute left-[14%] top-[30.5%] -translate-x-1/2 aspect-[73/77] h-[25%] pointer-events-none">
+          <TeamLogo src={team1.logo} alt={`Logo ${teamLabel(team1)}`} sizes="75px" />
+        </div>
+        <p
+          title={teamLabel(team1)}
+          className={`absolute left-[14%] top-[57.5%] -translate-x-1/2 w-[20%] truncate text-center font-hollywood text-[clamp(12px,1.6vw,22px)] font-bold tracking-wide text-[#074770] [text-shadow:1px_1px_0_#FFF3D2,0_1px_2px_rgba(0,0,0,0.18)] leading-tight ${dimmed(team1)}`}
+        >
+          {teamLabel(team1)}
+        </p>
 
-        <p className="absolute left-[28%] right-[28%] top-[29%] truncate font-hollywood text-[clamp(12px,1.65vw,24px)] leading-tight text-[#147f83] [text-shadow:1px_1px_0_#fff3d2]">
+        {/* Skor Tim 1 (Di sebelah kanan logo Tim 1) */}
+        {showScore && (
+          <div className="absolute left-[26.5%] top-[48.5%] -translate-x-1/2 -translate-y-1/2 font-crosner text-[clamp(30px,5vw,72px)] font-black text-[#760807] [text-shadow:2px_2px_0_#FFF3D2,4px_4px_0_rgba(56,6,6,0.25)] leading-none select-none tracking-tight">
+            {team1.score}
+          </div>
+        )}
+
+        {/* Blok Tengah: Venue, Kickoff, dan Game Detail */}
+        <p className="absolute left-[29.5%] right-[29.5%] top-[30.5%] truncate font-hollywood text-[clamp(9.5px,1.25vw,18px)] leading-tight text-[#147f83] [text-shadow:1px_1px_0_#fff3d2]">
           {match.venue ?? "Lokasi belum diatur"}
         </p>
-        <p className="absolute left-[25%] right-[25%] top-[40%] truncate font-poppins text-[clamp(10px,1.25vw,18px)] font-extrabold leading-tight">
-          {formatKickoff(match.scheduledAt)}
+        <p className="absolute left-[29.5%] right-[29.5%] top-[41.5%] flex items-center justify-center gap-1 sm:gap-1.5 font-poppins text-[clamp(7.5px,0.95vw,14px)] font-extrabold leading-tight tracking-tight">
+          {status === "LIVE" && (
+            <span className="shrink-0 rounded-[3px] bg-[#c51610] px-[0.35em] py-[0.05em] font-poppins text-[0.7em] font-bold tracking-wider text-white shadow-xs">
+              LIVE
+            </span>
+          )}
+          <span className="shrink-0">{formatKickoff(match.scheduledAt)}</span>
         </p>
         <Link
           href={`/schedule-result-main/detail-game?id=${match.id}&date=${dateKey}`}
-          className="absolute left-1/2 top-[51%] -translate-x-1/2 rounded-[7px] border border-[#f6c475] bg-gradient-to-b from-[#c51610] to-[#760807] px-[clamp(10px,1.6vw,22px)] py-[clamp(3px,0.4vw,6px)] font-poppins text-[clamp(9px,0.9vw,13px)] font-semibold text-white shadow-[0_2px_0_rgba(0,0,0,.28)] transition-[transform,background-color] hover:scale-[1.07] hover:from-[#d6211b] hover:to-[#8a0a09] active:scale-[0.94] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44D1D1]"
+          className="absolute left-1/2 top-[54%] -translate-x-1/2 rounded-[3.5px] border border-[#f6c475] bg-gradient-to-b from-[#c51610] to-[#760807] px-1.5 py-[1px] font-poppins text-[7px] font-semibold text-white shadow-[0_1px_0_rgba(0,0,0,.22)] transition-[transform,background-color] hover:scale-[1.07] hover:from-[#d6211b] hover:to-[#8a0a09] active:scale-[0.94] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44D1D1] sm:rounded-[6px] sm:px-[clamp(9px,1.3vw,18px)] sm:py-[clamp(2.5px,0.3vw,4.5px)] sm:text-[clamp(8.5px,0.85vw,12px)] sm:shadow-[0_2px_0_rgba(0,0,0,.28)]"
         >
           Game Detail
         </Link>
 
+        {/* Skor Tim 2 (Di sebelah kiri logo Tim 2) */}
         {showScore && (
-          <p className="absolute left-[30%] right-[30%] top-[64%] flex items-center justify-center gap-[0.5em] font-hollywood text-[clamp(12px,1.5vw,22px)] text-[#760807] [text-shadow:1px_1px_0_#fff3d2]">
-            {status === "LIVE" && (
-              <span className="rounded-[4px] bg-[#c51610] px-[0.4em] font-poppins text-[0.6em] font-bold tracking-wider text-white [text-shadow:none]">
-                LIVE
-              </span>
-            )}
-            <span>
-              {team1.score} – {team2.score}
-            </span>
-          </p>
+          <div className="absolute left-[73.5%] top-[48.5%] -translate-x-1/2 -translate-y-1/2 font-crosner text-[clamp(30px,5vw,72px)] font-black text-[#760807] [text-shadow:2px_2px_0_#FFF3D2,4px_4px_0_rgba(56,6,6,0.25)] leading-none select-none tracking-tight">
+            {team2.score}
+          </div>
         )}
 
-        <p className={`absolute left-[8%] top-[64%] font-hollywood text-[clamp(12px,1.5vw,22px)] text-[#45b3ac] [text-shadow:1px_1px_0_#123b3a] ${dimmed(team1)}`}>
-          {teamLabel(team1)}
-        </p>
-        <p className={`absolute right-[8%] top-[64%] font-hollywood text-[clamp(12px,1.5vw,22px)] text-[#45b3ac] [text-shadow:1px_1px_0_#123b3a] ${dimmed(team2)}`}>
+        {/* Sisi Kanan: Logo Tim 2 & Nama Tim 2 (Sepenuhnya di dalam boks kuning) */}
+        <div className="absolute left-[86%] top-[31%] -translate-x-1/2 aspect-[73/77] h-[25%] pointer-events-none">
+          <TeamLogo src={team2.logo} alt={`Logo ${teamLabel(team2)}`} sizes="75px" />
+        </div>
+        <p
+          title={teamLabel(team2)}
+          className={`absolute left-[86%] top-[57.5%] -translate-x-1/2 w-[20%] truncate text-center font-hollywood text-[clamp(12px,1.6vw,22px)] font-bold tracking-wide text-[#074770] [text-shadow:1px_1px_0_#FFF3D2,0_1px_2px_rgba(0,0,0,0.18)] leading-tight ${dimmed(team2)}`}
+        >
           {teamLabel(team2)}
         </p>
       </div>

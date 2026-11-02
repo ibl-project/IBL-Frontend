@@ -1,4 +1,5 @@
 import { type AuthUser, useAuthStore } from "@/lib/store/useAuthStore";
+import { MOCK_USER, handleMockApi } from "@/lib/mockApi";
 
 /**
  * =============================================================================
@@ -19,6 +20,22 @@ import { type AuthUser, useAuthStore } from "@/lib/store/useAuthStore";
  * frontend: data tim/skor hanya diberikan untuk access token yang sah.
  * =============================================================================
  */
+
+export function isMockMode(): boolean {
+  if (typeof window !== "undefined") {
+    const override = localStorage.getItem("ibl_mock_mode");
+    if (override === "true") return true;
+    if (override === "false") return false;
+  }
+  return process.env.NEXT_PUBLIC_MOCK_MODE === "true" || !process.env.NEXT_PUBLIC_API_URL;
+}
+
+export function setMockMode(enabled: boolean): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("ibl_mock_mode", enabled ? "true" : "false");
+    window.location.reload();
+  }
+}
 
 function resolveApiUrl(): string {
   const configured = process.env.NEXT_PUBLIC_API_URL;
@@ -91,6 +108,9 @@ function hasFreshToken(): boolean {
 function setSession(payload: SessionPayload) {
   accessToken = payload.accessToken;
   accessTokenExpiresAt = Date.now() + payload.expiresIn * 1000;
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem("ibl_mock_logged_out");
+  }
   useAuthStore.setState({ status: "authenticated", user: payload.user });
   listenForLogoutInOtherTabs();
 }
@@ -98,6 +118,9 @@ function setSession(payload: SessionPayload) {
 function clearSession() {
   accessToken = null;
   accessTokenExpiresAt = 0;
+  if (typeof window !== "undefined" && isMockMode()) {
+    sessionStorage.setItem("ibl_mock_logged_out", "true");
+  }
   useAuthStore.setState({ status: "unauthenticated", user: null });
 }
 
@@ -169,6 +192,15 @@ function withRefreshLock<T>(task: () => Promise<T>): Promise<T> {
  * Mengembalikan null kalau tidak ada sesi yang sah.
  */
 export function refreshSession(): Promise<AuthUser | null> {
+  if (isMockMode()) {
+    setSession({
+      user: MOCK_USER,
+      accessToken: "mock-jwt-token-ibl-2k26",
+      expiresIn: 3600,
+    });
+    return Promise.resolve(MOCK_USER);
+  }
+
   if (refreshInFlight) return refreshInFlight;
 
   const epoch = sessionEpoch;
@@ -196,6 +228,19 @@ export function refreshSession(): Promise<AuthUser | null> {
  * Tidak pernah melempar error: server mati dianggap belum login.
  */
 export async function restoreSession(): Promise<AuthUser | null> {
+  if (isMockMode()) {
+    if (typeof window !== "undefined" && sessionStorage.getItem("ibl_mock_logged_out") === "true") {
+      clearSession();
+      return null;
+    }
+    setSession({
+      user: MOCK_USER,
+      accessToken: "mock-jwt-token-ibl-2k26",
+      expiresIn: 3600,
+    });
+    return MOCK_USER;
+  }
+
   if (hasFreshToken()) return useAuthStore.getState().user;
   try {
     return await refreshSession();
@@ -206,6 +251,20 @@ export async function restoreSession(): Promise<AuthUser | null> {
 }
 
 export async function login(email: string, password: string, rememberMe: boolean): Promise<AuthUser> {
+  if (isMockMode()) {
+    const payload: SessionPayload = {
+      user: {
+        ...MOCK_USER,
+        email: email || MOCK_USER.email,
+      },
+      accessToken: "mock-jwt-token-ibl-2k26",
+      expiresIn: 3600,
+    };
+    sessionEpoch += 1;
+    setSession(payload);
+    return payload.user;
+  }
+
   const res = await send("/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -220,6 +279,13 @@ export async function login(email: string, password: string, rememberMe: boolean
 
 /** Cabut sesi di backend, lalu hapus sesi di semua tab browser ini. */
 export async function logout(): Promise<void> {
+  if (isMockMode()) {
+    sessionEpoch += 1;
+    clearSession();
+    logoutChannel?.postMessage("logout");
+    return;
+  }
+
   // Tunggu refresh yang sedang berjalan: kalau tidak, respons refresh bisa
   // memasang cookie baru SETELAH logout, dan sesi hidup lagi saat reload.
   if (refreshInFlight) await refreshInFlight.catch(() => null);
@@ -259,6 +325,10 @@ export interface ApiRequestOptions {
  *   await apiFetch(`/matches/${id}/start`, { method: "POST" });
  */
 export async function apiFetch<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+  if (isMockMode()) {
+    return handleMockApi<T>(path, options);
+  }
+
   const { method = "GET", body, auth = true, signal, keepalive } = options;
   const isFile = typeof Blob !== "undefined" && body instanceof Blob;
 
