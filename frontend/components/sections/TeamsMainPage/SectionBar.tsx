@@ -1,6 +1,7 @@
 import React from "react";
 
-import { ARTBOARD, TEAMS_COLORS, goldTealText, type ArtboardVariant } from "./teamsMainTheme";
+import { ARTBOARD, TEAMS_COLORS, TEXT_FILLS, type ArtboardVariant } from "./teamsMainTheme";
+import { OutlinedText } from "./OutlinedText";
 
 interface SectionBarProps {
   variant: ArtboardVariant;
@@ -29,12 +30,16 @@ export function SectionBar({ variant, label, caption }: SectionBarProps) {
         className="absolute inset-0"
         style={{ background: "linear-gradient(180deg, #CB0404 -1.23%, #650202 98.77%)", borderRadius: bar.innerRadius }}
       />
-      <h2
+      <OutlinedText
+        as="h2"
+        outline={bar.labelStroke}
+        outlineColor="#060606"
+        fill={TEXT_FILLS.goldTeal}
         className="absolute uppercase"
-        style={{ left: bar.labelLeft, top: bar.labelTop, fontSize: bar.label, letterSpacing: "0.17em", ...goldTealText(bar.labelStroke) }}
+        style={{ left: bar.labelLeft, top: bar.labelTop, fontFamily: "var(--font-drowner)", fontSize: bar.label, letterSpacing: "0.17em" }}
       >
         {label}
-      </h2>
+      </OutlinedText>
       <div
         className="absolute flex items-center"
         style={{

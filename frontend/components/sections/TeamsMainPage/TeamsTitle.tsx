@@ -4,7 +4,8 @@ import React from "react";
 import { motion } from "framer-motion";
 
 import { popSpringVariants } from "@/lib/animations";
-import { ARTBOARD, TEAMS_COLORS, tealTitleText, type ArtboardVariant } from "./teamsMainTheme";
+import { ARTBOARD, TEAMS_COLORS, TEXT_FILLS, textShadow, type ArtboardVariant } from "./teamsMainTheme";
+import { OutlinedText } from "./OutlinedText";
 
 export function TeamsTitle({ variant }: { variant: ArtboardVariant }) {
   const title = ARTBOARD[variant].title;
@@ -30,12 +31,17 @@ export function TeamsTitle({ variant }: { variant: ArtboardVariant }) {
           boxShadow: `0 ${title.plateBorder}px ${title.plateBorder}px rgba(0, 0, 0, 0.25)`,
         }}
       />
-      <h1
-        className="relative select-none text-center uppercase"
-        style={{ fontSize: title.font, lineHeight: `${title.line}px`, ...tealTitleText(title.stroke, title.shadow) }}
+      <OutlinedText
+        as="h1"
+        outline={title.stroke}
+        outlineColor={TEAMS_COLORS.ivory}
+        fill={TEXT_FILLS.teal}
+        shadow={textShadow(title.shadow)}
+        className="select-none text-center uppercase"
+        style={{ fontFamily: "var(--font-hollywood)", fontSize: title.font, lineHeight: `${title.line}px`, letterSpacing: "-0.02em" }}
       >
         Teams
-      </h1>
+      </OutlinedText>
     </motion.div>
   );
 }

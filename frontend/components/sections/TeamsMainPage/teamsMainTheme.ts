@@ -1,5 +1,3 @@
-import type { CSSProperties } from "react";
-
 export type ArtboardVariant = "desktop" | "mobile";
 
 /** Container widths below this use the mobile (390) artboard. */
@@ -45,7 +43,7 @@ export const ARTBOARD = {
       captionLeft: 12,
       caption: 15.58,
     },
-    grid: { offset: 38, columns: 8, pitch: 125.3, logo: 67, logoGap: 11.6, name: 14.46, nameLine: 16, rowGap: 4 },
+    grid: { offset: 38, columns: 8, pitch: 125.3, logo: 67, logoGap: 11.6, name: 14.46, nameLine: 16, nameStroke: 1, rowGap: 4 },
     banner: {
       top: 14,
       left: 179,
@@ -109,7 +107,7 @@ export const ARTBOARD = {
       captionLeft: 0,
       caption: 0,
     },
-    grid: { offset: 50, columns: 3, pitch: 93, logo: 50, logoGap: 8, name: 10.79, nameLine: 12, rowGap: 6 },
+    grid: { offset: 50, columns: 3, pitch: 93, logo: 50, logoGap: 8, name: 10.79, nameLine: 12, nameStroke: 0.74, rowGap: 6 },
     banner: {
       top: 6,
       left: 25.6,
@@ -154,44 +152,15 @@ export const ARTBOARD = {
 
 export type TableSpec = (typeof ARTBOARD)[ArtboardVariant]["table"];
 
-/** "ALL TEAMS" dan nama tim: gradasi emas-toska dengan garis tepi gelap. */
-export function goldTealText(strokePx: number): CSSProperties {
-  return {
-    fontFamily: "var(--font-drowner)",
-    backgroundImage: "linear-gradient(168.07deg, #44D1D1 21.6%, #F4CB81 91.28%)",
-    WebkitBackgroundClip: "text",
-    backgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    WebkitTextStroke: `${strokePx}px #060606`,
-    paintOrder: "stroke fill",
-  };
-}
+/** Isi teks bergaris tepi (lihat OutlinedText). */
+export const TEXT_FILLS = {
+  goldTeal: "linear-gradient(168.07deg, #44D1D1 21.6%, #F4CB81 91.28%)",
+  teal: "linear-gradient(198.35deg, #44D1D1 15.83%, #23637B 90.1%)",
+} as const;
 
-/** Judul "TEAMS" dan nama tim di banner: gradasi toska, garis tepi gading, bayangan. */
-export function tealTitleText(strokePx: number, shadowPx: number): CSSProperties {
-  return {
-    fontFamily: "var(--font-hollywood)",
-    letterSpacing: "-0.02em",
-    backgroundImage: "linear-gradient(198.35deg, #44D1D1 15.83%, #23637B 90.1%)",
-    WebkitBackgroundClip: "text",
-    backgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    WebkitTextStroke: `${strokePx}px ${TEAMS_COLORS.ivory}`,
-    paintOrder: "stroke fill",
-    filter: `drop-shadow(0 ${shadowPx}px ${shadowPx}px rgba(0, 0, 0, 0.5))`,
-  };
-}
-
-/** Judul tabel dan label kolom: isi slate, garis tepi gading. */
-export function outlinedLabel(strokePx: number, shadowPx: number): CSSProperties {
-  return {
-    fontFamily: "var(--font-hollywood)",
-    letterSpacing: "-0.02em",
-    color: TEAMS_COLORS.slate,
-    WebkitTextStroke: `${strokePx}px ${TEAMS_COLORS.ivory}`,
-    paintOrder: "stroke fill",
-    textShadow: `0 ${shadowPx}px ${shadowPx}px rgba(0, 0, 0, 0.5)`,
-  };
+/** Bayangan teks Figma `0 y y rgba(0,0,0,.5)` sebagai argumen drop-shadow(). */
+export function textShadow(offsetPx: number): string {
+  return `0 ${offsetPx}px ${offsetPx}px rgba(0, 0, 0, 0.5)`;
 }
 
 export function teamDetailHref(teamId: string): string {

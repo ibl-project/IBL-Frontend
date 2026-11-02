@@ -1,7 +1,8 @@
 import React, { useId, type CSSProperties } from "react";
 
 import type { TeamPlayer } from "@/lib/teamsApi";
-import { ARTBOARD, TEAMS_COLORS, outlinedLabel, type ArtboardVariant, type TableSpec } from "./teamsMainTheme";
+import { ARTBOARD, TEAMS_COLORS, textShadow, type ArtboardVariant, type TableSpec } from "./teamsMainTheme";
+import { OutlinedText } from "./OutlinedText";
 import type { StatColumn } from "./playerStatsColumns";
 
 interface PlayerStatsTableProps {
@@ -30,7 +31,17 @@ export function PlayerStatsTable({ variant, title, columns, players, playerColum
   const titleId = useId();
   const statPercent = (100 - playerColumnPercent) / columns.length;
   const gridTemplateColumns = `${playerColumnPercent}% repeat(${columns.length}, ${statPercent}%)`;
-  const labelStyle = { fontSize: table.label, ...outlinedLabel(table.outline, table.shadow) };
+  const label = (text: string, fontSize: number) => (
+    <OutlinedText
+      outline={table.outline}
+      outlineColor={TEAMS_COLORS.ivory}
+      fill={TEAMS_COLORS.slate}
+      shadow={textShadow(table.shadow)}
+      style={{ fontFamily: "var(--font-hollywood)", fontSize, letterSpacing: "-0.02em" }}
+    >
+      {text}
+    </OutlinedText>
+  );
   const rule = `${table.rule}px solid ${TEAMS_COLORS.slate}`;
 
   return (
@@ -46,15 +57,10 @@ export function PlayerStatsTable({ variant, title, columns, players, playerColum
         >
           <h3
             id={titleId}
-            className="text-center uppercase"
-            style={{
-              height: table.titleRow,
-              lineHeight: `${table.titleRow}px`,
-              fontSize: table.title,
-              ...outlinedLabel(table.outline, table.shadow),
-            }}
+            className="flex items-center justify-center uppercase"
+            style={{ height: table.titleRow, lineHeight: `${table.titleRow}px` }}
           >
-            {title}
+            {label(title, table.title)}
           </h3>
           <div
             role="row"
@@ -66,12 +72,12 @@ export function PlayerStatsTable({ variant, title, columns, players, playerColum
               borderTop: `${table.rule}px solid ${TEAMS_COLORS.ivory}`,
             }}
           >
-            <span role="columnheader" className="flex items-center justify-center uppercase" style={labelStyle}>
-              Player
+            <span role="columnheader" className="flex items-center justify-center uppercase">
+              {label("Player", table.label)}
             </span>
             {columns.map((column) => (
-              <span key={column.key} role="columnheader" className="flex items-center justify-center uppercase" style={labelStyle}>
-                {column.label}
+              <span key={column.key} role="columnheader" className="flex items-center justify-center uppercase">
+                {label(column.label, table.label)}
               </span>
             ))}
           </div>

@@ -2,7 +2,8 @@ import React from "react";
 
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 import type { Team } from "@/lib/teamsApi";
-import { ARTBOARD, TEAMS_COLORS, tealTitleText, type ArtboardVariant } from "./teamsMainTheme";
+import { ARTBOARD, TEAMS_COLORS, TEXT_FILLS, textShadow, type ArtboardVariant } from "./teamsMainTheme";
+import { OutlinedText } from "./OutlinedText";
 
 interface TeamBannerProps {
   team: Pick<Team, "name" | "logo">;
@@ -34,13 +35,19 @@ export function TeamBanner({ team, variant }: TeamBannerProps) {
           transform: "matrix(1, -0.01, 0.02, 1, 0, 0)",
         }}
       >
-        <h1
+        <OutlinedText
+          as="h1"
           title={team.name}
-          className="truncate uppercase"
-          style={{ fontSize: banner.font, lineHeight: `${banner.line}px`, ...tealTitleText(banner.stroke, banner.shadow) }}
+          outline={banner.stroke}
+          outlineColor={TEAMS_COLORS.ivory}
+          fill={TEXT_FILLS.teal}
+          shadow={textShadow(banner.shadow)}
+          className="w-full min-w-0 text-center uppercase"
+          textClassName="truncate"
+          style={{ fontFamily: "var(--font-hollywood)", fontSize: banner.font, lineHeight: `${banner.line}px`, letterSpacing: "-0.02em" }}
         >
           {team.name}
-        </h1>
+        </OutlinedText>
       </div>
     </div>
   );

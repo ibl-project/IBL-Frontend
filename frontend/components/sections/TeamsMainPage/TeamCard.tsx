@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 import type { Team } from "@/lib/teamsApi";
-import { ARTBOARD, goldTealText, teamDetailHref, type ArtboardVariant } from "./teamsMainTheme";
+import { ARTBOARD, TEXT_FILLS, teamDetailHref, type ArtboardVariant } from "./teamsMainTheme";
+import { OutlinedText } from "./OutlinedText";
 
 interface TeamCardProps {
   team: Pick<Team, "id" | "name" | "logo">;
@@ -33,19 +34,24 @@ export function TeamCard({ team, variant }: TeamCardProps) {
           <TeamLogo src={team.logo} sizes={`${grid.logo * 2}px`} />
         </div>
       </div>
-      <p
+      <OutlinedText
+        as="p"
         title={team.name}
-        className="line-clamp-2 w-full break-words text-center uppercase"
+        outline={grid.nameStroke}
+        outlineColor="#000000"
+        fill={TEXT_FILLS.goldTeal}
+        className="w-full text-center uppercase"
+        textClassName="line-clamp-2 break-words"
         style={{
           marginTop: grid.logoGap,
+          fontFamily: "var(--font-drowner)",
           fontSize: grid.name,
           lineHeight: `${grid.nameLine}px`,
           letterSpacing: "0.12em",
-          ...goldTealText(1),
         }}
       >
         {team.name}
-      </p>
+      </OutlinedText>
     </Link>
   );
 }
