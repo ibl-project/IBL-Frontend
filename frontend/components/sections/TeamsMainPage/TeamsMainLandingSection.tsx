@@ -11,6 +11,19 @@ import { PaperBoard } from "./PaperBoard";
 import { SectionBar } from "./SectionBar";
 import { TeamCard } from "./TeamCard";
 import { BoardMessage } from "./BoardMessage";
+import { MobileGridScroller } from "./MobileGridScroller";
+
+type GridScroll = (typeof ARTBOARD)[keyof typeof ARTBOARD]["grid"]["scroll"];
+
+/** Grid desktop memanjang bebas; grid mobile digulir di dalam papan. */
+function TeamGridArea({ scroll, children }: { scroll: GridScroll; children: React.ReactNode }) {
+  if (!scroll) return <>{children}</>;
+  return (
+    <MobileGridScroller height={scroll.height} left={scroll.left} trackWidth={scroll.trackWidth} trackMargin={scroll.trackMargin}>
+      {children}
+    </MobileGridScroller>
+  );
+}
 
 export function TeamsMainLandingSection() {
   const { state, reload } = useAsyncData(listTeams);
@@ -35,13 +48,15 @@ export function TeamsMainLandingSection() {
                   <BoardMessage variant={variant}>Belum ada tim terdaftar.</BoardMessage>
                 )}
                 {state.status === "ready" && state.data.length > 0 && (
-                  <ul className="mx-auto flex flex-wrap justify-center" style={{ width: grid.pitch * grid.columns, rowGap: grid.rowGap }}>
-                    {state.data.map((team) => (
-                      <li key={team.id}>
-                        <TeamCard team={team} variant={variant} />
-                      </li>
-                    ))}
-                  </ul>
+                  <TeamGridArea scroll={grid.scroll}>
+                    <ul className="mx-auto flex flex-wrap justify-center" style={{ width: grid.pitch * grid.columns, rowGap: grid.rowGap }}>
+                      {state.data.map((team) => (
+                        <li key={team.id}>
+                          <TeamCard team={team} variant={variant} />
+                        </li>
+                      ))}
+                    </ul>
+                  </TeamGridArea>
                 )}
               </div>
             </PaperBoard>

@@ -62,7 +62,7 @@ export const ARTBOARD = {
       // basketapi.svg (370 x 489, dipakai juga di Leaderboard): bola menggantung di sudut kanan bawah bar.
       fireball: { left: 1054, top: -78, width: 209 },
     },
-    grid: { offset: 38, columns: 8, pitch: 125.3, logo: 67, logoGap: 11.6, name: 14.46, nameLine: 16, nameStroke: 1, rowGap: 4 },
+    grid: { offset: 38, columns: 8, pitch: 125.3, logo: 67, logoGap: 11.6, name: 14.46, nameLine: 16, nameStroke: 1, rowGap: 4, scroll: null },
     banner: {
       top: 14,
       left: 179,
@@ -143,7 +143,19 @@ export const ARTBOARD = {
       caption: 0,
       fireball: { left: 316, top: -6, width: 56.5 },
     },
-    grid: { offset: 50, columns: 3, pitch: 93, logo: 50, logoGap: 8, name: 10.79, nameLine: 12, nameStroke: 0.74, rowGap: 6 },
+    grid: {
+      offset: 50,
+      columns: 3,
+      pitch: 93,
+      logo: 50,
+      logoGap: 8,
+      name: 10.79,
+      nameLine: 12,
+      nameStroke: 0.74,
+      rowGap: 6,
+      // Area gulir 5 baris; scrollbar Figma di x 46, panjang 308 (y 226-534).
+      scroll: { height: 380, left: 46, trackWidth: 7, trackMargin: 36 },
+    },
     banner: {
       top: 6,
       left: 25.6,
