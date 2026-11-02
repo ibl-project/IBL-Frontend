@@ -28,20 +28,22 @@ export function TeamsMainDetailSection() {
         const team = state.status === "ready" ? state.data : null;
         return (
           <>
-            <Link
-              href="/teams-main"
-              className="relative z-10 inline-block uppercase hover:underline"
-              style={{
-                marginLeft: banner.left,
-                marginTop: banner.top,
-                fontFamily: "var(--font-drowner)",
-                fontSize: backLink,
-                color: TEAMS_COLORS.ivory,
-              }}
-            >
-              ← Semua Tim
-            </Link>
-            {team && <TeamBanner team={team} variant={variant} />}
+            <div className="relative">
+              <Link
+                href="/teams-main"
+                className="absolute z-20 uppercase hover:underline"
+                style={{
+                  top: backLink.top,
+                  right: backLink.right,
+                  fontFamily: "var(--font-drowner)",
+                  fontSize: backLink.font,
+                  color: TEAMS_COLORS.ink,
+                }}
+              >
+                ← Semua Tim
+              </Link>
+              {team ? <TeamBanner team={team} variant={variant} /> : <div style={{ height: banner.top }} />}
+            </div>
             <PaperBoard variant={variant} overlap={team ? banner.boardOverlap : 0}>
               <div style={{ paddingTop: detail.tablesOffset }}>
                 {state.status === "loading" && <BoardMessage variant={variant}>Memuat data tim...</BoardMessage>}

@@ -32,7 +32,8 @@ export const ARTBOARD = {
       plateW: 308.73,
       plateH: 75.47,
       plateBorder: 3.03,
-      plateNotch: 26,
+      plateNotchLeft: 26,
+      plateNotchRight: 26,
       plateTilt: -0.5,
       artW: 195,
       artH: 73,
@@ -63,9 +64,17 @@ export const ARTBOARD = {
       fireball: { left: 1054, top: -78, width: 209 },
     },
     grid: { offset: 38, columns: 8, pitch: 125.3, logo: 67, logoGap: 11.6, name: 14.46, nameLine: 16, nameStroke: 1, rowGap: 4, scroll: null },
+    // Halaman Figma: plat di (145, 97.86), logo di (178.71, 74); logo berdiri di atas plat.
     banner: {
       top: 14,
-      left: 179,
+      plateLeft: 145,
+      plateTop: 23.86,
+      logoInset: 33.72,
+      // Nama rata kiri, 12px di kanan logo.
+      nameAreaLeft: 166.6,
+      plateNotchLeft: 21,
+      plateNotchRight: 35,
+      plateTilt: -1.1,
       logoW: 120.85,
       logoH: 131.39,
       plateW: 409.07,
@@ -100,7 +109,7 @@ export const ARTBOARD = {
       minWidthAverage: 0,
     },
     message: 18,
-    backLink: 16,
+    backLink: { font: 16, top: 24, right: 236 },
   },
   mobile: {
     width: 390,
@@ -114,7 +123,8 @@ export const ARTBOARD = {
       plateW: 117.8,
       plateH: 28.8,
       plateBorder: 1.15,
-      plateNotch: 9.9,
+      plateNotchLeft: 9.9,
+      plateNotchRight: 9.9,
       plateTilt: -0.5,
       artW: 74,
       artH: 28,
@@ -156,11 +166,18 @@ export const ARTBOARD = {
       // Area gulir 5 baris; scrollbar Figma di x 46, panjang 308 (y 226-534).
       scroll: { height: 380, left: 46, trackWidth: 7, trackMargin: 36 },
     },
+    // Plat di (25.59, 104.51), logo di (29.04, 92).
     banner: {
-      top: 6,
-      left: 25.6,
-      logoW: 56,
-      logoH: 61,
+      top: 37,
+      plateLeft: 25.59,
+      plateTop: 12.51,
+      logoInset: 3.45,
+      nameAreaLeft: 71.5,
+      plateNotchLeft: 9.7,
+      plateNotchRight: 16.2,
+      plateTilt: -1.1,
+      logoW: 62.42,
+      logoH: 67.87,
       plateW: 189.76,
       plateH: 36.7,
       plateBorder: 2,
@@ -170,9 +187,9 @@ export const ARTBOARD = {
       line: 34,
       stroke: 1.4,
       shadow: 2.65,
-      boardOverlap: 33,
+      boardOverlap: 71,
     },
-    detail: { tablesOffset: 80 },
+    detail: { tablesOffset: 84.6 },
     // Ukuran tabel mobile sengaja lebih besar dari Figma (0,327 x desktop) agar terbaca; tabel digulir ke samping.
     table: {
       width: 318,
@@ -194,7 +211,7 @@ export const ARTBOARD = {
       minWidthAverage: 520,
     },
     message: 14,
-    backLink: 11,
+    backLink: { font: 11, top: 12, right: 36 },
   },
 } as const;
 
