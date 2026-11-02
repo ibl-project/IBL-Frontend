@@ -6,7 +6,6 @@ export type ArtboardVariant = "desktop" | "mobile";
 export const MOBILE_MAX_WIDTH = 768;
 
 export const TEAMS_COLORS = {
-  maroon: "#7E0202",
   orange: "#EC5D12",
   ivory: "#FDF6DD",
   slate: "#799BA7",
@@ -16,15 +15,15 @@ export const TEAMS_COLORS = {
 } as const;
 
 export const TEAMS_ASSETS = {
-  bgTexture: "/images/groups-standings/board-texture.png",
-  boardTexture: "/images/groups-standings/board-texture.png",
+  /** Foto halftone yang dipakai layer Figma `image 2` / `image 4`. */
+  halftone: "/images/groups-standings/board-texture.png",
 } as const;
 
 /** Ukuran Figma dalam piksel desain, diukur dari bawah navbar. */
 export const ARTBOARD = {
   desktop: {
     width: 1440,
-    checker: 103,
+    checker: 103.2,
     title: { top: 26, plateW: 308.73, plateH: 75.47, plateBorder: 3.03, font: 67.09, line: 77, stroke: 3.63, shadow: 4.83 },
     board: { overlap: 28, minHeight: 660, paperInset: 28, paddingBottom: 72 },
     bar: {
@@ -88,7 +87,7 @@ export const ARTBOARD = {
   },
   mobile: {
     width: 390,
-    checker: 38,
+    checker: 60.9,
     title: { top: 19, plateW: 117.8, plateH: 28.8, plateBorder: 1.15, font: 25.6, line: 29, stroke: 1.38, shadow: 1.85 },
     board: { overlap: 26, minHeight: 560, paperInset: 18, paddingBottom: 40 },
     bar: {

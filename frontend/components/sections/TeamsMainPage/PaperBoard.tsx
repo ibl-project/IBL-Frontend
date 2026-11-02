@@ -23,8 +23,8 @@ export function PaperBoard({ variant, overlap, children }: PaperBoardProps) {
           }}
         />
         <div
-          className="absolute inset-0 opacity-[0.16] mix-blend-multiply"
-          style={{ backgroundImage: `url('${TEAMS_ASSETS.boardTexture}')`, backgroundSize: "280px auto" }}
+          className="absolute inset-0 opacity-60 mix-blend-multiply"
+          style={{ backgroundImage: `url('${TEAMS_ASSETS.halftone}')`, backgroundSize: "700px auto" }}
         />
         <div
           className="absolute inset-x-0"
