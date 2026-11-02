@@ -11,7 +11,7 @@ import { Footer } from "./Footer";
  * Komponen pembungkus untuk membedakan layout publik (Home, Registration, Announcement)
  * dengan layout dashboard (Teams, Scoring).
  * 
- * - Jika rute diawali dengan '/teams' atau '/scoring', Navbar dan Footer umum tidak akan dirender,
+ * - Jika rute adalah '/teams' (atau di bawahnya) atau '/scoring', Navbar dan Footer umum tidak akan dirender,
  *   sehingga layout dashboard (Sidebar + Topbar) dapat tampil penuh dan bersih.
  * - Jika rute publik, Navbar dan Footer dirender seperti biasa.
  */
@@ -24,7 +24,8 @@ export function PublicLayoutWrapper({
 
   // Cek apakah halaman saat ini merupakan bagian dari dashboard (Teams, Scoring, Schedule Result, Playoff) atau halaman login
   const isDashboardRoute =
-    pathname?.startsWith("/teams") ||
+    pathname === "/teams" ||
+    pathname?.startsWith("/teams/") ||
     pathname?.startsWith("/scoring") ||
     pathname?.startsWith("/playoff") ||
     (pathname === "/schedule-result" || pathname?.startsWith("/schedule-result/")) ||
