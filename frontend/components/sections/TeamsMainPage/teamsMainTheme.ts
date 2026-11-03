@@ -63,8 +63,11 @@ export const ARTBOARD = {
       stripW: 1048.71,
       stripH: 43.53,
       stripRadius: 6.65,
-      captionLeft: 12,
-      caption: 15.58,
+      // Kolom pencarian (strip abu-abu); placeholder "Himpunan Mahasiswa" di Figma: x 216,4, 15,58 px.
+      searchLeft: 12,
+      searchFont: 15.58,
+      // Ikon bulat teal di ujung kanan strip (Figma "Huge Icons / arrow-right-01-round", ~20 px, kanan 12 px).
+      searchIcon: 24,
       // basketapi.svg (370 x 489, dipakai juga di Leaderboard): bola menggantung di sudut kanan bawah bar.
       fireball: { left: 1054, top: -78, width: 209 },
     },
@@ -154,8 +157,11 @@ export const ARTBOARD = {
       stripW: 312.37,
       stripH: 16.1,
       stripRadius: 2.4,
-      captionLeft: 0,
-      caption: 0,
+      // Figma mobile: placeholder 5 px (tak terbaca), dinaikkan ke 7 px; masih muat di strip 16,1 px.
+      searchLeft: 3.7,
+      searchFont: 7,
+      // Figma mobile: ikon 6 px di kanan strip; dinaikkan sedikit agar terlihat.
+      searchIcon: 11,
       fireball: { left: 316, top: -6, width: 56.5 },
     },
     grid: {

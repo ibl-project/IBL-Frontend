@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useId, useRef } from "react";
 import Image from "next/image";
+import { Search, X } from "lucide-react";
 
 import { ARTBOARD, TEAMS_COLORS, TEXT_FILLS, type ArtboardVariant } from "./teamsMainTheme";
 import { OutlinedText } from "./OutlinedText";
@@ -7,12 +8,36 @@ import { OutlinedText } from "./OutlinedText";
 interface SectionBarProps {
   variant: ArtboardVariant;
   label: string;
-  caption?: string;
+  /** Kolom pencarian di strip abu-abu bar (desain Figma: placeholder "Himpunan Mahasiswa"). */
+  search: {
+    value: string;
+    onChange: (value: string) => void;
+    placeholder: string;
+    /** Nama yang dibacakan pembaca layar. */
+    label: string;
+  };
 }
 
-export function SectionBar({ variant, label, caption }: SectionBarProps) {
+/**
+ * Ukuran font input yang tidak memicu zoom otomatis iOS Safari saat diketuk (di bawah 16 px Safari memperbesar
+ * halaman). Input dirender 16 px lalu diperkecil dengan transform ke ukuran desain.
+ */
+const INPUT_FONT = 16;
+
+export function SectionBar({ variant, label, search }: SectionBarProps) {
   const bar = ARTBOARD[variant].bar;
-  const showCaption = Boolean(caption) && bar.caption > 0;
+  const inputId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const shrink = bar.searchFont / INPUT_FONT;
+  const iconGap = bar.searchLeft;
+  const inputWidth = bar.stripW - bar.searchLeft * 2 - bar.searchIcon - iconGap;
+  const hasQuery = search.value.length > 0;
+  const iconStyle = {
+    right: bar.searchLeft,
+    width: bar.searchIcon,
+    height: bar.searchIcon,
+    marginTop: -bar.searchIcon / 2,
+  };
 
   return (
     <div
@@ -47,7 +72,8 @@ export function SectionBar({ variant, label, caption }: SectionBarProps) {
         {label}
       </OutlinedText>
       <div
-        className="absolute flex items-center"
+        role="search"
+        className="absolute focus-within:ring-2 focus-within:ring-[#44D1D1]"
         style={{
           left: bar.stripLeft,
           top: bar.stripTop,
@@ -58,18 +84,54 @@ export function SectionBar({ variant, label, caption }: SectionBarProps) {
           boxShadow: "inset 2.49px 3.32px 8.06px rgba(0, 0, 0, 0.35)",
         }}
       >
-        {showCaption && (
-          <p
-            style={{
-              paddingLeft: bar.captionLeft,
-              fontFamily: "var(--font-drowner)",
-              fontSize: bar.caption,
-              letterSpacing: "0.15em",
-              color: "#000",
+        {/* Seluruh strip bisa diklik untuk mulai mengetik (kursor teks), bukan hanya area teksnya. */}
+        <label htmlFor={inputId} className="absolute inset-0 cursor-text">
+          <span className="sr-only">{search.label}</span>
+        </label>
+        <input
+          ref={inputRef}
+          id={inputId}
+          type="search"
+          value={search.value}
+          onChange={(event) => search.onChange(event.target.value)}
+          placeholder={search.placeholder}
+          autoComplete="off"
+          spellCheck={false}
+          enterKeyHint="search"
+          className="absolute top-0 bg-transparent p-0 text-black outline-none placeholder:text-black/55 [&::-webkit-search-cancel-button]:hidden"
+          style={{
+            // Ukuran sebelum diperkecil; setelah scale(shrink) persis mengisi strip.
+            left: bar.searchLeft,
+            width: inputWidth / shrink,
+            height: bar.stripH / shrink,
+            transform: `scale(${shrink})`,
+            transformOrigin: "0 0",
+            fontFamily: "var(--font-drowner)",
+            fontSize: INPUT_FONT,
+            letterSpacing: "0.15em",
+          }}
+        />
+        {hasQuery ? (
+          <button
+            type="button"
+            aria-label="Hapus pencarian"
+            onClick={() => {
+              search.onChange("");
+              inputRef.current?.focus();
             }}
+            className="absolute top-1/2 flex cursor-pointer items-center justify-center rounded-full bg-[#44D1D1] text-[#2F3C41] transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F3C41]"
+            style={iconStyle}
           >
-            {caption}
-          </p>
+            <X strokeWidth={3} style={{ width: "62%", height: "62%" }} />
+          </button>
+        ) : (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute top-1/2 flex items-center justify-center rounded-full bg-[#44D1D1] text-[#2F3C41]"
+            style={iconStyle}
+          >
+            <Search strokeWidth={3} style={{ width: "58%", height: "58%" }} />
+          </span>
         )}
       </div>
       <div
