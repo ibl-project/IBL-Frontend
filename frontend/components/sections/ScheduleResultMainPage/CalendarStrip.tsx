@@ -263,8 +263,9 @@ export function CalendarStrip({ days, selectedKey, onSelect, status, onRetry }: 
       )}
 
       <div className="hidden supports-[container-type:inline-size]:block">
+        {/* Di strip sempit kartu tidak menampilkan bulan, jadi keterangan bulan tampil; di strip lebar hanya untuk pembaca layar. */}
         {ready && (
-          <p className="sr-only">
+          <p className="sr-only text-center font-drowner text-xs tracking-[0.15em] text-[#7E0202] @max-[432px]/strip:not-sr-only @max-[432px]/strip:mb-1">
             {captionFor(visible)}
           </p>
         )}
