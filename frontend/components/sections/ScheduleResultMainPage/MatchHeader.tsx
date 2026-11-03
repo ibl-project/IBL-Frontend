@@ -3,6 +3,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
+import { DROWNER_ADVANCE, textWidthEm } from "@/lib/fontMetrics";
 import { formatKickoff, teamLabel } from "@/lib/matchDisplay";
 import type { MatchTeamSide } from "@/lib/matchesApi";
 
@@ -54,11 +55,23 @@ function OutlinedText({ text, gradient }: { text: string; gradient: string }) {
   );
 }
 
-function TextRow({ className, chars, children }: { className: string; chars: number; children: ReactNode }) {
+function TextRow({
+  className,
+  chars,
+  vars,
+  children,
+}: {
+  className: string;
+  /** Jumlah huruf (baris lokasi/jam). Baris nama memakai `vars` dari nameFitVars. */
+  chars?: number;
+  vars?: CSSProperties;
+  children: ReactNode;
+}) {
+  const style = chars === undefined ? vars : ({ "--chars": Math.max(chars, 1), ...vars } as CSSProperties);
   return (
     <div
       className={`absolute flex items-center justify-center font-drowner leading-none tracking-[var(--ls)] ${FIT_TEXT} ${className}`}
-      style={{ "--chars": Math.max(chars, 1) } as CSSProperties}
+      style={style}
     >
       {children}
     </div>
@@ -85,11 +98,49 @@ function TeamLogoBlock({ side, position }: { side: MatchTeamSide | null; positio
   );
 }
 
+/**
+ * Kotak dan ukuran desain baris nama, dalam cqw (harus sama dengan [--box] dan [--fs] di NAME_ROW).
+ * Ditulis ulang di sini karena Tailwind hanya membuat kelas yang tertulis utuh, jadi NAME_ROW tidak bisa disusun dari angka ini.
+ */
+const NAME_BOX = { desktop: { box: 21.49, fs: 3.919 }, mobile: { box: 46.76, fs: 3.235 } } as const;
+/** Jarak huruf desain, dan batas terketat untuk nama panjang (em). */
+const NAME_LS = { design: 0.26, min: 0.1 } as const;
+/** Garis tepi di kedua ujung: separuh luar --stroke kiri + kanan (dipakai yang terbesar, 0,18em mobile). */
+const NAME_OUTLINE_EM = 0.18;
+
+/**
+ * Nama panjang dibuat muat dengan merapatkan jarak huruf dulu (paling rapat NAME_LS.min), lalu baru mengecil
+ * untuk sisanya (rumus FIT_TEXT). Nama yang sudah muat tetap memakai jarak dan ukuran desain.
+ * Lebar dihitung dari lebar huruf Drowner yang sebenarnya; perkiraan lama "0,81 em per huruf" terlalu kecil
+ * untuk huruf lebar (M, O, H), sehingga HIMATEKTRO terpotong.
+ */
+function nameFit(name: string, { box, fs }: { box: number; fs: number }) {
+  const glyphs = textWidthEm(DROWNER_ADVANCE, name, 0);
+  // Satu jarak per huruf ditambah padding kiri pl-[var(--ls)].
+  const gaps = [...name].length + 1;
+  const ls = Math.min(NAME_LS.design, Math.max(NAME_LS.min, (box / fs - glyphs - NAME_OUTLINE_EM) / gaps));
+  return { ls, em: glyphs + ls * gaps + NAME_OUTLINE_EM };
+}
+
+/** Variabel CSS baris nama untuk kedua varian; dipakai oleh NAME_ROW. */
+function nameFitVars(name: string): CSSProperties {
+  const desktop = nameFit(name, NAME_BOX.desktop);
+  const mobile = nameFit(name, NAME_BOX.mobile);
+  return {
+    "--name-ls": `${desktop.ls.toFixed(3)}em`,
+    "--name-em": desktop.em.toFixed(3),
+    "--name-ls-m": `${mobile.ls.toFixed(3)}em`,
+    "--name-em-m": mobile.em.toFixed(3),
+  } as CSSProperties;
+}
+
 // Posisi dan ukuran per baris teks: desktop (kotak 740 × 182) lalu mobile (340 × 64).
+// Baris nama: jarak huruf dan lebar dari nameFitVars (--chars = lebar dalam em, --per-char 1).
 const NAME_ROW =
   `top-[82.42%] h-[17.58%] w-[21.49%] @max-[480px]/detail:top-[81.25%] @max-[480px]/detail:h-[18.75%] @max-[480px]/detail:w-[46.76%] ` +
-  `[--floor:0.625rem] [--fs:3.919cqw] [--box:21.49cqw] [--per-char:0.81] [--ls:0.26em] [--stroke:0.138em] ` +
-  `@max-[480px]/detail:[--fs:3.235cqw] @max-[480px]/detail:[--box:46.76cqw] @max-[480px]/detail:[--stroke:0.18em]`;
+  `[--floor:0.625rem] [--fs:3.919cqw] [--box:21.49cqw] [--per-char:1] [--chars:var(--name-em)] [--ls:var(--name-ls)] [--stroke:0.138em] ` +
+  `@max-[480px]/detail:[--fs:3.235cqw] @max-[480px]/detail:[--box:46.76cqw] @max-[480px]/detail:[--stroke:0.18em] ` +
+  `@max-[480px]/detail:[--chars:var(--name-em-m)] @max-[480px]/detail:[--ls:var(--name-ls-m)]`;
 
 const CENTER_COLUMN = `left-[20.95%] w-[59.19%] @max-[480px]/detail:left-[32.15%] @max-[480px]/detail:w-[37.85%]`;
 
@@ -129,10 +180,10 @@ export function MatchHeader({ data }: { data: MatchHeaderData | null }) {
             </span>
           </TextRow>
 
-          <TextRow className={`left-0 ${NAME_ROW}`} chars={name1.length}>
+          <TextRow className={`left-0 ${NAME_ROW}`} vars={nameFitVars(name1)}>
             <OutlinedText text={name1} gradient={GRADIENT_TEAM} />
           </TextRow>
-          <TextRow className={`left-[78.51%] @max-[480px]/detail:left-[53.24%] ${NAME_ROW}`} chars={name2.length}>
+          <TextRow className={`left-[78.51%] @max-[480px]/detail:left-[53.24%] ${NAME_ROW}`} vars={nameFitVars(name2)}>
             <OutlinedText text={name2} gradient={GRADIENT_TEAM} />
           </TextRow>
         </>
