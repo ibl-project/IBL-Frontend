@@ -1,11 +1,9 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
-import { assetUrl } from "@/lib/apiClient";
 import type { PlayoffMatch, PlayoffSlot } from "@/lib/standingsApi";
 import type { PlayoffRound } from "@/lib/matchesApi";
-import { DEFAULT_TEAM_LOGO } from "@/lib/teamsApi";
+import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 
 interface PlayoffMatchCardProps {
   round: PlayoffRound;
@@ -29,22 +27,13 @@ export const PlayoffMatchCard: React.FC<PlayoffMatchCardProps> = ({
 
   const renderTeamRow = (team?: typeof team1, defaultName = "TBD") => {
     const name = team?.name || defaultName;
-    const rawLogo = team?.logo;
-    const logoSrc = rawLogo ? assetUrl(rawLogo) : DEFAULT_TEAM_LOGO;
     const score = hasStartedOrFinished && typeof team?.score === "number" ? team.score : null;
 
     return (
       <div className="flex items-center justify-between gap-2 min-w-0 w-full py-1">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <div className="relative size-5 shrink-0 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
-            <Image
-              src={logoSrc}
-              alt={name}
-              fill
-              className="object-contain p-0.5"
-              sizes="20px"
-              unoptimized={logoSrc.startsWith("data:")}
-            />
+            <TeamLogo src={team?.logo} alt={name} sizes="20px" className="object-contain p-0.5" />
           </div>
           <span
             className="text-xs font-semibold text-slate-800 truncate"
