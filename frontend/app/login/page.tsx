@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
-import { ApiError, isMockMode, login, restoreSession } from '@/lib/apiClient';
+import { ApiError, login, restoreSession } from '@/lib/apiClient';
 
 /**
  * Tujuan setelah login: halaman asal (?from=/scoring) atau /teams.
@@ -37,11 +37,6 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mockActive, setMockActive] = useState(false);
-
-  useEffect(() => {
-    setMockActive(isMockMode());
-  }, []);
 
   // Sudah login (sesi masih sah di backend)? Langsung lanjut ke dashboard.
   useEffect(() => {
@@ -124,17 +119,6 @@ export default function LoginPage() {
           }}
           className="w-full max-w-[400px] z-10"
         >
-          {mockActive && (
-            <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 shadow-xs">
-              <div className="flex items-center gap-1.5 font-semibold text-amber-800">
-                <span>⚡ Dev Mock Mode Aktif</span>
-              </div>
-              <p className="mt-1 text-amber-700">
-                Backend disimulasikan secara lokal. Klik <b>Sign In</b> langsung untuk masuk ke dashboard tanpa server backend.
-              </p>
-            </div>
-          )}
-
           <form className="space-y-6" onSubmit={handleSubmit}>
             
             {/* Input Email */}

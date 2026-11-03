@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardTopbar } from "./DashboardTopbar";
-import { isMockMode, restoreSession } from "@/lib/apiClient";
+import { restoreSession } from "@/lib/apiClient";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 
 /** Sidebar langsung tertutup di layar < 1024px (mobile/tablet). */
@@ -50,11 +50,6 @@ export const DashboardLayout = ({
   const pathname = usePathname();
   const authStatus = useAuthStore((state) => state.status);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isNarrowViewport);
-  const [mockActive, setMockActive] = useState(false);
-
-  useEffect(() => {
-    setMockActive(isMockMode());
-  }, []);
 
   // Pulihkan sesi dari backend saat dashboard dibuka (mis. setelah reload).
   useEffect(() => {
@@ -105,20 +100,6 @@ export const DashboardLayout = ({
           <SidebarCollapseContext value={setIsSidebarCollapsed}>{children}</SidebarCollapseContext>
         </main>
       </div>
-
-      {/* 3. Dev Mock Mode Floating Badge */}
-      {mockActive && (
-        <div
-          title="Mode Dev Mock aktif: Data backend disimulasikan secara lokal."
-          className="fixed bottom-3 right-3 z-50 flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50/95 px-3 py-1.5 text-xs font-medium text-amber-800 shadow-md backdrop-blur-xs select-none"
-        >
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
-          </span>
-          <span>⚡ Dev Mock Mode</span>
-        </div>
-      )}
     </div>
   );
 };
