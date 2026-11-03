@@ -72,10 +72,10 @@ export async function GET(request: NextRequest) {
       cp_name: "Arya",
       cp_phone: "6282258425646",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in announcement check API:", error);
     return NextResponse.json(
-      { error: "Internal Server Error", message: error.message },
+      { error: "Internal Server Error", message: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
