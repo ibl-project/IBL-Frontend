@@ -95,7 +95,7 @@ const NAV_COL_1: FooterNavItem[] = [
     label: (
       <>
         Schedule{" "}
-        <span className="font-['Hobo_Std'] text-base font-medium tracking-widest">
+        <span className="font-['Hobo_Std'] text-[0.85em] font-medium tracking-widest">
           &amp;
         </span>{" "}
         Result
@@ -112,14 +112,14 @@ const NAV_COL_2: FooterNavItem[] = [
     label: (
       <>
         Groups{" "}
-        <span className="font-['Hobo_Std'] text-base font-medium tracking-widest">
+        <span className="font-['Hobo_Std'] text-[0.85em] font-medium tracking-widest">
           &amp;
         </span>{" "}
         Standings
       </>
     ),
     plainLabel: "Groups & Standings",
-    href: "#",
+    href: "/groups-standings",
   },
   { label: "Leaderboard", plainLabel: "Leaderboard", href: "/leaderboard" },
 ];
@@ -323,11 +323,11 @@ export const Footer = () => {
         </div>
 
         {/* MOBILE LAYOUT (< 768px) - Highly readable mobile design based on Figma node 494:1041 */}
-        <div className="md:hidden w-full max-w-[500px] mx-auto px-4 py-4 flex flex-col items-center justify-between gap-2.5 min-h-[190px]">
+        <div className="md:hidden w-full max-w-[460px] mx-auto px-5 sm:px-7 py-4 flex flex-col items-center gap-3">
           {/* Top Section: Mascot + Brand + Horizontal Socials */}
-          <div className="flex items-center justify-center gap-3 w-full">
+          <div className="flex items-start justify-center gap-3 w-full">
             {/* Mascot Logo */}
-            <div className="w-[52px] h-[58px] relative flex-shrink-0">
+            <div className="w-[46px] h-[52px] relative flex-shrink-0 mt-0.5">
               <Image
                 src="/images/LOGO_1.svg"
                 alt="IBL 2K26 mascot"
@@ -336,14 +336,14 @@ export const Footer = () => {
               />
             </div>
             <div className="flex flex-col items-start">
-              <h2 className="font-hollywood text-[17px] sm:text-[19px] text-black tracking-[2px] leading-tight">
+              <h2 className="font-hollywood text-[14px] sm:text-[16px] text-black tracking-[1.5px] leading-tight">
                 IBL 2K26
               </h2>
-              <p className="font-['Inter'] font-bold text-[#7f0303] text-[12px] sm:text-[13px] leading-tight mb-1">
+              <p className="font-['Inter'] font-bold text-[#7f0303] text-[10px] sm:text-[11.5px] leading-tight mb-1.5">
                 Fastbreak Collector
               </p>
               {/* Horizontal Social Links */}
-              <div className="flex flex-row items-center gap-2 sm:gap-2.5">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 sm:flex sm:flex-row sm:items-center sm:gap-2.5">
                 {SOCIAL_LINKS.map((social) => (
                   <a
                     key={social.handle}
@@ -352,12 +352,12 @@ export const Footer = () => {
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 group"
                   >
-                    <span className="w-[17px] h-[17px] rounded-full bg-[#259b9b] flex items-center justify-center flex-shrink-0">
-                      <span className="scale-[0.7] flex items-center justify-center">
+                    <span className="w-[15px] h-[15px] rounded-full bg-[#259b9b] flex items-center justify-center flex-shrink-0">
+                      <span className="scale-[0.62] flex items-center justify-center">
                         {social.icon}
                       </span>
                     </span>
-                    <span className="text-[#1d1d1b] text-[10.5px] sm:text-[11.5px] font-medium font-['Inter'] whitespace-nowrap">
+                    <span className="text-[#1d1d1b] text-[9.5px] sm:text-[10.5px] font-medium font-['Inter'] whitespace-nowrap">
                       {social.handle}
                     </span>
                   </a>
@@ -367,7 +367,7 @@ export const Footer = () => {
           </div>
 
           {/* Middle Section: 2 columns navigation */}
-          <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-center w-full max-w-[340px] pt-1">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-center w-full max-w-[300px] pt-0.5">
             <div className="flex flex-col gap-1">
               {NAV_COL_1.map((item) =>
                 item.external ? (
@@ -376,7 +376,7 @@ export const Footer = () => {
                     href={item.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-black font-['Drowner'] text-[13px] sm:text-[14px] tracking-[1.5px] leading-tight hover:opacity-70 transition-opacity whitespace-nowrap"
+                    className="text-black font-['Drowner'] text-[11px] sm:text-[12.5px] tracking-[1px] leading-tight hover:opacity-70 transition-opacity whitespace-nowrap"
                   >
                     {item.label}
                   </a>
@@ -384,7 +384,7 @@ export const Footer = () => {
                   <Link
                     key={item.plainLabel}
                     href={item.href}
-                    className="text-black font-['Drowner'] text-[13px] sm:text-[14px] tracking-[1.5px] leading-tight hover:opacity-70 transition-opacity whitespace-nowrap"
+                    className="text-black font-['Drowner'] text-[11px] sm:text-[12.5px] tracking-[1px] leading-tight hover:opacity-70 transition-opacity whitespace-nowrap"
                   >
                     {item.label}
                   </Link>
@@ -396,7 +396,7 @@ export const Footer = () => {
                 <Link
                   key={item.plainLabel}
                   href={item.href}
-                  className="text-black font-['Drowner'] text-[13px] sm:text-[14px] tracking-[1.5px] leading-tight hover:opacity-70 transition-opacity whitespace-nowrap"
+                  className="text-black font-['Drowner'] text-[11px] sm:text-[12.5px] tracking-[1px] leading-tight hover:opacity-70 transition-opacity whitespace-nowrap"
                 >
                   {item.label}
                 </Link>
@@ -405,7 +405,7 @@ export const Footer = () => {
           </div>
 
           {/* Bottom Section: Copyright */}
-          <div className="text-center text-[#1d1d1b] text-[10.5px] font-medium font-['Inter'] leading-none pt-0.5">
+          <div className="text-center text-[#1d1d1b] text-[9px] font-medium font-['Inter'] leading-none pt-0.5">
             Copyright © 2026 IBL 2K26, Hak Cipta Dilindungi
           </div>
         </div>

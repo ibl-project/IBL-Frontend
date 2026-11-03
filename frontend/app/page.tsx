@@ -33,7 +33,7 @@ export default function Home() {
   return (
     <main
       id="home-page"
-      className="relative isolate w-full max-w-[1440px] mx-auto md:aspect-[1440/4716] md:overflow-hidden max-md:overflow-visible max-md:min-h-[calc(100vw*4716/1440)] max-lg:mt-[var(--about-bg-mt-mobile,27px)]"
+      className="relative isolate w-full max-w-[1440px] mx-auto aspect-[1440/4716] lg:aspect-[1440/4692] overflow-hidden max-lg:mt-[var(--about-bg-mt-mobile,24px)]"
     >
       {/* 
         Unified Monolithic Background (1440 × 5036px):
@@ -45,7 +45,7 @@ export default function Home() {
         fill
         priority
         sizes="(max-width: 1440px) 100vw, 1440px"
-        className="object-cover object-top z-0 pointer-events-none select-none"
+        className="object-cover object-top z-0 pointer-events-none select-none lg:!-top-[calc(100vw*24/1440)] xl:!-top-[24px] lg:!h-[calc(100%+(100vw*24/1440))] xl:!h-[calc(100%+24px)]"
       />
 
       {/* Sections Flow - Layer 10 (above background) */}

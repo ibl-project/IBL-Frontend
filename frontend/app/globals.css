@@ -207,10 +207,10 @@ html {
   --form-error-font-size: 23px;
 
   /* Responsive Navbar Variables */
-  --navbar-height: 96px;
-  --navbar-logo-width: 72.6px;
-  --navbar-logo-height: 76px;
-  --navbar-font-size: 24px;
+  --navbar-height: 55px;
+  --navbar-logo-width: 38px;
+  --navbar-logo-height: 40px;
+  --navbar-font-size: 14px;
   --navbar-padding: 40px;
   --navbar-gap: 12px;
 
@@ -243,13 +243,13 @@ html {
 
   /* Margin-bottom untuk Timeline Detail pada layar < 768px.
      Ubah nilai di bawah ini secara manual jika ingin mengatur jarak bawah timeline (misal: 30px, 50px, dst): */
-  --timeline-detail-mb-mobile: 50px;
+  --timeline-detail-mb-mobile: 0px;
 }
 
 /* Layar < 1024px: mt about 27px */
 @media (max-width: 1023px) {
   :root {
-    --about-bg-mt-mobile: 27px;
+    --about-bg-mt-mobile: 24px;
   }
   #home-page {
     margin-top: var(--about-bg-mt-mobile, 27px);
@@ -259,7 +259,7 @@ html {
 /* Layar <= 670px: mt about 50px */
 @media (max-width: 670px) {
   :root {
-    --about-bg-mt-mobile: 61px;
+    --about-bg-mt-mobile: 24px;
   }
   #home-page {
     margin-top: var(--about-bg-mt-mobile, 50px);
@@ -268,7 +268,7 @@ html {
 
 @media (max-width: 767px) {
   .timeline-detail-container {
-    margin-bottom: var(--timeline-detail-mb-mobile, 50px);
+    margin-bottom: var(--timeline-detail-mb-mobile, 0px);
   }
 }
 
@@ -292,10 +292,10 @@ html {
     --form-title-font-size: calc(100vw * 83 / 1440);
     --form-error-font-size: calc(100vw * 23 / 1440);
 
-    --navbar-height: clamp(72px, calc(100vw * 96 / 1440), 96px);
-    --navbar-logo-width: calc(100vw * 72.6 / 1440);
-    --navbar-logo-height: calc(100vw * 76 / 1440);
-    --navbar-font-size: clamp(14px, calc(100vw * 22 / 1440), 22px);
+    --navbar-height: clamp(56px, calc(100vw * 72 / 1440), 72px);
+    --navbar-logo-width: calc(100vw * 52 / 1440);
+    --navbar-logo-height: calc(100vw * 55 / 1440);
+    --navbar-font-size: clamp(13px, calc(100vw * 18 / 1440), 18px);
     --navbar-padding: calc(100vw * 40 / 1440);
     --navbar-gap: calc(100vw * 12 / 1440);
 
@@ -336,10 +336,10 @@ html {
     --form-title-font-size: 83px;
     --form-error-font-size: 23px;
 
-    --navbar-height: 96px;
-    --navbar-logo-width: 72.6px;
-    --navbar-logo-height: 76px;
-    --navbar-font-size: 24px;
+    --navbar-height: 72px;
+    --navbar-logo-width: 52px;
+    --navbar-logo-height: 55px;
+    --navbar-font-size: 18px;
     --navbar-padding: 40px;
     --navbar-gap: 12px;
 
