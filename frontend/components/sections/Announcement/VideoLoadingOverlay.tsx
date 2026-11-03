@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 interface VideoLoadingOverlayProps {
@@ -8,15 +8,17 @@ interface VideoLoadingOverlayProps {
   videoType: "lolos" | "tidak_lolos";
 }
 
+const subscribeNoop = () => () => {};
+
 export default function VideoLoadingOverlay({ onVideoEnd, videoType }: VideoLoadingOverlayProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    // Mount only on client to allow createPortal to access document.body
-    setMounted(true);
-  }, []);
+  // True only on the client, so createPortal can safely access document.body
+  const mounted = useSyncExternalStore(
+    subscribeNoop,
+    () => true,
+    () => false
+  );
 
   useEffect(() => {
     // Ensure the video and audio play on mount
