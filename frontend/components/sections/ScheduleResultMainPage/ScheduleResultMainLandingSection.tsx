@@ -11,6 +11,7 @@ import { HOLLYWOOD_BOLD_ADVANCE, textWidthEm } from "@/lib/fontMetrics";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
 import { formatKickoff, teamLabel } from "@/lib/matchDisplay";
 import { type MatchListItem, type MatchTeamSide, isLiveNow, listMatches } from "@/lib/matchesApi";
+import { useLiveScores } from "@/lib/hooks/useLiveScores";
 import { formatMatchDay, groupMatchesByWibDay, pickDefaultDay } from "@/lib/scheduleDays";
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 import { CalendarStrip } from "./CalendarStrip";
@@ -233,6 +234,19 @@ function MatchDaySchedule() {
     const timer = setInterval(refreshSilently, LIVE_REFRESH_MS);
     return () => clearInterval(timer);
   }, [hasLiveMatch, refreshSilently]);
+
+  // Skor kartu LIVE berubah begitu scorer mengetuk (SSE). Refresh 60 detik di atas tetap
+  // untuk match yang baru dimulai dan tanda LIVE (liveNow).
+  const liveIds = useMemo(
+    () => selectedDay?.matches.filter((match) => match.status === "LIVE").map((match) => match.id) ?? [],
+    [selectedDay],
+  );
+  const patchMatches = useCallback(
+    (update: (items: MatchListItem[]) => MatchListItem[]) =>
+      setState((prev) => (prev.status === "ready" ? { status: "ready", data: update(prev.data) } : prev)),
+    [setState],
+  );
+  useLiveScores(liveIds, patchMatches);
 
   return (
     <>

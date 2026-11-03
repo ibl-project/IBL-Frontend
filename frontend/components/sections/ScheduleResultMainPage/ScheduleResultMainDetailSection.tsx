@@ -9,6 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { popSpringVariants, popPunchVariants } from "@/lib/animations";
 import { ApiError } from "@/lib/apiClient";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
+import { openMatchStream, snapshotHandlers } from "@/lib/hooks/useMatchLive";
 import { teamLabel } from "@/lib/matchDisplay";
 import { type MatchSide, type MatchSnapshot, REGULATION_QUARTERS, getMatch, isLiveNow } from "@/lib/matchesApi";
 import { isDateKey } from "@/lib/scheduleDays";
@@ -109,8 +110,26 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
   const { state, reload, setState } = useAsyncData(load);
   const match = state.status === "ready" ? state.data : null;
 
-  // Laga LIVE: perbarui diam-diam tiap 60 detik dan saat tab kembali aktif; gagal refresh
-  // tidak mengganti tampilan dengan pesan error.
+  // Skor, tabel kuarter, dan Summary diperbarui lewat SSE begitu scorer mengetuk, selama
+  // match berjalan atau sedang dikoreksi (belum terkunci).
+  const streamId = match && match.status !== "SCHEDULED" && !match.locked ? match.id : null;
+  useEffect(() => {
+    if (!streamId) return;
+    return openMatchStream(
+      streamId,
+      snapshotHandlers((update) =>
+        setState((prev) => {
+          if (prev.status !== "ready" || !prev.data) return prev;
+          const next = update(prev.data);
+          // Snapshot dari SSE tidak membawa liveNow: pertahankan nilai dari GET /matches/:id.
+          return next ? { status: "ready", data: { ...next, liveNow: next.liveNow ?? prev.data.liveNow } } : prev;
+        }),
+      ),
+    );
+  }, [streamId, setState]);
+
+  // Cadangan SSE: muat ulang diam-diam tiap 60 detik selama LIVE (liveNow ikut segar) dan saat
+  // tab kembali aktif; gagal refresh tidak mengganti tampilan dengan pesan error.
   const refreshSilently = useCallback(() => {
     loadMatch(id).then(
       (data) => {

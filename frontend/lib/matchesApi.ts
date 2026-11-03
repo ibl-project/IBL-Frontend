@@ -94,11 +94,18 @@ export interface MatchListItem {
 
 /**
  * Tanda LIVE / "Berlangsung": match LIVE yang sedang di-scoring atau skornya sudah jalan.
- * Status LIVE saja tidak cukup (match bisa dimulai lalu ditinggal). Fallback ke `status`
- * untuk API yang belum mengirim `liveNow`.
+ * Status LIVE saja tidak cukup (match bisa dimulai lalu ditinggal). Skor > 0 juga dihitung
+ * karena skor dari SSE bisa lebih baru daripada `liveNow` terakhir dari API (event SSE tidak
+ * membawa `liveNow`). Tanpa `liveNow` (API lama), semua match LIVE dianggap berjalan.
  */
-export function isLiveNow(match: { status: MatchStatus; liveNow?: boolean }): boolean {
-  return match.liveNow ?? match.status === "LIVE";
+export function isLiveNow(match: {
+  status: MatchStatus;
+  liveNow?: boolean;
+  team1: { score: number };
+  team2: { score: number };
+}): boolean {
+  if (match.status !== "LIVE") return false;
+  return (match.liveNow ?? true) || match.team1.score + match.team2.score > 0;
 }
 
 /** Statistik satu pemain dalam satu periode (kuarter atau OT). */
