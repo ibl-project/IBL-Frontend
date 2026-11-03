@@ -3,7 +3,7 @@
 import React from "react";
 import { Trash2 } from "lucide-react";
 
-import { type ScoringBoardItem, periodLabel } from "@/lib/matchesApi";
+import { type ScoringBoardItem, isLiveNow, periodLabel } from "@/lib/matchesApi";
 import { MatchCard } from "@/components/sections/ScheduleResultPage/MatchCard";
 import { ScoringLandingSection } from "./ScoringLandingSection";
 
@@ -20,7 +20,8 @@ interface ScoringMatchListSectionProps {
 /** Status singkat di kartu: belum dimulai, periode yang berjalan, koreksi, selesai. */
 function statusText(match: ScoringBoardItem): string {
   const current = match.scoring.currentQuarter;
-  if (match.status === "SCHEDULED") return "Belum dimulai";
+  // LIVE yang belum di-scoring siapa pun (0–0, tanpa sesi) juga "Belum dimulai".
+  if (match.status === "SCHEDULED" || (match.status === "LIVE" && !isLiveNow(match))) return "Belum dimulai";
   if (match.status === "LIVE") return current ? `Berlangsung · ${periodLabel(current)}` : "Berlangsung";
   if (!match.locked) return current ? `Koreksi · ${periodLabel(current)}` : "Koreksi";
   return "Selesai";

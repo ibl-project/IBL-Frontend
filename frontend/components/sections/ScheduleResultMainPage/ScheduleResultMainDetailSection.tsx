@@ -10,7 +10,7 @@ import { popSpringVariants, popPunchVariants } from "@/lib/animations";
 import { ApiError } from "@/lib/apiClient";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
 import { teamLabel } from "@/lib/matchDisplay";
-import { type MatchSide, type MatchSnapshot, REGULATION_QUARTERS, getMatch } from "@/lib/matchesApi";
+import { type MatchSide, type MatchSnapshot, REGULATION_QUARTERS, getMatch, isLiveNow } from "@/lib/matchesApi";
 import { isDateKey } from "@/lib/scheduleDays";
 import { MatchHeader } from "./MatchHeader";
 import { SummaryTable } from "./SummaryTable";
@@ -265,7 +265,7 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
                     priority
                     className="pointer-events-none object-contain select-none"
                   />
-                  {match?.status === "LIVE" && (
+                  {match && isLiveNow(match) && (
                     <span className="absolute bottom-full left-1/2 mb-[1.5cqw] -translate-x-1/2 rounded-[4px] bg-[#c51610] px-[0.5em] py-[0.15em] font-poppins text-[length:max(0.5625rem,1.92cqw)] font-bold tracking-wider text-white">
                       LIVE
                     </span>
