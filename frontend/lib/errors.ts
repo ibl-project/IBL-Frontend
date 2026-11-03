@@ -9,3 +9,12 @@ export function errorMessage(error: unknown): string {
   const detail = error.details ? Object.values(error.details)[0] : undefined;
   return typeof detail === "string" && detail ? `${error.message} (${detail})` : error.message;
 }
+
+/**
+ * Server tidak terjangkau atau sedang bermasalah (wifi mati, backend restart):
+ * permintaan yang sama aman dicoba lagi nanti. Error tak dikenal ikut dianggap
+ * begini supaya data scoring tidak dibuang.
+ */
+export function isConnectionError(error: unknown): boolean {
+  return !(error instanceof ApiError) || error.status === 0 || error.status === 429 || error.status >= 500;
+}

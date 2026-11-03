@@ -55,18 +55,33 @@ export function openMatchStream(matchId: string, handlers: StreamHandlers): () =
 type SnapshotUpdate = (update: (current: MatchSnapshot | null) => MatchSnapshot | null) => void;
 
 /**
+ * Ubah snapshot dari server sebelum dipakai. Scoring desk memakainya untuk
+ * menerapkan ulang antrean yang belum terkirim (`replayOutbox`). `withTaps`
+ * false untuk event periode: angka skornya sudah berisi ketukan antre.
+ */
+export type Rebase = (snapshot: MatchSnapshot, withTaps: boolean) => MatchSnapshot;
+
+const keepAsIs: Rebase = (snapshot) => snapshot;
+
+/**
  * Handler SSE yang menerapkan setiap event ke satu snapshot match lewat `apply`:
  * skor, nama pemain baru (roster_updated), warna, kunci/buka periode, reset.
  * Event skor dilewati selama `ignoreScore()` true.
  */
-export function snapshotHandlers(apply: SnapshotUpdate, ignoreScore: () => boolean = () => false): StreamHandlers {
-  const replace = (data: MatchSnapshot) => apply(() => data);
+export function snapshotHandlers(
+  apply: SnapshotUpdate,
+  ignoreScore: () => boolean = () => false,
+  rebase: Rebase = keepAsIs,
+): StreamHandlers {
+  const replace = (data: MatchSnapshot) => apply(() => rebase(data, true));
   const onScore = (data: ServerLine) => {
     if (ignoreScore()) return;
     apply((current) => (current ? withServerLine(current, data) : current));
   };
   const onQuarters = (data: { quarters: QuarterState[]; currentQuarter: number | null }) =>
-    apply((current) => (current ? { ...current, quarters: data.quarters, currentQuarter: data.currentQuarter } : current));
+    apply((current) =>
+      current ? rebase({ ...current, quarters: data.quarters, currentQuarter: data.currentQuarter }, false) : current,
+    );
 
   return {
     snapshot: replace,
@@ -113,24 +128,27 @@ export function snapshotHandlers(apply: SnapshotUpdate, ignoreScore: () => boole
  *
  * Event skor diabaikan kalau `ignoreScoreEvents` true: pemegang sesi sudah
  * punya angka terbaru dari jawaban tiap ketukannya sendiri (dan event yang
- * datang terlambat bisa menimpa ketukan yang masih antre).
+ * datang terlambat bisa menimpa ketukan yang masih antre). Snapshot penuh dari
+ * server selalu dilewatkan `rebase` dulu (lihat `Rebase`).
  */
-export function useMatchLive(matchId: string, ignoreScoreEvents: boolean) {
+export function useMatchLive(matchId: string, ignoreScoreEvents: boolean, rebase: Rebase = keepAsIs) {
   const [snapshot, setSnapshot] = useState<MatchSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
   const ignoreRef = useRef(ignoreScoreEvents);
+  const rebaseRef = useRef(rebase);
 
   useEffect(() => {
     ignoreRef.current = ignoreScoreEvents;
-  }, [ignoreScoreEvents]);
+    rebaseRef.current = rebase;
+  }, [ignoreScoreEvents, rebase]);
 
   useEffect(() => {
     let active = true;
     getMatch(matchId).then(
       (data) => {
         if (active) {
-          setSnapshot(data);
+          setSnapshot(rebaseRef.current(data, true));
           setError(null);
         }
       },
@@ -139,7 +157,14 @@ export function useMatchLive(matchId: string, ignoreScoreEvents: boolean) {
       },
     );
 
-    const close = openMatchStream(matchId, snapshotHandlers(setSnapshot, () => ignoreRef.current));
+    const close = openMatchStream(
+      matchId,
+      snapshotHandlers(
+        setSnapshot,
+        () => ignoreRef.current,
+        (data, withTaps) => rebaseRef.current(data, withTaps),
+      ),
+    );
     return () => {
       active = false;
       close();

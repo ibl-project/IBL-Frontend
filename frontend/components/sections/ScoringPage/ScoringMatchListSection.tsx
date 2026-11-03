@@ -12,6 +12,8 @@ interface ScoringMatchListSectionProps {
   items: ScoringBoardItem[];
   /** true kalau daftar sedang difilter tanggal (untuk teks kosong). */
   filtered: boolean;
+  /** Jumlah ketukan/kunci per match yang masih tersimpan di laptop ini dan belum terkirim. */
+  unsent: Record<string, number>;
   onScore: (match: ScoringBoardItem) => void;
   /** Tombol sampah: hapus score match ini (dua kali konfirmasi di halaman). */
   onDelete: (match: ScoringBoardItem) => void;
@@ -32,7 +34,7 @@ function statusText(match: ScoringBoardItem): string {
  * [Display]"): tombol Score membuka scoring desk, tombol sampah menghapus score
  * match itu. Jadwal baru ditambahkan lewat "+ Add Scoring".
  */
-export const ScoringMatchListSection = ({ items, filtered, onScore, onDelete }: ScoringMatchListSectionProps) => {
+export const ScoringMatchListSection = ({ items, filtered, unsent, onScore, onDelete }: ScoringMatchListSectionProps) => {
   if (items.length === 0) return <ScoringLandingSection filtered={filtered} />;
 
   return (
@@ -44,6 +46,7 @@ export const ScoringMatchListSection = ({ items, filtered, onScore, onDelete }: 
         // sudah berjalan tetap bisa dibuka (desk menampilkan siapa pemegangnya).
         const blocked = incomplete || (match.status === "SCHEDULED" && holder !== null);
         const label = match.matchNumber !== null ? `Match ${match.matchNumber}` : "Belum dimulai";
+        const waiting = unsent[match.id] ?? 0;
         return (
           <MatchCard
             key={match.id}
@@ -71,13 +74,15 @@ export const ScoringMatchListSection = ({ items, filtered, onScore, onDelete }: 
               </button>
             }
             note={
-              incomplete
-                ? "Tim belum lengkap"
-                : holder
-                  ? match.status === "SCHEDULED"
-                    ? `Sedang disiapkan ${holder}`
-                    : `Dipakai ${holder}`
-                  : null
+              waiting > 0
+                ? `${waiting} belum terkirim dari laptop ini. Buka Score untuk mengirim.`
+                : incomplete
+                  ? "Tim belum lengkap"
+                  : holder
+                    ? match.status === "SCHEDULED"
+                      ? `Sedang disiapkan ${holder}`
+                      : `Dipakai ${holder}`
+                    : null
             }
           />
         );

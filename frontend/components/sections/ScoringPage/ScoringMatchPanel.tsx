@@ -1,19 +1,15 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Lock } from "lucide-react";
 
 import { useAutoSaveActions } from "@/lib/hooks/useAutoSaveActions";
-import { useMatchLive } from "@/lib/hooks/useMatchLive";
+import { type Rebase, useMatchLive } from "@/lib/hooks/useMatchLive";
 import type { SessionState } from "@/lib/hooks/useScoringSession";
 import {
-  type MatchSnapshot,
   type PlayerLine,
-  type PlayerQuarterLine,
   type ScoringBoardItem,
-  type StatCounts,
   type StatKey,
-  STAT_KEYS,
   isSessionError,
   lockQuarter,
   periodLabel,
@@ -21,10 +17,14 @@ import {
   unlockQuarter,
   updateColors,
 } from "@/lib/matchesApi";
+import { applyLock, applyStep } from "@/lib/matchSnapshot";
+import type { OutboxTap } from "@/lib/scoringOutbox";
+import { useAuthStore } from "@/lib/store/useAuthStore";
 import { errorMessage } from "@/lib/errors";
 import { useCollapseSidebar } from "@/components/layout/dashboard/DashboardLayout";
 import { Modal } from "@/components/ui/Modal";
 import { ScoringBoxScoreSection } from "./ScoringBoxScoreSection";
+import { ScoringOutboxConflict } from "./ScoringOutboxConflict";
 import { type ScoringView, ScoringQuarterTabs } from "./ScoringQuarterTabs";
 
 interface ScoringMatchPanelProps {
@@ -37,51 +37,6 @@ interface ScoringMatchPanelProps {
   onLeave: () => void;
 }
 
-const pointsOf = (counts: StatCounts) => counts.twoPointMade * 2 + counts.threePointMade * 3 + counts.freethrowMade;
-
-const emptyQuarterLine = (): PlayerQuarterLine => ({
-  ...(Object.fromEntries(STAT_KEYS.map((key) => [key, 0])) as StatCounts),
-  points: 0,
-});
-
-/** Tambah/kurangi satu statistik di periode `quarter` secara lokal (sebelum server menjawab). */
-function applyStep(
-  snapshot: MatchSnapshot,
-  side: 1 | 2,
-  playerId: string,
-  stat: StatKey,
-  delta: 1 | -1,
-  quarter: number,
-): MatchSnapshot {
-  const key = side === 1 ? "team1" : "team2";
-  const team = snapshot[key];
-  const players = team.players.map((player): PlayerLine => {
-    if (player.id !== playerId) return player;
-    const total = { ...player, [stat]: Math.max(0, player[stat] + delta) };
-    const before = player.quarters?.[quarter] ?? emptyQuarterLine();
-    const after = { ...before, [stat]: Math.max(0, before[stat] + delta) };
-    return {
-      ...total,
-      points: pointsOf(total),
-      quarters: { ...player.quarters, [quarter]: { ...after, points: pointsOf(after) } },
-    };
-  });
-  const quarterScores = [...team.quarterScores];
-  while (quarterScores.length < quarter) quarterScores.push(0);
-  quarterScores[quarter - 1] = players.reduce((sum, player) => sum + (player.quarters?.[quarter]?.points ?? 0), 0);
-  return {
-    ...snapshot,
-    [key]: { ...team, players, quarterScores, score: players.reduce((sum, player) => sum + player.points, 0) },
-  };
-}
-
-const SAVE_LABEL = {
-  idle: "Perubahan tersimpan otomatis",
-  saving: "Menyimpan...",
-  saved: "Tersimpan",
-  retrying: "Koneksi bermasalah, mencoba lagi...",
-} as const;
-
 type Confirm = { kind: "lock" | "unlock" | "reset"; quarter: number };
 
 /**
@@ -89,6 +44,11 @@ type Confirm = { kind: "lock" | "unlock" | "reset"; quarter: number };
  * dan Save and Lock / Unlock per periode. Hanya periode aktif (terkecil yang
  * belum terkunci) yang bisa diisi, dan hanya oleh pemegang sesi; akun lain
  * melihat pesan "sedang dipakai" sampai match dikunci.
+ *
+ * Wifi/backend mati: ketukan dan Save and Lock periode yang bukan periode
+ * terbuka terakhir tetap bisa, disimpan di laptop, lalu terkirim otomatis
+ * (lihat useAutoSaveActions). Lock periode terakhir, Reset, Unlock, dan warna
+ * jersey butuh koneksi.
  */
 export const ScoringMatchPanel = ({
   item,
@@ -98,11 +58,53 @@ export const ScoringMatchPanel = ({
   onLeave,
 }: ScoringMatchPanelProps) => {
   useCollapseSidebar();
+  const userId = useAuthStore((state) => state.user?.id ?? "");
   const mine = session.status === "mine";
-  const { snapshot, setSnapshot, error, reload } = useMatchLive(item.id, mine);
+  // Snapshot dari server (SSE tersambung lagi, muat ulang) diteruskan ke
+  // antrean dulu, supaya ketukan yang belum terkirim tidak hilang dari layar.
+  const replayRef = useRef<Rebase>((data) => data);
+  const rebase = useCallback<Rebase>((data, withTaps) => replayRef.current(data, withTaps), []);
+  const { snapshot, setSnapshot, error, reload } = useMatchLive(item.id, mine, rebase);
   const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [confirm, setConfirm] = useState<Confirm | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const handleSessionLost = useCallback(
+    (failure: unknown) => {
+      if (isSessionError(failure)) {
+        recheckSession();
+        onBoardChange();
+      }
+      reload();
+    },
+    [reload, recheckSession, onBoardChange],
+  );
+  const handleDropped = useCallback(
+    (tap: OutboxTap, failure: unknown) => {
+      setNotice({
+        tone: "error",
+        text: `Satu ketukan ${periodLabel(tap.quarter)} ditolak server dan tidak dihitung: ${errorMessage(failure)}`,
+      });
+      reload();
+    },
+    [reload],
+  );
+  const outbox = useAutoSaveActions({
+    matchId: item.id,
+    userId,
+    canSend: mine,
+    setSnapshot,
+    onSessionLost: handleSessionLost,
+    onDropped: handleDropped,
+    onLocked: onBoardChange,
+  });
+  const { enqueue, enqueueLock, status, pending } = outbox;
+  useEffect(() => {
+    replayRef.current = outbox.replay;
+  }, [outbox.replay]);
+  // Sesi belum terkonfirmasi tapi antrean sedang terkirim lancar = online.
+  const offline = outbox.offline || (session.status === "mine" && session.offline === true && pending === 0);
+  const conflict = status.state === "conflict";
 
   // Tab yang dipilih; null = ikut periode aktif.
   const [picked, setPicked] = useState<ScoringView | null>(null);
@@ -124,31 +126,22 @@ export const ScoringMatchPanel = ({
       : quarters.some((quarter) => quarter.quarter === candidate && (quarter.locked || quarter.quarter === active));
   const defaultView: ScoringView = active ?? (allLocked ? "total" : (quarters[0]?.quarter ?? 1));
   const view: ScoringView = picked !== null && viewable(picked) ? picked : defaultView;
-  const canTap = !readOnly && typeof view === "number" && view === active;
-
-  const handleRejected = useCallback(
-    (failure: unknown) => {
-      setNotice({ tone: "error", text: `Ketukan terakhir tidak tersimpan: ${errorMessage(failure)}` });
-      reload();
-      if (isSessionError(failure)) {
-        recheckSession();
-        onBoardChange();
-      }
-    },
-    [reload, recheckSession, onBoardChange],
-  );
-  const { enqueue, status, pending } = useAutoSaveActions(item.id, setSnapshot, handleRejected);
+  const canTap = !readOnly && !conflict && typeof view === "number" && view === active;
+  // Save and Lock lewat antrean (bisa saat offline) kalau masih ada periode
+  // terbuka lain: hasilnya pasti periode berikutnya dibuka. Periode terbuka
+  // terakhir menentukan selesai/OT di server, jadi langsung dan butuh koneksi.
+  const lockQueues = (quarter: number) => quarters.some((period) => !period.locked && period.quarter !== quarter);
 
   // "Save and Exit": ketukan sudah auto-save, jadi cukup tunggu antrean kosong lalu keluar.
   const [exiting, setExiting] = useState(false);
-  const settled = pending === 0 && status.state !== "saving" && status.state !== "retrying";
+  const settled = pending === 0;
   const waitingToExit = exiting && !settled;
   useEffect(() => {
-    // Ketukan terakhir ditolak (status failed): tetap di desk supaya pesannya terbaca.
-    if (exiting && settled && status.state !== "failed") onLeave();
-  }, [exiting, settled, status.state, onLeave]);
+    if (exiting && settled) onLeave();
+  }, [exiting, settled, onLeave]);
   const handleExit = () => {
-    if (settled) onLeave();
+    // Saat konflik antrean tidak terkirim sendiri; tetap tersimpan di laptop (tanda di card daftar).
+    if (settled || conflict) onLeave();
     else setExiting(true);
   };
 
@@ -164,6 +157,7 @@ export const ScoringMatchPanel = ({
   };
 
   const handleColors = (colors: { team1Color?: string; team2Color?: string }) => {
+    if (offline) return;
     updateColors(item.id, colors).catch((failure: unknown) =>
       setNotice({ tone: "error", text: `Warna gagal disimpan: ${errorMessage(failure)}` }),
     );
@@ -172,6 +166,22 @@ export const ScoringMatchPanel = ({
   const runConfirmed = async () => {
     if (!confirm) return;
     const label = periodLabel(confirm.quarter);
+    if (confirm.kind === "lock" && lockQueues(confirm.quarter)) {
+      const next = Math.min(
+        ...quarters.filter((period) => !period.locked && period.quarter !== confirm.quarter).map((period) => period.quarter),
+      );
+      setSnapshot((current) => (current ? applyLock(current, confirm.quarter) : current));
+      enqueueLock(confirm.quarter);
+      setNotice({
+        tone: "ok",
+        text: offline
+          ? `${label} dikunci di laptop ini dan dikirim ke server saat koneksi kembali. ${periodLabel(next)} bisa langsung diisi.`
+          : `${label} dikunci. ${periodLabel(next)} dibuka.`,
+      });
+      setConfirm(null);
+      setPicked(null);
+      return;
+    }
     setBusy(true);
     try {
       if (confirm.kind === "reset") {
@@ -228,6 +238,18 @@ export const ScoringMatchPanel = ({
           Match ini bisa dilihat setelah dikunci (Save and Lock semua periode). Kalau akun tersebut keluar, halaman ini
           otomatis bisa dipakai.
         </p>
+        {pending > 0 && (
+          <div className="max-w-2xl">
+            <ScoringOutboxConflict
+              items={outbox.items}
+              snapshot={snapshot}
+              reason={status.state === "conflict" ? status.message : `Sesi scoring dipegang ${session.holderName}.`}
+              canRetry={false}
+              onRetry={outbox.retry}
+              onDiscard={outbox.discard}
+            />
+          </div>
+        )}
         <button
           type="button"
           onClick={onLeave}
@@ -251,7 +273,27 @@ export const ScoringMatchPanel = ({
     );
   }
 
-  const saveText = status.state === "failed" ? "Gagal menyimpan" : SAVE_LABEL[status.state];
+  const saveText = conflict
+    ? `Pengiriman dihentikan: ${pending} belum terkirim`
+    : offline
+      ? `Offline${pending > 0 ? `: ${pending} belum terkirim` : ""}. Tetap isi skor, data terkirim otomatis saat koneksi kembali.`
+      : pending > 0
+        ? `Menyimpan...${pending > 1 ? ` (${pending} antre)` : ""}`
+        : status.state === "saved"
+          ? "Tersimpan"
+          : "Perubahan tersimpan otomatis";
+  const statusLine = (
+    <span
+      aria-live="polite"
+      className={`text-xs font-medium ${conflict ? "text-red-700" : offline ? "text-amber-800" : "text-gray-600"}`}
+    >
+      {saveText}
+      {!outbox.persisted && " Penyimpanan browser tidak bisa dipakai: jangan tutup atau reload tab ini sampai semua terkirim."}
+    </span>
+  );
+  // Butuh server langsung: Lock periode terakhir, Reset, Unlock.
+  const needsServer = offline || pending > 0;
+  const needsServerTitle = offline ? "Butuh koneksi ke server" : pending > 0 ? "Tunggu semua data terkirim" : undefined;
   const pill = "h-10 rounded-full px-6 text-sm font-bold text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
   const leaveButton = (
     <button
@@ -260,7 +302,7 @@ export const ScoringMatchPanel = ({
       disabled={waitingToExit}
       className={`${pill} bg-[#f26722] hover:bg-[#d8581a] focus-visible:outline-[#f26722]`}
     >
-      {waitingToExit ? "Menyimpan..." : "Save and Exit"}
+      {waitingToExit ? (offline ? `Menunggu koneksi (${pending} belum terkirim)` : "Menyimpan...") : "Save and Exit"}
     </button>
   );
 
@@ -280,6 +322,7 @@ export const ScoringMatchPanel = ({
           Total semua periode (baca saja)
         </span>
         {leaveButton}
+        {statusLine}
       </>
     );
   } else if (viewedQuarter?.locked) {
@@ -292,22 +335,25 @@ export const ScoringMatchPanel = ({
         <button
           type="button"
           onClick={() => setConfirm({ kind: "unlock", quarter: view })}
-          disabled={unlockBlockedBy !== undefined}
-          title={unlockBlockedBy ? `Kunci dulu ${periodLabel(unlockBlockedBy.quarter)}` : undefined}
+          disabled={unlockBlockedBy !== undefined || needsServer || conflict}
+          title={unlockBlockedBy ? `Kunci dulu ${periodLabel(unlockBlockedBy.quarter)}` : needsServerTitle}
           className={`${pill} bg-[#2f9b9a] hover:bg-[#257f7e] focus-visible:outline-[#2f9b9a]`}
         >
           Unlock {periodLabel(view)}
         </button>
         {leaveButton}
+        {statusLine}
       </>
     );
   } else {
+    const queuedLock = lockQueues(view);
     footer = (
       <>
         <button
           type="button"
           onClick={() => setConfirm({ kind: "lock", quarter: view })}
-          disabled={!mine || pending > 0 || status.state === "saving" || status.state === "retrying"}
+          disabled={!mine || conflict || (!queuedLock && needsServer)}
+          title={queuedLock ? undefined : needsServerTitle}
           className={`${pill} bg-[#f99f1b] hover:bg-[#d98b16] focus-visible:outline-[#f99f1b]`}
         >
           Save and Lock {periodLabel(view)}
@@ -315,16 +361,14 @@ export const ScoringMatchPanel = ({
         <button
           type="button"
           onClick={() => setConfirm({ kind: "reset", quarter: view })}
-          disabled={!mine || pending > 0 || status.state === "saving" || status.state === "retrying"}
+          disabled={!mine || conflict || needsServer}
+          title={needsServerTitle}
           className="h-10 rounded-full border border-[#7a0000] bg-white px-6 text-sm font-bold text-[#7a0000] transition-colors hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a0000] disabled:cursor-not-allowed disabled:opacity-60"
         >
           Reset all {periodLabel(view)}
         </button>
         {leaveButton}
-        <span aria-live="polite" className={`text-xs font-medium ${status.state === "failed" ? "text-red-700" : "text-gray-600"}`}>
-          {saveText}
-          {pending > 1 ? ` (${pending} antre)` : ""}
-        </span>
+        {statusLine}
       </>
     );
   }
@@ -343,7 +387,9 @@ export const ScoringMatchPanel = ({
     const others = quarters.filter((quarter) => !quarter.locked && quarter.quarter !== confirm.quarter);
     if (others.length > 0) {
       const next = Math.min(...others.map((quarter) => quarter.quarter));
-      return `${label} dikunci dan tidak bisa diubah sampai di-Unlock. ${periodLabel(next)} bisa diisi setelahnya.`;
+      return `${label} dikunci dan tidak bisa diubah sampai di-Unlock. ${periodLabel(next)} bisa diisi setelahnya.${
+        offline ? " Koneksi sedang terputus: kunci ini disimpan di laptop dan dikirim ke server otomatis saat koneksi kembali." : ""
+      }`;
     }
     const [score1, score2] = [snapshot.team1.score, snapshot.team2.score];
     if (score1 !== score2) {
@@ -372,13 +418,27 @@ export const ScoringMatchPanel = ({
         </div>
       )}
 
+      {conflict && (
+        <ScoringOutboxConflict
+          items={outbox.items}
+          snapshot={snapshot}
+          reason={status.message}
+          canRetry={mine}
+          onRetry={outbox.retry}
+          onDiscard={() => {
+            outbox.discard();
+            reload();
+          }}
+        />
+      )}
+
       <ScoringBoxScoreSection
         quarterTabs={
           <ScoringQuarterTabs quarters={quarters} currentQuarter={active} view={view} onSelect={setPicked} />
         }
         snapshot={snapshot}
         view={view}
-        readOnly={readOnly}
+        readOnly={readOnly || offline}
         canTap={canTap}
         onStep={handleStep}
         onColorsChange={handleColors}
