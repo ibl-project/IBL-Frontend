@@ -87,7 +87,7 @@ function ArrowButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={isPrev ? "Hari sebelumnya" : "Hari berikutnya"}
-      className={`absolute top-1/2 z-20 aspect-square w-[2.66cqw] -translate-y-1/2 cursor-pointer rounded-full bg-[#44D1D1] before:absolute before:top-1/2 before:h-11 before:w-11 before:-translate-y-1/2 before:content-[''] disabled:cursor-not-allowed disabled:opacity-30 hover:not-disabled:scale-110 active:not-disabled:scale-95 transition-all @max-[480px]/strip:w-[3.17cqw] ${position} ${hitArea} ${FOCUS_RING}`}
+      className={`absolute top-1/2 z-20 aspect-square w-[2.66cqw] -translate-y-1/2 cursor-pointer rounded-full bg-[#44D1D1] before:absolute before:top-1/2 before:h-11 before:w-11 before:-translate-y-1/2 before:content-[''] disabled:cursor-not-allowed disabled:opacity-30 motion-safe:transition-transform motion-safe:hover:not-disabled:scale-110 motion-safe:active:not-disabled:scale-95 @max-[480px]/strip:w-[3.17cqw] ${position} ${hitArea} ${FOCUS_RING}`}
     >
       <svg viewBox={CHEVRON[direction].viewBox} className="block h-full w-full" fill="none" aria-hidden="true">
         <path
