@@ -3,6 +3,12 @@ export type ArtboardVariant = "desktop" | "mobile";
 /** Container widths below this use the mobile (390) artboard. */
 export const MOBILE_MAX_WIDTH = 768;
 
+/**
+ * Artboard desktop ikut membesar sampai lebar ini (skala 1920/1440 = 1,33), lalu berhenti dan dipusatkan.
+ * Di atasnya (mis. browser di-zoom out ekstrem) halaman tidak terus membesar.
+ */
+export const DESKTOP_MAX_WIDTH = 1920;
+
 export const TEAMS_COLORS = {
   orange: "#EC5D12",
   ivory: "#FDF6DD",
@@ -244,8 +250,6 @@ export interface PageBackground {
   halftone: { left: number; top: number; width: number };
   /** Pita checker atas (3 baris): jarak dari atas artboard. Kolomnya dipusatkan di tengah artboard. */
   checkerTop: { top: number };
-  /** Pita checker bawah (3 baris): mulai sekian px di atas tepi bawah papan. */
-  checkerBottom: { aboveBoardBottom: number };
   /** Papan: kiri dan lebar (berhenti di ujung komposisi Figma), skala bayangan. */
   board: { left: number; width: number; shadowScale: number };
   /** Kertas di dalam papan: kiri (dari tepi kiri papan), lebar, margin tan yang terlihat di atas/bawah kertas. */
@@ -259,7 +263,6 @@ export const PAGE_BACKGROUND: Record<TeamsPage, Record<ArtboardVariant, PageBack
     desktop: {
       halftone: { left: -19, top: -119, width: 1622 },
       checkerTop: { top: -1 },
-      checkerBottom: { aboveBoardBottom: 69.1 },
       board: { left: -218.51, width: 1900.9, shadowScale: 1 },
       paper: { left: 97.08, width: 1867, top: 28.69, bottom: 30.12 },
       grainWidth: 1816.06,
@@ -267,7 +270,6 @@ export const PAGE_BACKGROUND: Record<TeamsPage, Record<ArtboardVariant, PageBack
     mobile: {
       halftone: { left: -886.3, top: -162, width: 1491.97 },
       checkerTop: { top: -2 },
-      checkerBottom: { aboveBoardBottom: 1 },
       board: { left: -1021, width: 1705.54, shadowScale: 0.9 },
       paper: { left: 86.88, width: 1754.28, top: 18.03, bottom: 9.44 },
       grainWidth: 1629.42,
@@ -277,7 +279,6 @@ export const PAGE_BACKGROUND: Record<TeamsPage, Record<ArtboardVariant, PageBack
     desktop: {
       halftone: { left: -153, top: -74, width: 1622 },
       checkerTop: { top: -7 },
-      checkerBottom: { aboveBoardBottom: 65.75 },
       board: { left: -178.24, width: 1830.78, shadowScale: 0.96 },
       paper: { left: 93.5, width: 1798.13, top: 27.78, bottom: 29.19 },
       grainWidth: 1753.97,
@@ -285,7 +286,6 @@ export const PAGE_BACKGROUND: Record<TeamsPage, Record<ArtboardVariant, PageBack
     mobile: {
       halftone: { left: -966.3, top: -161, width: 1491.97 },
       checkerTop: { top: -1 },
-      checkerBottom: { aboveBoardBottom: 1.3 },
       board: { left: -1084, width: 1674.03, shadowScale: 0.88 },
       paper: { left: 85.28, width: 1721.88, top: 17.7, bottom: 9.26 },
       grainWidth: 1599.32,

@@ -21,16 +21,16 @@ export function PaperBoard({ variant, page, overlap, children }: PaperBoardProps
   const bg = PAGE_BACKGROUND[page][variant];
   const shadow = bg.board.shadowScale;
 
+  const row = checker / 2;
+
   return (
+    <>
     <div className="relative" style={{ marginTop: -overlap, minHeight: board.minHeight, paddingBottom: board.paddingBottom }}>
-      {/* Pita checker bawah, di belakang papan; di Figma sebagian tertutup papan dan footer. */}
-      <CheckerBand
-        tile={checker}
-        centerX={width / 2}
-        left={bg.board.left}
-        width={bg.board.width}
-        top={`calc(100% - ${bg.checkerBottom.aboveBoardBottom}px)`}
-      />
+      {/*
+        Pita checker bawah, di belakang papan; latar halaman, jadi selebar layar (bukan selebar papan).
+        Batas baris tepat di tepi bawah papan: dua baris tertutup papan, baris ketiga utuh di ruang bawah.
+      */}
+      <CheckerBand tile={checker} centerX={width / 2} left={-width * 4} width={width * 9} top={`calc(100% - ${checker}px)`} />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-y-0"
@@ -63,5 +63,8 @@ export function PaperBoard({ variant, page, overlap, children }: PaperBoardProps
       </div>
       <div className="relative">{children}</div>
     </div>
+    {/* Ruang satu baris checker di antara papan dan footer; ikut dihitung tinggi artboard, jadi tidak terpotong. */}
+    <div aria-hidden style={{ height: row }} />
+    </>
   );
 }

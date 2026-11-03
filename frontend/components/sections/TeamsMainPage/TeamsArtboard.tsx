@@ -42,11 +42,12 @@ function TeamsBackdrop({ page, variant }: { page: TeamsPage; variant: ArtboardVa
           backgroundSize: "100% 100%",
         }}
       />
+      {/* Pita checker adalah latar halaman: jauh lebih lebar dari layar mana pun (dipotong section), bukan selebar papan. */}
       <CheckerBand
         tile={ARTBOARD[variant].checker}
         centerX={ARTBOARD[variant].width / 2}
-        left={bg.board.left}
-        width={bg.board.width}
+        left={-ARTBOARD[variant].width * 4}
+        width={ARTBOARD[variant].width * 9}
         top={bg.checkerTop.top}
       />
     </>
@@ -74,8 +75,9 @@ export function TeamsArtboard({ page, children }: TeamsArtboardProps) {
   const scale = metrics?.scale ?? 1;
   const { width } = ARTBOARD[variant];
 
+  // Tanpa min-h-screen: footer selalu tepat setelah baris checker bawah, tanpa celah putih.
   return (
-    <section className="relative min-h-screen w-full overflow-hidden bg-white pt-[var(--navbar-height)]">
+    <section className="relative w-full overflow-hidden bg-white pt-[var(--navbar-height)]">
       <div ref={ref} className="relative w-full">
         <div
           className="relative mx-auto"

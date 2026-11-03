@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 
-import { ARTBOARD, MOBILE_MAX_WIDTH, type ArtboardVariant } from "./teamsMainTheme";
+import { ARTBOARD, DESKTOP_MAX_WIDTH, MOBILE_MAX_WIDTH, type ArtboardVariant } from "./teamsMainTheme";
 
 export interface ArtboardMetrics {
   variant: ArtboardVariant;
@@ -12,7 +12,7 @@ export interface ArtboardMetrics {
 function metricsFor(width: number): ArtboardMetrics {
   const variant: ArtboardVariant = width < MOBILE_MAX_WIDTH ? "mobile" : "desktop";
   const ratio = width / ARTBOARD[variant].width;
-  return { variant, scale: variant === "desktop" ? Math.min(ratio, 1) : ratio };
+  return { variant, scale: variant === "desktop" ? Math.min(ratio, DESKTOP_MAX_WIDTH / ARTBOARD.desktop.width) : ratio };
 }
 
 /**
