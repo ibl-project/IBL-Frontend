@@ -79,6 +79,8 @@ export interface MatchListItem {
   playoffRound: PlayoffRound | null;
   bracketPosition: number | null;
   status: MatchStatus;
+  /** LIVE dan benar-benar berjalan (ada yang scoring atau skor sudah jalan). Pakai lewat `isLiveNow()`. */
+  liveNow?: boolean;
   locked: boolean;
   scheduledAt: string | null;
   venue: string | null;
@@ -88,6 +90,22 @@ export interface MatchListItem {
   team1: MatchTeamSide;
   team2: MatchTeamSide;
   winnerTeamId: string | null;
+}
+
+/**
+ * Tanda LIVE / "Berlangsung": match LIVE yang sedang di-scoring atau skornya sudah jalan.
+ * Status LIVE saja tidak cukup (match bisa dimulai lalu ditinggal). Skor > 0 juga dihitung
+ * karena skor dari SSE bisa lebih baru daripada `liveNow` terakhir dari API (event SSE tidak
+ * membawa `liveNow`). Tanpa `liveNow` (API lama), semua match LIVE dianggap berjalan.
+ */
+export function isLiveNow(match: {
+  status: MatchStatus;
+  liveNow?: boolean;
+  team1: { score: number };
+  team2: { score: number };
+}): boolean {
+  if (match.status !== "LIVE") return false;
+  return (match.liveNow ?? true) || match.team1.score + match.team2.score > 0;
 }
 
 /** Statistik satu pemain dalam satu periode (kuarter atau OT). */
@@ -150,6 +168,8 @@ export interface MatchSnapshot {
   group: { id: string; name: string } | null;
   playoffRound: PlayoffRound | null;
   status: MatchStatus;
+  /** Lihat `MatchListItem.liveNow`; hanya ada di GET /matches/:id, tidak di event SSE. */
+  liveNow?: boolean;
   /** Periode aktif (terkecil yang belum terkunci); null kalau belum dimulai atau semua terkunci. */
   currentQuarter: number | null;
   /** Periode match ini; kosong kalau belum dimulai. */

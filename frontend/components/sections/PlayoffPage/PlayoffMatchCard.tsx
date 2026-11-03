@@ -2,7 +2,7 @@
 
 import React from "react";
 import type { PlayoffMatch, PlayoffSlot } from "@/lib/standingsApi";
-import type { PlayoffRound } from "@/lib/matchesApi";
+import { type PlayoffRound, isLiveNow } from "@/lib/matchesApi";
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 
 interface PlayoffMatchCardProps {
@@ -23,7 +23,7 @@ export const PlayoffMatchCard: React.FC<PlayoffMatchCardProps> = ({
   const match = slot?.match ?? null;
   const team1 = match?.team1;
   const team2 = match?.team2;
-  const hasStartedOrFinished = match?.status === "LIVE" || match?.status === "FINISHED";
+  const hasStartedOrFinished = !!match && (isLiveNow(match) || match.status === "FINISHED");
 
   const renderTeamRow = (team?: typeof team1, defaultName = "TBD") => {
     const name = team?.name || defaultName;

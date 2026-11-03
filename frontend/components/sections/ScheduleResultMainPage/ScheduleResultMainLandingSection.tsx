@@ -10,7 +10,8 @@ import { todayWib } from "@/lib/datetime";
 import { HOLLYWOOD_BOLD_ADVANCE, textWidthEm } from "@/lib/fontMetrics";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
 import { formatKickoff, teamLabel } from "@/lib/matchDisplay";
-import { type MatchListItem, type MatchTeamSide, listMatches } from "@/lib/matchesApi";
+import { type MatchListItem, type MatchTeamSide, isLiveNow, listMatches } from "@/lib/matchesApi";
+import { useLiveScores } from "@/lib/hooks/useLiveScores";
 import { formatMatchDay, groupMatchesByWibDay, pickDefaultDay } from "@/lib/scheduleDays";
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 import { CalendarStrip } from "./CalendarStrip";
@@ -38,7 +39,9 @@ function cardNameFontSize(name: string): string {
 
 function MatchCard({ match, frame, dateKey }: { match: MatchListItem; frame: string; dateKey: string }) {
   const { team1, team2, status } = match;
-  const showScore = status === "LIVE" || status === "FINISHED";
+  // Match LIVE yang belum di-scoring siapa pun (0–0, tanpa sesi) tampil seperti belum dimulai.
+  const live = isLiveNow(match);
+  const showScore = live || status === "FINISHED";
   // Nama tim yang kalah sedikit diredupkan setelah laga selesai.
   const dimmed = (side: MatchTeamSide) =>
     status === "FINISHED" && match.winnerTeamId && side.id !== match.winnerTeamId ? "opacity-60" : "";
@@ -84,7 +87,7 @@ function MatchCard({ match, frame, dateKey }: { match: MatchListItem; frame: str
           {match.venue ?? "Lokasi belum diatur"}
         </p>
         <p className="absolute left-[29.5%] right-[29.5%] top-[41.5%] flex items-center justify-center gap-1 sm:gap-1.5 font-poppins text-[clamp(10px,0.95vw,14px)] font-extrabold leading-tight tracking-tight">
-          {status === "LIVE" && (
+          {live && (
             <span className="shrink-0 rounded-[3px] bg-[#c51610] px-[0.35em] py-[0.05em] font-poppins text-[0.7em] font-bold tracking-wider text-white shadow-xs">
               LIVE
             </span>
@@ -231,6 +234,19 @@ function MatchDaySchedule() {
     const timer = setInterval(refreshSilently, LIVE_REFRESH_MS);
     return () => clearInterval(timer);
   }, [hasLiveMatch, refreshSilently]);
+
+  // Skor kartu LIVE berubah begitu scorer mengetuk (SSE). Refresh 60 detik di atas tetap
+  // untuk match yang baru dimulai dan tanda LIVE (liveNow).
+  const liveIds = useMemo(
+    () => selectedDay?.matches.filter((match) => match.status === "LIVE").map((match) => match.id) ?? [],
+    [selectedDay],
+  );
+  const patchMatches = useCallback(
+    (update: (items: MatchListItem[]) => MatchListItem[]) =>
+      setState((prev) => (prev.status === "ready" ? { status: "ready", data: update(prev.data) } : prev)),
+    [setState],
+  );
+  useLiveScores(liveIds, patchMatches);
 
   return (
     <>
