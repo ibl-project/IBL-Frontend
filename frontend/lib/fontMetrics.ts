@@ -25,6 +25,23 @@ export const DROWNER_ADVANCE: AdvanceTable = {
 };
 
 /**
+ * public/fonts/HollyWoodFont/SF Hollywood Hills Bold.ttf (unitsPerEm 2048), bobot yang dipakai kartu jadwal
+ * (font-hollywood font-bold). Tanpa glyph: # $ % & * + - / < = > @ \ ^ _ ` | ~.
+ */
+export const HOLLYWOOD_BOLD_ADVANCE: AdvanceTable = {
+  " ": 0.400, "!": 0.230, "\"": 0.420, "'": 0.230, "(": 0.330, ")": 0.330, ",": 0.230, ".": 0.230,
+  "0": 0.480, "1": 0.230, "2": 0.480, "3": 0.490, "4": 0.480, "5": 0.480, "6": 0.480, "7": 0.510,
+  "8": 0.460, "9": 0.480, ":": 0.230, ";": 0.230, "?": 0.480, "A": 0.430, "B": 0.470, "C": 0.480,
+  "D": 0.480, "E": 0.430, "F": 0.400, "G": 0.480, "H": 0.480, "I": 0.230, "J": 0.450, "K": 0.480,
+  "L": 0.400, "M": 0.580, "N": 0.480, "O": 0.480, "P": 0.450, "Q": 0.480, "R": 0.480, "S": 0.480,
+  "T": 0.470, "U": 0.480, "V": 0.430, "W": 0.630, "X": 0.470, "Y": 0.470, "Z": 0.480, "[": 0.330,
+  "]": 0.330, "a": 0.430, "b": 0.470, "c": 0.480, "d": 0.480, "e": 0.430, "f": 0.400, "g": 0.480,
+  "h": 0.480, "i": 0.230, "j": 0.450, "k": 0.480, "l": 0.400, "m": 0.580, "n": 0.480, "o": 0.480,
+  "p": 0.450, "q": 0.480, "r": 0.480, "s": 0.480, "t": 0.470, "u": 0.480, "v": 0.430, "w": 0.630,
+  "x": 0.470, "y": 0.470, "z": 0.480, "{": 0.370, "}": 0.370,
+};
+
+/**
  * Lebar teks dalam em: jumlah lebar huruf + letter-spacing per huruf (CSS juga menambah spasi setelah huruf
  * terakhir). Huruf yang tidak ada di tabel dihitung selebar huruf terlebar, supaya hasilnya tidak pernah
  * lebih kecil dari lebar sebenarnya (lebih baik sedikit mengecil daripada terpotong).

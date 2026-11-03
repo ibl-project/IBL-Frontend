@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { popSpringVariants, popPunchVariants } from "@/lib/animations";
 import { todayWib } from "@/lib/datetime";
+import { HOLLYWOOD_BOLD_ADVANCE, textWidthEm } from "@/lib/fontMetrics";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
 import { formatKickoff, teamLabel } from "@/lib/matchDisplay";
 import { type MatchListItem, type MatchTeamSide, listMatches } from "@/lib/matchesApi";
@@ -15,6 +16,25 @@ import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 import { CalendarStrip } from "./CalendarStrip";
 
 const CARD_FRAMES = ["/svg/figma/Box Tim 12.svg", "/svg/figma/Box Tim 34.svg"];
+
+/**
+ * Nama tim di kartu harus tetap di dalam panel kuning frame (Box Tim 12/34.svg). Panel itu miring: di baris nama
+ * (57,5-69,6% tinggi kartu) tepi kirinya 8,5-9,7% dan tepi kanannya 93,2-94,1% lebar kartu. Skor 3 digit
+ * menempati 22,6-30,4% / 69,6-77,4%. Jadi kotak nama: kiri 10-22,5%, kanan 80-92,5% (lebar NAME_BOX).
+ */
+const NAME_BOX = 12.5;
+/** Ukuran desain 22 px pada kartu selebar 1026 px, dalam cqw kartu. */
+const NAME_FONT_CQW = 2.144;
+
+/**
+ * Ukuran font nama: ukuran desain (minimum 9 px di ponsel), dikecilkan hanya kalau nama tidak muat di kotaknya
+ * (lebar dari huruf Hollywood Bold + tracking-wide 0,025em); paling kecil 7 px, setelah itu `truncate` memberi "…".
+ * Memakai cqw kartu, bukan vw, supaya ukuran ikut lebar kartu.
+ */
+function cardNameFontSize(name: string): string {
+  const em = textWidthEm(HOLLYWOOD_BOLD_ADVANCE, name, 0.025);
+  return `max(7px, min(max(9px, ${NAME_FONT_CQW}cqw), ${(NAME_BOX / em).toFixed(3)}cqw))`;
+}
 
 function MatchCard({ match, frame, dateKey }: { match: MatchListItem; frame: string; dateKey: string }) {
   const { team1, team2, status } = match;
@@ -29,7 +49,7 @@ function MatchCard({ match, frame, dateKey }: { match: MatchListItem; frame: str
       whileHover={{ scale: 1.015, y: -2 }}
       whileTap={{ scale: 0.995 }}
       transition={{ type: "spring", stiffness: 350, damping: 24 }}
-      className="relative w-full"
+      className="@container/card relative w-full"
     >
       <Image
         src={frame}
@@ -46,7 +66,8 @@ function MatchCard({ match, frame, dateKey }: { match: MatchListItem; frame: str
         </div>
         <p
           title={teamLabel(team1)}
-          className={`absolute left-[14%] top-[57.5%] -translate-x-1/2 w-[20%] truncate text-center font-hollywood text-[clamp(12px,1.6vw,22px)] font-bold tracking-wide text-[#074770] [text-shadow:1px_1px_0_#FFF3D2,0_1px_2px_rgba(0,0,0,0.18)] leading-tight ${dimmed(team1)}`}
+          style={{ fontSize: cardNameFontSize(teamLabel(team1)) }}
+          className={`absolute left-[10%] top-[57.5%] w-[12.5%] truncate text-center font-hollywood font-bold tracking-wide text-[#074770] [text-shadow:1px_1px_0_#FFF3D2,0_1px_2px_rgba(0,0,0,0.18)] leading-tight ${dimmed(team1)}`}
         >
           {teamLabel(team1)}
         </p>
@@ -91,7 +112,8 @@ function MatchCard({ match, frame, dateKey }: { match: MatchListItem; frame: str
         </div>
         <p
           title={teamLabel(team2)}
-          className={`absolute left-[86%] top-[57.5%] -translate-x-1/2 w-[20%] truncate text-center font-hollywood text-[clamp(12px,1.6vw,22px)] font-bold tracking-wide text-[#074770] [text-shadow:1px_1px_0_#FFF3D2,0_1px_2px_rgba(0,0,0,0.18)] leading-tight ${dimmed(team2)}`}
+          style={{ fontSize: cardNameFontSize(teamLabel(team2)) }}
+          className={`absolute left-[80%] top-[57.5%] w-[12.5%] truncate text-center font-hollywood font-bold tracking-wide text-[#074770] [text-shadow:1px_1px_0_#FFF3D2,0_1px_2px_rgba(0,0,0,0.18)] leading-tight ${dimmed(team2)}`}
         >
           {teamLabel(team2)}
         </p>
