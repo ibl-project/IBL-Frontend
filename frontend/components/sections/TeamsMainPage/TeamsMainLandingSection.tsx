@@ -1,0 +1,86 @@
+"use client";
+
+import React, { useMemo, useState } from "react";
+
+import { listTeams } from "@/lib/teamsApi";
+import { useAsyncData } from "@/lib/hooks/useAsyncData";
+import { ARTBOARD } from "./teamsMainTheme";
+import { TeamsArtboard } from "./TeamsArtboard";
+import { TeamsTitle } from "./TeamsTitle";
+import { PaperBoard } from "./PaperBoard";
+import { SectionBar } from "./SectionBar";
+import { TeamCard } from "./TeamCard";
+import { BoardMessage } from "./BoardMessage";
+import { MobileGridScroller } from "./MobileGridScroller";
+
+type GridScroll = (typeof ARTBOARD)[keyof typeof ARTBOARD]["grid"]["scroll"];
+
+/** Grid desktop memanjang bebas; grid mobile digulir di dalam papan. */
+function TeamGridArea({ scroll, children }: { scroll: GridScroll; children: React.ReactNode }) {
+  if (!scroll) return <>{children}</>;
+  return (
+    <MobileGridScroller height={scroll.height} left={scroll.left} trackWidth={scroll.trackWidth} trackMargin={scroll.trackMargin}>
+      {children}
+    </MobileGridScroller>
+  );
+}
+
+/** Huruf kecil tanpa spasi, supaya "hima tika" tetap menemukan "HIMATIKA". */
+function normalize(text: string): string {
+  return text.toLowerCase().replace(/\s+/g, "");
+}
+
+export function TeamsMainLandingSection() {
+  const { state, reload } = useAsyncData(listTeams);
+  const [query, setQuery] = useState("");
+  const teams = state.status === "ready" ? state.data : null;
+  const filtered = useMemo(() => {
+    const needle = normalize(query);
+    return teams && needle ? teams.filter((team) => normalize(team.name).includes(needle)) : teams;
+  }, [teams, query]);
+
+  return (
+    <TeamsArtboard page="list">
+      {(variant) => {
+        const { board, grid } = ARTBOARD[variant];
+        return (
+          <>
+            <TeamsTitle variant={variant} />
+            <PaperBoard variant={variant} page="list" overlap={board.overlap}>
+              <SectionBar
+                variant={variant}
+                label="All Teams"
+                search={{ value: query, onChange: setQuery, placeholder: "Himpunan Mahasiswa", label: "Cari tim himpunan" }}
+              />
+              <div style={{ marginTop: grid.offset }}>
+                {state.status === "loading" && <BoardMessage variant={variant}>Memuat tim...</BoardMessage>}
+                {state.status === "error" && (
+                  <BoardMessage variant={variant} onRetry={reload}>
+                    {state.message}
+                  </BoardMessage>
+                )}
+                {state.status === "ready" && state.data.length === 0 && (
+                  <BoardMessage variant={variant}>Belum ada tim terdaftar.</BoardMessage>
+                )}
+                {teams && teams.length > 0 && filtered?.length === 0 && (
+                  <BoardMessage variant={variant}>Tim &ldquo;{query.trim()}&rdquo; tidak ditemukan.</BoardMessage>
+                )}
+                {filtered && filtered.length > 0 && (
+                  <TeamGridArea scroll={grid.scroll}>
+                    <ul className="mx-auto flex flex-wrap justify-center" style={{ width: grid.pitch * grid.columns, rowGap: grid.rowGap }}>
+                      {filtered.map((team) => (
+                        <li key={team.id}>
+                          <TeamCard team={team} variant={variant} />
+                        </li>
+                      ))}
+                    </ul>
+                  </TeamGridArea>
+                )}
+              </div>
+            </PaperBoard>
+          </>
+        );
+      }}
+    </TeamsArtboard>
+  );
+}

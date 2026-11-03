@@ -31,7 +31,7 @@ const NAV_ITEMS: NavItem[] = [
     ),
     href: "/schedule-result-main",
   },
-  { plainLabel: "Teams", label: "Teams", href: "#", soon: true },
+  { plainLabel: "Teams", label: "Teams", href: "/teams-main" },
   {
     plainLabel: "Groups & Standings",
     label: (

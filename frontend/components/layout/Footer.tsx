@@ -107,7 +107,7 @@ const NAV_COL_1: FooterNavItem[] = [
 ];
 
 const NAV_COL_2: FooterNavItem[] = [
-  { label: "Teams", plainLabel: "Teams", href: "#" },
+  { label: "Teams", plainLabel: "Teams", href: "/teams-main" },
   {
     label: (
       <>
