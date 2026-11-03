@@ -26,7 +26,7 @@ const NAV_ITEMS: NavItem[] = [
     plainLabel: "Schedule & Result",
     label: (
       <>
-        Schedule <span className="font-['Hobo_Std'] text-base font-medium tracking-widest">&amp;</span> Result
+        Schedule <span className="font-['Hobo_Std'] text-[0.85em] font-medium tracking-widest">&amp;</span> Result
       </>
     ),
     href: "/schedule-result-main",
@@ -36,7 +36,7 @@ const NAV_ITEMS: NavItem[] = [
     plainLabel: "Groups & Standings",
     label: (
       <>
-        Groups <span className="font-['Hobo_Std'] text-base font-medium tracking-widest">&amp;</span> Standings
+        Groups <span className="font-['Hobo_Std'] text-[0.85em] font-medium tracking-widest">&amp;</span> Standings
       </>
     ),
     href: "/groups-standings",
@@ -121,7 +121,7 @@ export const Navbar = () => {
           {/* DESKTOP NAV LINKS                                                */}
           {/* ---------------------------------------------------------------- */}
           <nav
-            className="hidden lg:flex items-center gap-3.5 xl:gap-7 2xl:gap-10"
+            className="hidden lg:flex items-center gap-4 xl:gap-6 2xl:gap-8"
             aria-label="Main navigation"
           >
             {NAV_ITEMS.map((item) => (
@@ -147,7 +147,7 @@ export const Navbar = () => {
                 ) : (
                   <Link
                     href={item.href}
-                    className="text-stone-900 font-['Drowner'] tracking-[1.5px] xl:tracking-[3px] leading-6 transition-opacity hover:opacity-70 whitespace-nowrap"
+                    className="text-stone-900 font-['Drowner'] tracking-[1.2px] xl:tracking-[2px] leading-5 transition-opacity hover:opacity-70 whitespace-nowrap"
                     style={{ fontSize: "var(--navbar-font-size)" }}
                   >
                     {item.label}
@@ -161,20 +161,20 @@ export const Navbar = () => {
           {/* MOBILE BURGER BUTTON                                             */}
           {/* ---------------------------------------------------------------- */}
           <button
-            className="lg:hidden flex flex-col justify-center items-center w-10 h-10 gap-[6px] cursor-pointer z-[201]"
+            className="lg:hidden flex flex-col justify-center items-center w-9 h-9 gap-[5px] cursor-pointer z-[201]"
             onClick={() => setIsOpen(true)}
             aria-label="Open navigation menu"
             aria-expanded={isOpen}
             aria-controls="mobile-drawer"
           >
             <span
-              className="block w-7 h-[2.5px] bg-stone-900 rounded-full transition-all duration-300"
+              className="block w-6 h-[2px] bg-stone-900 rounded-full transition-all duration-300"
             />
             <span
-              className="block w-7 h-[2.5px] bg-stone-900 rounded-full transition-all duration-300"
+              className="block w-6 h-[2px] bg-stone-900 rounded-full transition-all duration-300"
             />
             <span
-              className="block w-5 h-[2.5px] bg-stone-900 rounded-full transition-all duration-300"
+              className="block w-4 h-[2px] bg-stone-900 rounded-full transition-all duration-300"
             />
           </button>
         </div>

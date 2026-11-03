@@ -201,7 +201,7 @@ export const CountdownSection = () => {
   const displayTime = isRegistrationOpen ? ZERO_TIME : remaining;
 
   return (
-    <section className="relative w-full max-w-[1440px] mx-auto select-none overflow-hidden bg-transparent px-0 py-0 text-[#1D1D1B]">
+    <section className="relative w-full max-w-[1440px] mx-auto select-none overflow-hidden bg-transparent px-0 py-0 text-[#1D1D1B] md:scale-[0.75] md:origin-center">
       <div className="w-full flex flex-col items-center">
         <Scoreboard
           isClockOn={isRegistrationOpen}

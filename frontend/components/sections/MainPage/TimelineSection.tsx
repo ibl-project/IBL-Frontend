@@ -47,7 +47,7 @@ export const TimelineSection = () => {
         viewport={{ once: false, amount: 0.2 }}
         variants={popSpringVariants}
         custom={0.30}
-        className="relative flex-shrink-0 timeline-detail-container max-md:mb-[var(--timeline-detail-mb-mobile,50px)]"
+        className="relative flex-shrink-0 timeline-detail-container max-md:mb-[var(--timeline-detail-mb-mobile,0px)]"
         style={{
           width: "calc(100% * 1116.04 / 1440)",
           aspectRatio: "1116.04 / 618",

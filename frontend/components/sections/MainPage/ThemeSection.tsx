@@ -24,7 +24,7 @@ import { popSpringVariants, popPunchVariants } from "@/lib/animations";
 export const ThemeSection = () => {
   return (
     <section
-      className="relative w-full max-w-[1440px] mx-auto select-none"
+      className="relative w-full max-w-[1440px] mx-auto select-none md:scale-[0.75] md:origin-center"
       style={{
         aspectRatio: "1440 / 1200",
       }}
