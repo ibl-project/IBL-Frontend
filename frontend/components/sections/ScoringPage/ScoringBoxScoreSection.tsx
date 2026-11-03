@@ -33,7 +33,7 @@ interface ScoringBoxScoreSectionProps {
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
-const STAT_LABEL: Record<StatKey, string> = {
+export const STAT_LABEL: Record<StatKey, string> = {
   twoPointMade: "2 Point Made",
   twoPointMiss: "2 Point Miss",
   threePointMade: "3 Point Made",

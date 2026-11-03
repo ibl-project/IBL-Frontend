@@ -5,7 +5,8 @@ import { X } from "lucide-react";
 
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
 import { useScoringSession } from "@/lib/hooks/useScoringSession";
-import { type ScoringBoardItem, getScoringBoard } from "@/lib/matchesApi";
+import { type ScoringBoard, type ScoringBoardItem, getScoringBoard } from "@/lib/matchesApi";
+import { countOutboxByMatch } from "@/lib/scoringOutbox";
 import { canEditData, useAuthStore } from "@/lib/store/useAuthStore";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { ScoringChooseMatchSection } from "@/components/sections/ScoringPage/ScoringChooseMatchSection";
@@ -52,9 +53,20 @@ function bySchedule(a: ScoringBoardItem, b: ScoringBoardItem): number {
 
 export default function ScoringPage() {
   const canEdit = canEditData(useAuthStore((state) => state.user?.role));
+  const userId = useAuthStore((state) => state.user?.id ?? "");
   const [dateFilter, setDateFilter] = useState("");
   const loadBoard = useCallback(() => getScoringBoard(dateFilter || undefined), [dateFilter]);
   const { state: board, reload: reloadBoard } = useAsyncData(loadBoard);
+  // Daftar terakhir yang berhasil dimuat. Kalau refresh berkala gagal (wifi
+  // atau backend mati), daftar & scoring desk tetap tampil, tidak diganti
+  // pesan error. Hanya untuk filter tanggal yang sama.
+  const [lastBoard, setLastBoard] = useState<{ date: string; data: ScoringBoard } | null>(null);
+  if (board.status === "ready" && lastBoard?.data !== board.data) {
+    setLastBoard({ date: dateFilter, data: board.data });
+  }
+  const shown =
+    board.status === "ready" ? board.data : lastBoard && lastBoard.date === dateFilter ? lastBoard.data : null;
+  const disconnected = board.status === "error" && shown !== null;
   const [initialView] = useState(restoreView);
   const [mode, setMode] = useState<Mode>(initialView.mode);
   // Match yang sedang dikerjakan akun ini: di layar kapten (lineup) atau scoring desk.
@@ -87,8 +99,8 @@ export default function ScoringPage() {
   }, [reloadBoard]);
 
   // `opened` sudah urut nomor Match N dari backend.
-  const opened = board.status === "ready" ? board.data.opened : [];
-  const available = board.status === "ready" ? [...board.data.available].sort(bySchedule) : [];
+  const opened = shown ? shown.opened : [];
+  const available = shown ? [...shown.available].sort(bySchedule) : [];
   const focusItem = [...opened, ...available].find((match) => match.id === focusId) ?? null;
   // Mode yang dipulihkan setelah refresh bisa sudah tidak cocok dengan status match.
   const view: Mode =
@@ -103,7 +115,7 @@ export default function ScoringPage() {
   // Satu sesi untuk seluruh halaman, supaya pindah dari layar kapten ke
   // scoring desk tidak melepas lalu mengambil ulang sesi.
   const sessionMatchId = (view === "lineup" || view === "desk") && focusId && !focusItem?.locked ? focusId : null;
-  const { session, recheck } = useScoringSession(sessionMatchId);
+  const { session, recheck } = useScoringSession(sessionMatchId, userId);
 
   const backToList = useCallback(() => {
     setMode("list");
@@ -126,12 +138,21 @@ export default function ScoringPage() {
   const subtitle =
     view === "desk" && focusItem
       ? `Match ${focusItem.matchNumber} · ${focusItem.team1.name} vs ${focusItem.team2.name}`
-      : board.status === "ready"
+      : shown
         ? `Total ${opened.length} Pertandingan Terdaftar dalam IBL 2K26`
         : null;
 
   return (
     <Shell subtitle={subtitle} compact={view === "desk"}>
+      {disconnected && (
+        <p
+          role="status"
+          className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900"
+        >
+          Koneksi ke server terputus. Daftar match belum diperbarui, scoring yang sedang dibuka tetap bisa diisi dan
+          terkirim otomatis saat koneksi kembali.
+        </p>
+      )}
       {view === "list" && notice && (
         <div
           role="status"
@@ -174,7 +195,7 @@ export default function ScoringPage() {
         </p>
       )}
 
-      {board.status === "error" && (
+      {board.status === "error" && !shown && (
         <div role="alert" className="flex flex-col items-center gap-3 py-24 text-center font-poppins">
           <p className="text-sm font-medium text-red-700">Data scoring gagal dimuat: {board.message}</p>
           <button type="button" onClick={reloadBoard} className="rounded-full bg-[#7a9ba8] px-5 py-2 text-xs font-semibold text-white">
@@ -183,9 +204,10 @@ export default function ScoringPage() {
         </div>
       )}
 
-      {board.status === "ready" && view === "list" && (
+      {shown && view === "list" && (
         <ScoringMatchListSection
           items={opened}
+          unsent={countOutboxByMatch(userId)}
           filtered={dateFilter !== ""}
           onScore={(match) => {
             setNotice(null);
@@ -196,7 +218,7 @@ export default function ScoringPage() {
         />
       )}
 
-      {board.status === "ready" && view === "choose" && (
+      {shown && view === "choose" && (
         <ScoringChooseMatchSection
           available={available}
           onChoose={(match) => {
@@ -207,7 +229,7 @@ export default function ScoringPage() {
         />
       )}
 
-      {board.status === "ready" && view === "lineup" && focusItem && (
+      {shown && view === "lineup" && focusItem && (
         <ScoringLineupSection
           match={focusItem}
           session={session}
@@ -223,7 +245,7 @@ export default function ScoringPage() {
         />
       )}
 
-      {board.status === "ready" && view === "desk" && focusItem && (
+      {shown && view === "desk" && focusItem && (
         <ScoringMatchPanel
           key={focusItem.id}
           item={focusItem}
