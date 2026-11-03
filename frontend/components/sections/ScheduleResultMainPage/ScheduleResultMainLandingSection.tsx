@@ -70,9 +70,10 @@ function MatchCard({ match, frame, dateKey }: { match: MatchListItem; frame: str
           )}
           <span className="shrink-0">{formatKickoff(match.scheduledAt)}</span>
         </p>
+        {/* Teks 9 px; area sentuh tak terlihat (before:) membuat tinggi target >= 24 px (WCAG 2.5.8) tanpa mengubah tampilan. */}
         <Link
           href={`/schedule-result-main/detail-game?id=${match.id}&date=${dateKey}`}
-          className="absolute left-1/2 top-[54%] -translate-x-1/2 rounded-[3.5px] border border-[#f6c475] bg-gradient-to-b from-[#c51610] to-[#760807] px-1.5 py-[1px] font-poppins text-[7px] font-semibold text-white shadow-[0_1px_0_rgba(0,0,0,.22)] transition-[transform,background-color] hover:scale-[1.07] hover:from-[#d6211b] hover:to-[#8a0a09] active:scale-[0.94] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44D1D1] sm:rounded-[6px] sm:px-[clamp(9px,1.3vw,18px)] sm:py-[clamp(2.5px,0.3vw,4.5px)] sm:text-[clamp(8.5px,0.85vw,12px)] sm:shadow-[0_2px_0_rgba(0,0,0,.28)]"
+          className="absolute left-1/2 top-[54%] -translate-x-1/2 rounded-[3.5px] border border-[#f6c475] bg-gradient-to-b from-[#c51610] to-[#760807] px-1.5 py-[1px] font-poppins text-[9px] font-semibold text-white before:absolute before:-inset-x-1 before:-inset-y-1 before:content-[''] shadow-[0_1px_0_rgba(0,0,0,.22)] transition-[transform,background-color] hover:scale-[1.07] hover:from-[#d6211b] hover:to-[#8a0a09] active:scale-[0.94] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44D1D1] sm:rounded-[6px] sm:px-[clamp(9px,1.3vw,18px)] sm:py-[clamp(2.5px,0.3vw,4.5px)] sm:text-[clamp(8.5px,0.85vw,12px)] sm:shadow-[0_2px_0_rgba(0,0,0,.28)]"
         >
           Game Detail
         </Link>
