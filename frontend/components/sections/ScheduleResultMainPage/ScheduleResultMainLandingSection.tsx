@@ -58,11 +58,11 @@ function MatchCard({ match, frame, dateKey }: { match: MatchListItem; frame: str
           </div>
         )}
 
-        {/* Blok Tengah: Venue, Kickoff, dan Game Detail */}
-        <p className="absolute left-[29.5%] right-[29.5%] top-[30.5%] truncate font-hollywood text-[clamp(9.5px,1.25vw,18px)] leading-tight text-[#147f83] [text-shadow:1px_1px_0_#fff3d2]">
+        {/* Blok Tengah: Venue, Kickoff, dan Game Detail. Ukuran minimum di ponsel mengikuti main (lokasi 12 px, kickoff 10 px). */}
+        <p className="absolute left-[29.5%] right-[29.5%] top-[30.5%] truncate font-hollywood text-[clamp(12px,1.25vw,18px)] leading-tight text-[#147f83] [text-shadow:1px_1px_0_#fff3d2]">
           {match.venue ?? "Lokasi belum diatur"}
         </p>
-        <p className="absolute left-[29.5%] right-[29.5%] top-[41.5%] flex items-center justify-center gap-1 sm:gap-1.5 font-poppins text-[clamp(7.5px,0.95vw,14px)] font-extrabold leading-tight tracking-tight">
+        <p className="absolute left-[29.5%] right-[29.5%] top-[41.5%] flex items-center justify-center gap-1 sm:gap-1.5 font-poppins text-[clamp(10px,0.95vw,14px)] font-extrabold leading-tight tracking-tight">
           {status === "LIVE" && (
             <span className="shrink-0 rounded-[3px] bg-[#c51610] px-[0.35em] py-[0.05em] font-poppins text-[0.7em] font-bold tracking-wider text-white shadow-xs">
               LIVE
