@@ -1,13 +1,13 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
+import Image, { type ImageProps } from "next/image";
 import { motion } from "framer-motion";
 import TicketCongrats from "@/public/images/announcement/Ticket_Congrats.svg";
 
 interface ResultTicketProps {
   headerText?: string;
-  stickerSrc: any;
+  stickerSrc: ImageProps["src"];
   stickerAlt: string;
   stickerClass?: string; // e.g., "w-[260px] sm:w-[280px] mb-[-40px] z-10 relative"
   ticketMarginBottomClass?: string; // e.g., "mb-28" or ""
