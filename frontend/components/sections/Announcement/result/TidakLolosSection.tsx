@@ -7,7 +7,7 @@ interface TidakLolosSectionProps {
   urlName?: string;
 }
 
-export default function TidakLolosSection({ nrp, urlName }: TidakLolosSectionProps) {
+export default function TidakLolosSection({ urlName }: TidakLolosSectionProps) {
   const displayName = urlName || "(nama)";
 
   return (

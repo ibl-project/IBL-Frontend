@@ -8,7 +8,6 @@ import { LandingSection } from "@/components/sections/RegisterPage/LandingSectio
 import { MidSection } from "@/components/sections/RegisterPage/MidSection";
 import { FormSection } from "@/components/sections/RegisterPage/FormSection";
 import { useScaleRatio } from "@/lib/hooks/useScaleRatio";
-import { FormClosed } from "@/components/sections/RegisterPage/FormClosed";
 
 export default function Register() {
   const [isLoading, setIsLoading] = useState(true);

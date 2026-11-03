@@ -12,9 +12,7 @@ interface LolosSectionProps {
 }
 
 export default function LolosSection({
-  nrp,
   urlName,
-  subdivisi,
   cpName,
   cpPhone,
 }: LolosSectionProps) {
