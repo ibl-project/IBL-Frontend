@@ -15,12 +15,12 @@ import { isDateKey } from "@/lib/scheduleDays";
 import { MatchHeader } from "./MatchHeader";
 import { SummaryTable } from "./SummaryTable";
 
-const VALID_MATCH_ID = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|match-.*|mock-.*)$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LIVE_REFRESH_MS = 60_000;
 
 /** Match dari API; null kalau id tidak valid atau tidak ada (404/400). Error lain tetap dilempar. */
 function loadMatch(id: string | null): Promise<MatchSnapshot | null> {
-  if (!id || !VALID_MATCH_ID.test(id)) return Promise.resolve(null);
+  if (!id || !UUID.test(id)) return Promise.resolve(null);
   return getMatch(id).catch((error: unknown) => {
     if (error instanceof ApiError && (error.status === 404 || error.status === 400)) return null;
     throw error;
