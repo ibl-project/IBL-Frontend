@@ -87,7 +87,7 @@ function ArrowButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={isPrev ? "Hari sebelumnya" : "Hari berikutnya"}
-      className={`absolute top-1/2 z-10 aspect-square w-[2.66cqw] -translate-y-1/2 cursor-pointer rounded-full bg-[#44D1D1] before:absolute before:top-1/2 before:h-11 before:w-11 before:-translate-y-1/2 before:content-[''] disabled:cursor-default disabled:opacity-40 @max-[480px]/strip:w-[3.17cqw] ${position} ${hitArea} ${FOCUS_RING}`}
+      className={`absolute top-1/2 z-20 aspect-square w-[2.66cqw] -translate-y-1/2 cursor-pointer rounded-full bg-[#44D1D1] before:absolute before:top-1/2 before:h-11 before:w-11 before:-translate-y-1/2 before:content-[''] disabled:cursor-not-allowed disabled:opacity-30 motion-safe:transition-transform motion-safe:hover:not-disabled:scale-110 motion-safe:active:not-disabled:scale-95 @max-[480px]/strip:w-[3.17cqw] ${position} ${hitArea} ${FOCUS_RING}`}
     >
       <svg viewBox={CHEVRON[direction].viewBox} className="block h-full w-full" fill="none" aria-hidden="true">
         <path
@@ -142,7 +142,7 @@ function DayCard({
       aria-label={`${formatMatchDay(day)}, ${count} laga`}
       whileHover={canHover && !selected && !reduceMotion ? { y: -2 } : undefined}
       whileTap={reduceMotion ? undefined : { scale: 0.97 }}
-      className={`${CARD_SHELL} cursor-pointer ${FOCUS_RING}`}
+      className={`${CARD_SHELL} cursor-pointer pointer-events-auto ${FOCUS_RING}`}
     >
       <span aria-hidden="true" className={CARD_WINDOW} />
 
@@ -224,7 +224,7 @@ export function CalendarStrip({ days, selectedKey, onSelect, status, onRetry }: 
   // null = halaman mengikuti hari terpilih; angka = user sudah menggeser dengan panah.
   const [pagedTo, setPagedTo] = useState<number | null>(null);
   const followPage = selectedIndex >= 0 ? Math.floor(selectedIndex / DAYS_PER_PAGE) : 0;
-  const page = Math.min(pagedTo ?? followPage, pageCount - 1);
+  const page = Math.max(0, Math.min(pagedTo ?? followPage, pageCount - 1));
   const visible = days.slice(page * DAYS_PER_PAGE, (page + 1) * DAYS_PER_PAGE);
 
   // Pindah hari dengan keyboard bisa berganti halaman, jadi fokus dipindah setelah render.
@@ -263,8 +263,9 @@ export function CalendarStrip({ days, selectedKey, onSelect, status, onRetry }: 
       )}
 
       <div className="hidden supports-[container-type:inline-size]:block">
+        {/* Di strip sempit kartu tidak menampilkan bulan, jadi keterangan bulan tampil; di strip lebar hanya untuk pembaca layar. */}
         {ready && (
-          <p className="mb-1 hidden text-center font-drowner text-xs tracking-[0.15em] text-[#7E0202] @max-[432px]/strip:block">
+          <p className="sr-only text-center font-drowner text-xs tracking-[0.15em] text-[#7E0202] @max-[432px]/strip:not-sr-only @max-[432px]/strip:mb-1">
             {captionFor(visible)}
           </p>
         )}
@@ -318,7 +319,7 @@ export function CalendarStrip({ days, selectedKey, onSelect, status, onRetry }: 
               role="group"
               aria-label="Pilih hari pertandingan"
               onKeyDown={onRowKeyDown}
-              className="absolute inset-0 flex items-center justify-center gap-[1.15cqw] @max-[480px]/strip:gap-[0.7cqw]"
+              className="absolute inset-0 flex items-center justify-center gap-[1.15cqw] pointer-events-none @max-[480px]/strip:gap-[0.7cqw]"
             >
               {visible.map((day) => (
                 <DayCard

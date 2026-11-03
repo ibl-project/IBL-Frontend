@@ -201,7 +201,7 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
             className="group inline-flex items-center gap-2 rounded-full border-2 border-[#760807] bg-[#fff5df] px-3.5 py-1.5 font-poppins text-xs font-bold text-[#760807] shadow-[2px_2px_0_#380606] transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[3px_3px_0_#380606] sm:text-sm"
           >
             <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-1 sm:size-4" />
-            <span>Kembali ke Jadwal</span>
+            <span>Kembali</span>
           </Link>
         </div>
 
