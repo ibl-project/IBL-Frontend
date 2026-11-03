@@ -3,20 +3,24 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { popSpringVariants, popPunchVariants } from "@/lib/animations";
-
-export interface LeaderboardEntry {
-  name: string;
-  team: string;
-  games: number | string;
-  total: number | string;
-  average: number | string;
-}
+import { useAsyncData, type AsyncState } from "@/lib/hooks/useAsyncData";
+import { type Leaderboard, type LeaderboardRow, getLeaderboard } from "@/lib/leaderboardApi";
 
 type LeaderboardKey = "points" | "assists" | "rebounds";
 
-interface LeaderboardSectionProps {
-  leaderboards?: Partial<Record<LeaderboardKey, LeaderboardEntry[]>>;
+/** Jumlah baris per tabel, sesuai desain. */
+const ROWS_PER_TABLE = 5;
+
+// Fungsi stabil di level modul, syarat useAsyncData.
+const loadLeaderboard = () => getLeaderboard(ROWS_PER_TABLE, "total");
+
+/** Rata-rata per game: bilangan bulat apa adanya, selain itu satu angka desimal. */
+function formatAverage(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
+
+// Nama lebih panjang dari ini dipadatkan supaya tidak keluar dari kolom NAME.
+const LONG_NAME_CHARS = 24;
 
 interface CategoryConfig {
   key: LeaderboardKey;
@@ -150,15 +154,6 @@ const categories: CategoryConfig[] = [
   },
 ];
 
-const demoEntries = (): LeaderboardEntry[] =>
-  Array.from({ length: 5 }, (_, index) => ({
-    name: `nama pemain ${index + 1}`,
-    team: "nama himpunan",
-    games: 0,
-    total: 0,
-    average: 0,
-  }));
-
 function LeaderboardTable({
   categoryKey,
   title,
@@ -166,7 +161,8 @@ function LeaderboardTable({
   darkColor,
   gradientStops,
   strokeColor,
-  entries,
+  state,
+  onRetry,
 }: {
   categoryKey: LeaderboardKey;
   title: string;
@@ -174,8 +170,18 @@ function LeaderboardTable({
   darkColor: string;
   gradientStops: { offset: string; color: string }[];
   strokeColor: string;
-  entries: LeaderboardEntry[];
+  state: AsyncState<Leaderboard>;
+  onRetry: () => void;
 }) {
+  const entries: LeaderboardRow[] =
+    state.status === "ready" ? state.data[categoryKey].slice(0, ROWS_PER_TABLE) : [];
+  const emptyMessage =
+    state.status === "loading"
+      ? "Memuat data..."
+      : state.status === "error"
+        ? state.message
+        : "Belum ada data pemain.";
+
   return (
     <div
       className="overflow-hidden rounded-[8px] border-2 shadow-[3px_4px_0_rgba(0,0,0,0.4)] sm:rounded-[16px] sm:border-4"
@@ -207,9 +213,31 @@ function LeaderboardTable({
           </tr>
         </thead>
         <tbody>
-          {entries.slice(0, 5).map((entry, index) => (
+          {entries.length === 0 && (
             <tr
-              key={`${entry.name}-${index}`}
+              className="h-[clamp(38px,12vw,52px)] border-t text-[#151515] sm:h-[clamp(84px,9.5vw,136px)] sm:border-t-2"
+              style={{ backgroundColor: "#fff8df", borderColor: color }}
+            >
+              <td colSpan={5} className="px-2 font-semibold sm:text-[clamp(13px,1.35vw,19px)]">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <p>{emptyMessage}</p>
+                  {state.status === "error" && (
+                    <button
+                      type="button"
+                      onClick={onRetry}
+                      className="cursor-pointer rounded-full px-4 py-1 text-[0.8em] font-bold uppercase text-white transition-opacity hover:opacity-80"
+                      style={{ backgroundColor: color }}
+                    >
+                      Coba lagi
+                    </button>
+                  )}
+                </div>
+              </td>
+            </tr>
+          )}
+          {entries.map((entry, index) => (
+            <tr
+              key={entry.player.id}
               className="h-[clamp(19px,6.15vw,26px)] border-t text-[#151515] sm:h-[clamp(42px,4.75vw,68px)] sm:border-t-2"
               style={{ backgroundColor: "#fff8df", borderColor: color }}
             >
@@ -217,7 +245,7 @@ function LeaderboardTable({
                 className="border-r px-1 font-bold sm:border-r-2"
                 style={{ borderColor: color }}
               >
-                {index + 1}
+                {entry.rank}
               </td>
               <td
                 className="border-r px-2 py-0.5 text-left sm:border-r-2 sm:py-1"
@@ -254,18 +282,21 @@ function LeaderboardTable({
                       strokeLinejoin="round"
                       paintOrder="stroke fill"
                       className="select-none tracking-wide"
+                      {...(entry.player.name.length > LONG_NAME_CHARS
+                        ? { textLength: 490, lengthAdjust: "spacingAndGlyphs" }
+                        : {})}
                     >
-                      {entry.name}
+                      {entry.player.name}
                     </text>
                   </svg>
                   <span className="block truncate font-poppins text-[7px] leading-tight text-[#151515] sm:text-[clamp(11px,1.2vw,17px)]">
-                    {entry.team}
+                    {entry.team.name}
                   </span>
                 </div>
               </td>
-              {[entry.games, entry.total, entry.average].map((value, valueIndex) => (
+              {[entry.games, entry.total, formatAverage(entry.average)].map((value, valueIndex) => (
                 <td
-                  key={`${entry.name}-${valueIndex}`}
+                  key={valueIndex}
                   className="border-r px-0.5 font-bold text-[#151515] last:border-r-0 sm:border-r-2 sm:text-[clamp(13px,1.35vw,19px)]"
                   style={{ borderColor: color }}
                 >
@@ -280,7 +311,9 @@ function LeaderboardTable({
   );
 }
 
-export function LeaderboardSection({ leaderboards = {} }: LeaderboardSectionProps) {
+export function LeaderboardSection() {
+  const { state, reload } = useAsyncData(loadLeaderboard);
+
   return (
     <section
       aria-label="Leaderboard IBL 2K26"
@@ -360,7 +393,8 @@ export function LeaderboardSection({ leaderboards = {} }: LeaderboardSectionProp
                 darkColor={category.darkColor}
                 gradientStops={category.gradientStops}
                 strokeColor={category.strokeColor}
-                entries={leaderboards[category.key] ?? demoEntries()}
+                state={state}
+                onRetry={reload}
               />
             </motion.div>
           </section>
