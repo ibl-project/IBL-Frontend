@@ -40,10 +40,10 @@ interface RosterRow {
   stats: PlayerStats | null;
 }
 
-const EMPTY_TEAM_STATS = { G: "-", W: "-", L: "-", PM: "-", PA: "-", PD: "-", PTS: "-" };
+const EMPTY_TEAM_STATS = { G: "0", W: "0", L: "0", PM: "0", PA: "0", PD: "0", PTS: "0" };
 
 /** Pemain yang sudah tercatat di pertandingan tidak bisa dihapus (backend menolak 409). */
-const hasMatchRecord = (row: RosterRow) => row.stats !== null && row.stats.game !== "-";
+const hasMatchRecord = (row: RosterRow) => row.stats !== null && row.stats.game !== "0";
 
 function rosterProblems(rows: RosterRow[]): string[] {
   const problems: string[] = [];
@@ -397,10 +397,10 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
                 <td className="p-3 font-bold bg-[#D9CDBF] border-r border-white/50 text-[#2d3748]">Value</td>
                 {(["G", "W", "L", "PM", "PA", "PD"] as const).map((field) => (
                   <td key={field} className="p-3 bg-white text-gray-700 font-medium border-r border-gray-200">
-                    {teamStats[field] || "-"}
+                    {teamStats[field] || "0"}
                   </td>
                 ))}
-                <td className="p-3 bg-white text-gray-700 font-medium">{teamStats.PTS || "-"}</td>
+                <td className="p-3 bg-white text-gray-700 font-medium">{teamStats.PTS || "0"}</td>
               </tr>
             </tbody>
           </table>
@@ -458,10 +458,10 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
                         onChange={(name) => updateRow(row.key, { name })}
                       />
                     </td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.game || "-"}</td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.point || "-"}</td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.assist || "-"}</td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.rebound || "-"}</td>
+                    <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.game || "0"}</td>
+                    <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.point || "0"}</td>
+                    <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.assist || "0"}</td>
+                    <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.rebound || "0"}</td>
                     <td className="p-1 text-center align-middle">
                       <button
                         type="button"
@@ -509,13 +509,13 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
               {rows.map((row, idx) => (
                 <tr key={row.key} className={idx % 2 === 0 ? "bg-white" : "bg-[#F3EFE9]"}>
                   <td className="p-3 border-r border-gray-200 font-medium text-gray-700">{row.name}</td>
-                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.ppg || "-"}</td>
-                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.apg || "-"}</td>
-                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.rpg || "-"}</td>
-                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.fgPercent || "-"}</td>
-                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.threePPercent || "-"}</td>
-                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.twoPPercent || "-"}</td>
-                  <td className="p-3 text-gray-600">{row.stats?.ftPercent || "-"}</td>
+                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.ppg || "0"}</td>
+                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.apg || "0"}</td>
+                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.rpg || "0"}</td>
+                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.fgPercent || "0"}</td>
+                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.threePPercent || "0"}</td>
+                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.twoPPercent || "0"}</td>
+                  <td className="p-3 text-gray-600">{row.stats?.ftPercent || "0"}</td>
                 </tr>
               ))}
             </tbody>
