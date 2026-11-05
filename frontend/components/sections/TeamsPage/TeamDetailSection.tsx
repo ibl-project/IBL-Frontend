@@ -32,13 +32,13 @@ export const TeamDetailSection = ({
   const displayTeamName = team?.name || teamName;
   const displayGroup = team ? team.group ?? "Belum masuk grup" : "";
   const teamStats = team?.teamStats || {
-    G: "-",
-    W: "-",
-    L: "-",
-    PM: "-",
-    PA: "-",
-    PD: "-",
-    PTS: "-",
+    G: "0",
+    W: "0",
+    L: "0",
+    PM: "0",
+    PA: "0",
+    PD: "0",
+    PTS: "0",
   };
   const players = team?.players || [];
 
@@ -137,25 +137,25 @@ export const TeamDetailSection = ({
                         Value
                       </td>
                       <td className="p-3 bg-white text-gray-700 font-medium border-r border-gray-200">
-                        {teamStats.G || "-"}
+                        {teamStats.G || "0"}
                       </td>
                       <td className="p-3 bg-white text-gray-700 font-medium border-r border-gray-200">
-                        {teamStats.W || "-"}
+                        {teamStats.W || "0"}
                       </td>
                       <td className="p-3 bg-white text-gray-700 font-medium border-r border-gray-200">
-                        {teamStats.L || "-"}
+                        {teamStats.L || "0"}
                       </td>
                       <td className="p-3 bg-white text-gray-700 font-medium border-r border-gray-200">
-                        {teamStats.PM || "-"}
+                        {teamStats.PM || "0"}
                       </td>
                       <td className="p-3 bg-white text-gray-700 font-medium border-r border-gray-200">
-                        {teamStats.PA || "-"}
+                        {teamStats.PA || "0"}
                       </td>
                       <td className="p-3 bg-white text-gray-700 font-medium border-r border-gray-200">
-                        {teamStats.PD || "-"}
+                        {teamStats.PD || "0"}
                       </td>
                       <td className="p-3 bg-white text-gray-700 font-medium">
-                        {teamStats.PTS || "-"}
+                        {teamStats.PTS || "0"}
                       </td>
                     </tr>
                   </tbody>
@@ -189,16 +189,16 @@ export const TeamDetailSection = ({
                           {player.name}
                         </td>
                         <td className="p-3 border-r border-gray-200 text-gray-600">
-                          {player.stats?.game || "-"}
+                          {player.stats?.game || "0"}
                         </td>
                         <td className="p-3 border-r border-gray-200 text-gray-600">
-                          {player.stats?.point || "-"}
+                          {player.stats?.point || "0"}
                         </td>
                         <td className="p-3 border-r border-gray-200 text-gray-600">
-                          {player.stats?.assist || "-"}
+                          {player.stats?.assist || "0"}
                         </td>
                         <td className="p-3 text-gray-600">
-                          {player.stats?.rebound || "-"}
+                          {player.stats?.rebound || "0"}
                         </td>
                       </tr>
                     ))}
@@ -236,25 +236,25 @@ export const TeamDetailSection = ({
                           {player.name}
                         </td>
                         <td className="p-3 border-r border-gray-200 text-gray-600">
-                          {player.stats?.ppg || "-"}
+                          {player.stats?.ppg || "0"}
                         </td>
                         <td className="p-3 border-r border-gray-200 text-gray-600">
-                          {player.stats?.apg || "-"}
+                          {player.stats?.apg || "0"}
                         </td>
                         <td className="p-3 border-r border-gray-200 text-gray-600">
-                          {player.stats?.rpg || "-"}
+                          {player.stats?.rpg || "0"}
                         </td>
                         <td className="p-3 border-r border-gray-200 text-gray-600">
-                          {player.stats?.fgPercent || "-"}
+                          {player.stats?.fgPercent || "0"}
                         </td>
                         <td className="p-3 border-r border-gray-200 text-gray-600">
-                          {player.stats?.threePPercent || "-"}
+                          {player.stats?.threePPercent || "0"}
                         </td>
                         <td className="p-3 border-r border-gray-200 text-gray-600">
-                          {player.stats?.twoPPercent || "-"}
+                          {player.stats?.twoPPercent || "0"}
                         </td>
                         <td className="p-3 text-gray-600">
-                          {player.stats?.ftPercent || "-"}
+                          {player.stats?.ftPercent || "0"}
                         </td>
                       </tr>
                     ))}
