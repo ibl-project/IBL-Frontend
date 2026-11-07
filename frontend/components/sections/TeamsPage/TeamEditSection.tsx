@@ -42,8 +42,12 @@ interface RosterRow {
 
 const EMPTY_TEAM_STATS = { G: "-", W: "-", L: "-", PM: "-", PA: "-", PD: "-", PTS: "-" };
 
-/** Pemain yang sudah tercatat di pertandingan tidak bisa dihapus (backend menolak 409). */
-const hasMatchRecord = (row: RosterRow) => row.stats !== null && row.stats.game !== "-";
+/**
+ * Pemain yang sudah tercatat di pertandingan tidak bisa dihapus (backend menolak 409).
+ * Backend mengirim "0" untuk pemain tanpa catatan (staging lama masih "-"), jadi
+ * bandingkan angkanya, bukan string placeholder-nya.
+ */
+const hasMatchRecord = (row: RosterRow) => Number(row.stats?.game ?? 0) > 0;
 
 function rosterProblems(rows: RosterRow[]): string[] {
   const problems: string[] = [];
