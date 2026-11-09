@@ -95,6 +95,8 @@ export interface PlayoffMatchTeam {
   seed?: number;
   score?: number;
   winner?: boolean;
+  /** URL logo dari API; tidak ada untuk slot TBD. */
+  logo?: string;
 }
 
 export interface PlayoffDuel {
@@ -118,6 +120,7 @@ function toTeam(match: PlayoffMatch | null, side: PlayoffTeamSide | undefined): 
     // Skor 0–0 jadwal yang belum dimulai tidak ditampilkan.
     score: match.status === "SCHEDULED" ? undefined : side.score,
     winner: side.id !== null && match.winnerTeamId === side.id,
+    logo: side.logo ?? undefined,
   };
 }
 

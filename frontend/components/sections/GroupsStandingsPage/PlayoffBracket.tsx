@@ -3,14 +3,23 @@
 import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 import type { PlayoffMatchTeam, PlayoffTournamentData } from "@/lib/standingsApi";
 
 interface PlayoffBracketProps {
   data: PlayoffTournamentData;
 }
 
-/** Mini basketball emblem icon */
-function TeamEmblem() {
+/** Logo tim; slot TBD (tanpa logo) memakai ikon bola. */
+function TeamEmblem({ logo }: { logo?: string }) {
+  if (logo) {
+    return (
+      <div className="relative size-[23px] shrink-0 overflow-hidden rounded-[3px] shadow-sm" aria-hidden>
+        <TeamLogo src={logo} sizes="46px" />
+      </div>
+    );
+  }
+
   return (
     <div
       className="size-[23px] shrink-0 rounded-[3px] bg-[#7E0202] flex items-center justify-center shadow-sm"
@@ -111,14 +120,14 @@ function TeamCard({
                 {team.score}
               </span>
             )}
-            <TeamEmblem />
+            <TeamEmblem logo={team.logo} />
           </div>
         </div>
       ) : (
         // Right Wing Card: [Emblem] [Score] [Rank] [Team Name] (mirrored)
         <div className="flex items-center justify-between w-full gap-1">
           <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-            <TeamEmblem />
+            <TeamEmblem logo={team.logo} />
             {team.score !== undefined && (
               <span className={`${large ? "text-[12px] sm:text-[13px]" : compact ? "text-[10px]" : "text-[11px]"} font-extrabold text-[#7E0202] px-0.5`}>
                 {team.score}
