@@ -299,27 +299,44 @@ function MatchDaySchedule() {
   );
 }
 
+/** Satu blok latar: gambar atas (sampai awal blok merah) lalu pita merah bertekstur yang diulang ke bawah. */
+function BackgroundBlock({ mirrored }: { mirrored: boolean }) {
+  return (
+    <div className={`flex h-full w-[clamp(1100px,100vw,1440px)] shrink-0 flex-col ${mirrored ? "-scale-x-100" : ""}`}>
+      <Image
+        src="/images/Backgroundschedule-top.png"
+        alt=""
+        width={1440}
+        height={1090}
+        priority
+        className="h-auto w-full shrink-0"
+      />
+      <div
+        className="min-h-0 flex-1 bg-[#f3e6ce]"
+        style={{
+          backgroundImage: "url(/images/Backgroundschedule-tile.png)",
+          backgroundSize: "100% auto",
+          backgroundRepeat: "repeat-y",
+          backgroundPosition: "top center",
+        }}
+      />
+    </div>
+  );
+}
+
 export const ScheduleResultMainLandingSection = () => {
   return (
     <section
       aria-label="Schedule and Result"
       className="relative isolate overflow-hidden bg-[#f3e6ce] pb-5 pt-[calc(var(--navbar-height)+12px)] md:pt-[calc(var(--navbar-height)+12px)] lg:pt-[calc(var(--navbar-height)+16px)] sm:pb-6"
-      style={{
-        backgroundImage:
-          "linear-gradient(to bottom, transparent 0 125px, #f3e6ce 190px), repeating-conic-gradient(#f5ead6 0% 25%, #e9782d 0% 50%)",
-        backgroundSize: "100% 100%, 36px 36px",
-        backgroundPosition: "top left, top left",
-      }}
     >
-      <Image
-        src="/images/Backgroundschedule.png"
-        alt=""
-        width={1440}
-        height={1330}
-        priority
-        className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-top"
-      />
-
+      {/* Latar: lebar satu blok dikunci clamp(1100px, 100vw, 1440px) supaya skala mengikuti isi halaman (yang
+          juga berhenti membesar di 1440px) dan tidak melar saat zoom out. Layar lebih lebar diisi blok cermin di kiri-kanan. */}
+      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-1/2 z-0 flex -translate-x-1/2">
+        {[true, false, true].map((mirrored, i) => (
+          <BackgroundBlock key={i} mirrored={mirrored} />
+        ))}
+      </div>
       <div className="relative z-10 mx-auto flex w-full flex-col items-center">
         {/* Title: SCHEDULE & RESULT (Entrance Pop Animation only, no continuous float) */}
         <motion.div
