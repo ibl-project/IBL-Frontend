@@ -5,6 +5,7 @@ import { AboutSection } from "@/components/sections/MainPage/AboutSection";
 import { ThemeSection } from "@/components/sections/MainPage/ThemeSection";
 import { CountdownSection } from "@/components/sections/MainPage/CountdownSection";
 import { TimelineSection } from "@/components/sections/MainPage/TimelineSection";
+import { LiveMatchModal } from "@/components/sections/MainPage/LiveMatchModal";
 
 export const metadata: Metadata = {
   title: "IBL 2K26 | ITS Basketball League",
@@ -35,6 +36,9 @@ export default function Home() {
       id="home-page"
       className="relative isolate w-full max-w-[1440px] mx-auto aspect-[1440/4716] lg:aspect-[1440/4692] overflow-hidden max-lg:mt-[var(--about-bg-mt-mobile,24px)]"
     >
+      {/* Pop-up Match Modal: Hanya muncul jika ada match berstatus LIVE */}
+      <LiveMatchModal />
+
       {/* 
         Unified Monolithic Background (1440 × 5036px):
         Converted to WebP (233 KB, -93.5% payload) with responsive viewport sizes.

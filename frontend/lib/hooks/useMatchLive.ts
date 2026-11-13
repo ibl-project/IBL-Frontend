@@ -144,6 +144,8 @@ export function useMatchLive(matchId: string, ignoreScoreEvents: boolean, rebase
   }, [ignoreScoreEvents, rebase]);
 
   useEffect(() => {
+    // Tanpa ID (belum ada match terpilih) jangan ambil snapshot maupun buka SSE.
+    if (!matchId) return;
     let active = true;
     getMatch(matchId).then(
       (data) => {
