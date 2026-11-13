@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
 import { X } from "lucide-react";
 
 import { listMatches, type MatchListItem } from "@/lib/matchesApi";
@@ -12,9 +12,6 @@ import { todayWib, toWibFields } from "@/lib/datetime";
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 
 const DISMISS_KEY_PREFIX = "ibl_live_popup_dismissed_";
-
-// Durasi perkiraan pertandingan basket (2.5 jam)
-const MATCH_WINDOW_MS = 2.5 * 60 * 60 * 1000;
 
 /**
  * Format kuarter ke tampilan flip-box:
@@ -27,47 +24,79 @@ function formatQuarterBox(quarter: number | null | undefined): string {
 }
 
 /**
- * Cari pertandingan aktif yang sedang berlangsung hari ini:
- * Mengutamakan match hari ini (WIB) yang berstatus LIVE atau SCHEDULED yang jam mulainya sudah masuk.
+ * Cari pertandingan yang sedang LIVE. Mengutamakan match LIVE yang dijadwalkan hari ini (WIB).
  */
 function findTargetLiveMatch(matches: MatchListItem[]): MatchListItem | null {
+  const live = matches.filter((m) => m.status === "LIVE");
   const today = todayWib();
+  return live.find((m) => m.scheduledAt && toWibFields(m.scheduledAt).date === today) ?? live[0] ?? null;
+}
 
-  // 1. Ambil pertandingan yang terjadwal untuk hari ini (WIB) yang belum FINISHED
-  const todayMatches = matches.filter((m) => {
-    if (m.status === "FINISHED") return false;
-    const matchDate = toWibFields(m.scheduledAt).date;
-    return matchDate === today;
-  });
+/**
+ * Angka ala papan skor: nilai lama keluar ke bawah, nilai baru masuk dari atas.
+ * `initial={false}` agar tidak beranimasi saat pop up pertama kali muncul.
+ */
+function FlipValue({
+  value,
+  className,
+  style,
+}: {
+  value: string | number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <span className="relative inline-flex overflow-hidden">
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span
+          key={value}
+          initial={{ y: "-70%", opacity: 0 }}
+          animate={{ y: "0%", opacity: 1 }}
+          exit={{ y: "70%", opacity: 0 }}
+          transition={{ type: "spring", stiffness: 420, damping: 30 }}
+          className={className}
+          style={style}
+        >
+          {value}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
 
-  if (todayMatches.length > 0) {
-    // Prioritas 1A: Match hari ini yang statusnya LIVE
-    const liveToday = todayMatches.find((m) => m.status === "LIVE");
-    if (liveToday) return liveToday;
+/** Kartu tim berdenyut dan bersinar kuning sesaat setiap kali skornya bertambah. */
+function BumpOnIncrease({
+  value,
+  className,
+  children,
+}: {
+  value: number;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const controls = useAnimationControls();
+  const prev = useRef(value);
 
-    // Prioritas 1B: Match hari ini yang jadwal mulainya sudah masuk (>= scheduledAt dan <= +2.5 jam)
-    const now = Date.now();
-    const ongoingToday = todayMatches
-      .filter((m) => {
-        if (!m.scheduledAt) return false;
-        const time = new Date(m.scheduledAt).getTime();
-        return now >= time && now <= time + MATCH_WINDOW_MS;
-      })
-      .sort((a, b) => {
-        const timeA = new Date(a.scheduledAt!).getTime();
-        const timeB = new Date(b.scheduledAt!).getTime();
-        return Math.abs(now - timeA) - Math.abs(now - timeB);
+  useEffect(() => {
+    if (value > prev.current) {
+      controls.start({
+        scale: [1, 1.06, 1],
+        filter: [
+          "drop-shadow(0 0 0px rgba(245,214,68,0))",
+          "drop-shadow(0 0 18px rgba(245,214,68,0.9))",
+          "drop-shadow(0 0 0px rgba(245,214,68,0))",
+        ],
+        transition: { duration: 0.5, ease: "easeOut" },
       });
+    }
+    prev.current = value;
+  }, [value, controls]);
 
-    if (ongoingToday.length > 0) return ongoingToday[0];
-
-    // Prioritas 1C: Jika ada jadwal hari ini yang terdekat
-    return todayMatches[0];
-  }
-
-  // 2. Fallback jika tidak ada match terjadwal hari ini: cari match LIVE apa pun
-  const anyLive = matches.find((m) => m.status === "LIVE");
-  return anyLive ?? null;
+  return (
+    <motion.div animate={controls} className={className}>
+      {children}
+    </motion.div>
+  );
 }
 
 // Mock fallback data jika URL dibuka dengan ?testLive=true
@@ -161,28 +190,30 @@ export function LiveMatchModal() {
     return liveCandidate;
   }, [snapshot, liveCandidate]);
 
-  if (!ready || !currentMatch || dismissed) {
-    return null;
-  }
+  // AnimatePresence harus selalu ter-render agar animasi exit sempat berjalan saat pop up ditutup.
+  return <AnimatePresence>{ready && currentMatch && !dismissed && renderModal(currentMatch)}</AnimatePresence>;
 
-  const handleDismiss = () => {
-    if (currentMatch) {
+  function renderModal(currentMatch: NonNullable<typeof liveCandidate> | NonNullable<typeof snapshot>) {
+    const handleDismiss = () => {
       sessionStorage.setItem(`${DISMISS_KEY_PREFIX}${currentMatch.id}`, "true");
-    }
-    setDismissed(true);
-  };
+      setDismissed(true);
+    };
 
-  const team1Name = currentMatch.team1?.name || currentMatch.team1?.placeholder || "Team 1";
-  const team2Name = currentMatch.team2?.name || currentMatch.team2?.placeholder || "Team 2";
-  const team1Score = currentMatch.team1?.score ?? 0;
-  const team2Score = currentMatch.team2?.score ?? 0;
+    const team1Name = currentMatch.team1?.name || currentMatch.team1?.placeholder || "Team 1";
+    const team2Name = currentMatch.team2?.name || currentMatch.team2?.placeholder || "Team 2";
+    const team1Score = currentMatch.team1?.score ?? 0;
+    const team2Score = currentMatch.team2?.score ?? 0;
 
-  const quarterVal = "currentQuarter" in currentMatch ? currentMatch.currentQuarter : 1;
-  const quarterText = formatQuarterBox(quarterVal);
+    const quarterVal = "currentQuarter" in currentMatch ? currentMatch.currentQuarter : 1;
+    const quarterText = formatQuarterBox(quarterVal);
 
-  return (
-    <AnimatePresence>
-      <div
+    return (
+      <motion.div
+        key="live-match-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: 0.2, delay: 0.05 } }}
+        transition={{ duration: 0.2 }}
         className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-6 bg-black/65 backdrop-blur-sm"
         role="dialog"
         aria-modal="true"
@@ -208,19 +239,8 @@ export function LiveMatchModal() {
           {/* ══════ LAYOUT BOARD (desktop sm:+ & landscape pendek) ══════ */}
           <div className="absolute inset-0 hidden sm:block [@media(min-width:640px)_and_(max-height:500px)]:block">
             {/* ── Background board (art + frame kartu) — desktop saja ── */}
-            <Image
-              src="/images/live-popup/popup-board-nox.webp"
-              alt="Live Match Board"
-              fill
-              priority
-              className="object-cover object-center pointer-events-none select-none z-0 scale-[1.03]"
-            />
-            {/* ═══ KARTU TIM 1 (KIRI) ═══
-                Panel putih di aset: 8.17%–31.55%. Gambar background pakai scale 1.03 (object-cover),
-                jadi posisinya bergeser ke luar: center panel jadi 18.84%, left = 18.84 - 23.38/2.
-            */}
-            <div className="absolute left-[7.15%] top-[22.99%] w-[23.38%] h-[54.18%] z-20 flex flex-col items-center justify-center gap-1.5 sm:gap-3 p-[2%] sm:p-[4%] pointer-events-none overflow-hidden">
-            {/* Logo Tim */}
+            <Image src="/images/live-popup/popup-board-nox.webp" alt="Live Match Board" fill priority className="object-cover object-center pointer-events-none select-none z-0 scale-[1.03]" />
+            <BumpOnIncrease value={team1Score} className="absolute left-[7.15%] top-[22.99%] w-[23.38%] h-[54.18%] z-20 flex flex-col items-center justify-center gap-1.5 sm:gap-3 p-[2%] sm:p-[4%] pointer-events-none overflow-hidden">
             <div className="relative w-[48%] aspect-square shrink-0 flex items-center justify-center">
               <TeamLogo
                 src={currentMatch.team1?.logo}
@@ -241,22 +261,22 @@ export function LiveMatchModal() {
 
             {/* Skor Tim */}
             <div className="w-full flex items-center justify-center">
-              <span
+              <FlipValue
                 className="font-bold text-center select-none text-[clamp(18px,4.2vw,64px)] leading-none"
                 style={{
                   fontFamily: '"DSEG7ClassicMini", monospace',
                   color: "#7E0202",
                   filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.5))",
                 }}
-              >
-                {team1Score}
-              </span>
+                value={team1Score}
+              />
             </div>
-          </div>
+          </BumpOnIncrease>
 
           {/* ═══ KOTAK SCOREBOARD QUARTER (TENGAH) — sejajar dengan kotak hitam pada background ═══ */}
           <div className="absolute left-[44.16%] top-[39.72%] w-[11.82%] h-[21.04%] flex items-center justify-center select-none pointer-events-none z-20">
-            <span
+            <FlipValue
+              value={quarterText}
               className="text-white font-bold text-center leading-none text-[clamp(18px,4.5vw,72px)]"
               style={{
                 fontFamily: '"DSEG7ClassicMini", monospace',
@@ -264,14 +284,14 @@ export function LiveMatchModal() {
                 // Font 7-seg menaruh ink "1" di kanan cell (80.3% advance); geser agar ink di tengah.
                 transform: quarterText === "1" ? "translateX(-30.3%)" : undefined,
               }}
-            >
-              {quarterText}
-            </span>
+            />
           </div>
 
           {/* ═══ TOMBOL DETAIL GAME (LINK) (Min 44px tap target di mobile) ═══ */}
           <Link
-            href={`/schedule-result?matchId=${currentMatch.id}`}
+            href={`/schedule-result-main/detail-game?id=${currentMatch.id}${
+              currentMatch.scheduledAt ? `&date=${toWibFields(currentMatch.scheduledAt).date}` : ""
+            }`}
             aria-label="Lihat Detail Pertandingan"
             className="absolute left-[40.60%] top-[74%] w-[18.72%] h-[8%] min-h-[44px] -translate-y-2 sm:translate-y-0 sm:top-[75.04%] sm:h-[6.85%] sm:min-h-0 rounded-xl cursor-pointer z-30 hover:brightness-110 active:scale-95 transition-all"
           />
@@ -279,8 +299,7 @@ export function LiveMatchModal() {
           {/* ═══ KARTU TIM 2 (KANAN) ═══
               Panel putih di aset: 68.45%–91.83%. Setelah scale 1.03: center 81.16%, left = 81.16 - 23.38/2.
           */}
-          <div className="absolute left-[69.47%] top-[22.99%] w-[23.38%] h-[54.18%] z-20 flex flex-col items-center justify-center gap-1.5 sm:gap-3 p-[2%] sm:p-[4%] pointer-events-none overflow-hidden">
-            {/* Logo Tim */}
+          <BumpOnIncrease value={team2Score} className="absolute left-[69.47%] top-[22.99%] w-[23.38%] h-[54.18%] z-20 flex flex-col items-center justify-center gap-1.5 sm:gap-3 p-[2%] sm:p-[4%] pointer-events-none overflow-hidden">
             <div className="relative w-[48%] aspect-square shrink-0 flex items-center justify-center">
               <TeamLogo
                 src={currentMatch.team2?.logo}
@@ -301,18 +320,17 @@ export function LiveMatchModal() {
 
             {/* Skor Tim */}
             <div className="w-full flex items-center justify-center">
-              <span
+              <FlipValue
                 className="font-bold text-center select-none text-[clamp(18px,4.2vw,64px)] leading-none"
                 style={{
                   fontFamily: '"DSEG7ClassicMini", monospace',
                   color: "#7E0202",
                   filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.5))",
                 }}
-              >
-                {team2Score}
-              </span>
+                value={team2Score}
+              />
             </div>
-          </div>
+          </BumpOnIncrease>
           </div>
 
           {/* ══════ LAYOUT STACKED (mobile portrait <640px, tinggi >= 500px) ══════ */}
@@ -390,7 +408,7 @@ export function LiveMatchModal() {
             </Link>
           </div>
         </motion.div>
-      </div>
-    </AnimatePresence>
-  );
+      </motion.div>
+    );
+  }
 }
