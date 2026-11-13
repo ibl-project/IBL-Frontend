@@ -12,9 +12,6 @@ import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 
 const DISMISS_KEY_PREFIX = "ibl_live_popup_dismissed_";
 
-// Durasi perkiraan pertandingan basket (2.5 jam)
-const MATCH_WINDOW_MS = 2.5 * 60 * 60 * 1000;
-
 /**
  * Format kuarter ke tampilan flip-box:
  * Kuarter 1–4 tampil "1"–"4", overtime (5+) tampil "OT".
@@ -26,47 +23,12 @@ function formatQuarterBox(quarter: number | null | undefined): string {
 }
 
 /**
- * Cari pertandingan aktif yang sedang berlangsung hari ini:
- * Mengutamakan match hari ini (WIB) yang berstatus LIVE atau SCHEDULED yang jam mulainya sudah masuk.
+ * Cari pertandingan yang sedang LIVE. Mengutamakan match LIVE yang dijadwalkan hari ini (WIB).
  */
 function findTargetLiveMatch(matches: MatchListItem[]): MatchListItem | null {
+  const live = matches.filter((m) => m.status === "LIVE");
   const today = todayWib();
-
-  // 1. Ambil pertandingan yang terjadwal untuk hari ini (WIB) yang belum FINISHED
-  const todayMatches = matches.filter((m) => {
-    if (m.status === "FINISHED") return false;
-    const matchDate = toWibFields(m.scheduledAt).date;
-    return matchDate === today;
-  });
-
-  if (todayMatches.length > 0) {
-    // Prioritas 1A: Match hari ini yang statusnya LIVE
-    const liveToday = todayMatches.find((m) => m.status === "LIVE");
-    if (liveToday) return liveToday;
-
-    // Prioritas 1B: Match hari ini yang jadwal mulainya sudah masuk (>= scheduledAt dan <= +2.5 jam)
-    const now = Date.now();
-    const ongoingToday = todayMatches
-      .filter((m) => {
-        if (!m.scheduledAt) return false;
-        const time = new Date(m.scheduledAt).getTime();
-        return now >= time && now <= time + MATCH_WINDOW_MS;
-      })
-      .sort((a, b) => {
-        const timeA = new Date(a.scheduledAt!).getTime();
-        const timeB = new Date(b.scheduledAt!).getTime();
-        return Math.abs(now - timeA) - Math.abs(now - timeB);
-      });
-
-    if (ongoingToday.length > 0) return ongoingToday[0];
-
-    // Prioritas 1C: Jika ada jadwal hari ini yang terdekat
-    return todayMatches[0];
-  }
-
-  // 2. Fallback jika tidak ada match terjadwal hari ini: cari match LIVE apa pun
-  const anyLive = matches.find((m) => m.status === "LIVE");
-  return anyLive ?? null;
+  return live.find((m) => m.scheduledAt && toWibFields(m.scheduledAt).date === today) ?? live[0] ?? null;
 }
 
 // Mock fallback data jika URL dibuka dengan ?testLive=true
@@ -266,7 +228,9 @@ export function LiveMatchModal() {
 
           {/* ═══ TOMBOL DETAIL GAME (LINK) (Min 44px tap target di mobile) ═══ */}
           <Link
-            href={`/schedule-result?matchId=${currentMatch.id}`}
+            href={`/schedule-result-main/detail-game?id=${currentMatch.id}${
+              currentMatch.scheduledAt ? `&date=${toWibFields(currentMatch.scheduledAt).date}` : ""
+            }`}
             aria-label="Lihat Detail Pertandingan"
             className="absolute left-[40.60%] top-[74%] w-[18.72%] h-[8%] min-h-[44px] -translate-y-2 sm:translate-y-0 sm:top-[75.04%] sm:h-[6.85%] sm:min-h-0 rounded-xl cursor-pointer z-30 hover:brightness-110 active:scale-95 transition-all"
           />
