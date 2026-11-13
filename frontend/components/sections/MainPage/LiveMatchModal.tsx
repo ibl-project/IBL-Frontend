@@ -336,23 +336,25 @@ export function LiveMatchModal() {
           {/* ══════ LAYOUT STACKED (mobile portrait <640px, tinggi >= 500px) ══════ */}
           <div className="relative z-20 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain p-3 sm:hidden [@media(min-width:640px)_and_(max-height:500px)]:hidden">
             {/* Header: LIVE · QRT · flip counter */}
-            <div className="flex items-center gap-2 pr-12">
+            <div className="relative flex w-full items-center">
               <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#7E0202] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-white">
                 <span className="h-1.5 w-1.5 rounded-full bg-white" />
                 Live
               </span>
-              <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.24em] text-[#1a1a1a]/70">
-                QRT
-              </span>
-              <span className="flex h-8 w-11 shrink-0 items-center justify-center rounded-md bg-[#17171A] ring-1 ring-black/20">
-                <span
-                  className="text-white font-bold leading-none text-[22px]"
-                  style={{
-                    fontFamily: '"DSEG7ClassicMini", monospace',
-                    transform: quarterText === "1" ? "translateX(-30.3%)" : undefined,
-                  }}
-                >
-                  {quarterText}
+              <span className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
+                <span className="shrink-0 text-[16px] font-extrabold uppercase tracking-[0.12em] text-[#1a1a1a]">
+                  QRT
+                </span>
+                <span className="flex h-8 w-11 shrink-0 items-center justify-center rounded-md bg-[#17171A] ring-1 ring-black/20">
+                  <span
+                    className="text-white font-bold leading-none text-[22px]"
+                    style={{
+                      fontFamily: '"DSEG7ClassicMini", monospace',
+                      transform: quarterText === "1" ? "translateX(-30.3%)" : undefined,
+                    }}
+                  >
+                    {quarterText}
+                  </span>
                 </span>
               </span>
             </div>
