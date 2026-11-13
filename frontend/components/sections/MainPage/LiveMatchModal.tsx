@@ -122,28 +122,30 @@ export function LiveMatchModal() {
     return liveCandidate;
   }, [snapshot, liveCandidate]);
 
-  if (!ready || !currentMatch || dismissed) {
-    return null;
-  }
+  // AnimatePresence harus selalu ter-render agar animasi exit sempat berjalan saat pop up ditutup.
+  return <AnimatePresence>{ready && currentMatch && !dismissed && renderModal(currentMatch)}</AnimatePresence>;
 
-  const handleDismiss = () => {
-    if (currentMatch) {
+  function renderModal(currentMatch: NonNullable<typeof liveCandidate> | NonNullable<typeof snapshot>) {
+    const handleDismiss = () => {
       sessionStorage.setItem(`${DISMISS_KEY_PREFIX}${currentMatch.id}`, "true");
-    }
-    setDismissed(true);
-  };
+      setDismissed(true);
+    };
 
-  const team1Name = currentMatch.team1?.name || currentMatch.team1?.placeholder || "Team 1";
-  const team2Name = currentMatch.team2?.name || currentMatch.team2?.placeholder || "Team 2";
-  const team1Score = currentMatch.team1?.score ?? 0;
-  const team2Score = currentMatch.team2?.score ?? 0;
+    const team1Name = currentMatch.team1?.name || currentMatch.team1?.placeholder || "Team 1";
+    const team2Name = currentMatch.team2?.name || currentMatch.team2?.placeholder || "Team 2";
+    const team1Score = currentMatch.team1?.score ?? 0;
+    const team2Score = currentMatch.team2?.score ?? 0;
 
-  const quarterVal = "currentQuarter" in currentMatch ? currentMatch.currentQuarter : 1;
-  const quarterText = formatQuarterBox(quarterVal);
+    const quarterVal = "currentQuarter" in currentMatch ? currentMatch.currentQuarter : 1;
+    const quarterText = formatQuarterBox(quarterVal);
 
-  return (
-    <AnimatePresence>
-      <div
+    return (
+      <motion.div
+        key="live-match-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: 0.2, delay: 0.05 } }}
+        transition={{ duration: 0.2 }}
         className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/65 backdrop-blur-sm"
         role="dialog"
         aria-modal="true"
@@ -275,7 +277,7 @@ export function LiveMatchModal() {
             </div>
           </div>
         </motion.div>
-      </div>
-    </AnimatePresence>
-  );
+      </motion.div>
+    );
+  }
 }
