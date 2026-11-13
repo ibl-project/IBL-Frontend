@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
 
 import { listMatches, type MatchListItem } from "@/lib/matchesApi";
 import { useMatchLive } from "@/lib/hooks/useMatchLive";
@@ -29,6 +29,73 @@ function findTargetLiveMatch(matches: MatchListItem[]): MatchListItem | null {
   const live = matches.filter((m) => m.status === "LIVE");
   const today = todayWib();
   return live.find((m) => m.scheduledAt && toWibFields(m.scheduledAt).date === today) ?? live[0] ?? null;
+}
+
+/**
+ * Angka ala papan skor: nilai lama keluar ke bawah, nilai baru masuk dari atas.
+ * `initial={false}` agar tidak beranimasi saat pop up pertama kali muncul.
+ */
+function FlipValue({
+  value,
+  className,
+  style,
+}: {
+  value: string | number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <span className="relative inline-flex overflow-hidden">
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span
+          key={value}
+          initial={{ y: "-70%", opacity: 0 }}
+          animate={{ y: "0%", opacity: 1 }}
+          exit={{ y: "70%", opacity: 0 }}
+          transition={{ type: "spring", stiffness: 420, damping: 30 }}
+          className={className}
+          style={style}
+        >
+          {value}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
+/** Kartu tim berdenyut dan bersinar kuning sesaat setiap kali skornya bertambah. */
+function BumpOnIncrease({
+  value,
+  className,
+  children,
+}: {
+  value: number;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const controls = useAnimationControls();
+  const prev = useRef(value);
+
+  useEffect(() => {
+    if (value > prev.current) {
+      controls.start({
+        scale: [1, 1.06, 1],
+        filter: [
+          "drop-shadow(0 0 0px rgba(245,214,68,0))",
+          "drop-shadow(0 0 18px rgba(245,214,68,0.9))",
+          "drop-shadow(0 0 0px rgba(245,214,68,0))",
+        ],
+        transition: { duration: 0.5, ease: "easeOut" },
+      });
+    }
+    prev.current = value;
+  }, [value, controls]);
+
+  return (
+    <motion.div animate={controls} className={className}>
+      {children}
+    </motion.div>
+  );
 }
 
 // Mock fallback data jika URL dibuka dengan ?testLive=true
@@ -178,7 +245,10 @@ export function LiveMatchModal() {
           {/* ═══ KARTU TIM 1 (KIRI) ═══
               Posisi pada area kartu putih: left: 8.44%, top: 22.99%, width: 23.35%, height: 54.18%
           */}
-          <div className="absolute left-[8.44%] top-[22.99%] w-[23.35%] h-[54.18%] z-20 flex flex-col items-center justify-between p-[2%] sm:p-[4%] pointer-events-none overflow-hidden">
+          <BumpOnIncrease
+            value={team1Score}
+            className="absolute left-[8.44%] top-[22.99%] w-[23.35%] h-[54.18%] z-20 flex flex-col items-center justify-between p-[2%] sm:p-[4%] pointer-events-none overflow-hidden"
+          >
             {/* Logo Tim */}
             <div className="relative w-[48%] aspect-square shrink-0 flex items-center justify-center mt-[2%]">
               <TeamLogo
@@ -200,7 +270,7 @@ export function LiveMatchModal() {
 
             {/* Skor Tim: Terkunci di dalam kartu putih dengan flex container rapi */}
             <div className="w-full h-[32%] flex items-center justify-center mb-[4%]">
-              <span
+              <FlipValue
                 className="font-bold tracking-wider select-none text-[clamp(18px,4.2vw,64px)] leading-none"
                 style={{
                   fontFamily: '"DSEG7ClassicMini", monospace',
@@ -209,23 +279,21 @@ export function LiveMatchModal() {
                   WebkitTextFillColor: "transparent",
                   filter: "drop-shadow(1px 2px 3px rgba(0,0,0,0.3))",
                 }}
-              >
-                {team1Score}
-              </span>
+                value={team1Score}
+              />
             </div>
-          </div>
+          </BumpOnIncrease>
 
           {/* ═══ KOTAK SCOREBOARD QUARTER (TENGAH) ═══ */}
           <div className="absolute left-[45.19%] top-[39.97%] w-[9.61%] h-[20.06%] flex items-center justify-center select-none pointer-events-none z-20">
-            <span
+            <FlipValue
+              value={quarterText}
               className="text-white font-bold leading-none text-[clamp(18px,4.5vw,72px)] pt-0.5"
               style={{
                 fontFamily: '"DSEG7ClassicMini", monospace',
                 filter: "drop-shadow(0 0 8px rgba(255,255,255,0.4))",
               }}
-            >
-              {quarterText}
-            </span>
+            />
           </div>
 
           {/* ═══ TOMBOL DETAIL GAME (LINK) (Min 44px tap target di mobile) ═══ */}
@@ -240,7 +308,10 @@ export function LiveMatchModal() {
           {/* ═══ KARTU TIM 2 (KANAN) ═══
               Posisi pada area kartu putih: left: 68.26%, top: 22.99%, width: 23.35%, height: 54.18%
           */}
-          <div className="absolute left-[68.26%] top-[22.99%] w-[23.35%] h-[54.18%] z-20 flex flex-col items-center justify-between p-[2%] sm:p-[4%] pointer-events-none overflow-hidden">
+          <BumpOnIncrease
+            value={team2Score}
+            className="absolute left-[68.26%] top-[22.99%] w-[23.35%] h-[54.18%] z-20 flex flex-col items-center justify-between p-[2%] sm:p-[4%] pointer-events-none overflow-hidden"
+          >
             {/* Logo Tim */}
             <div className="relative w-[48%] aspect-square shrink-0 flex items-center justify-center mt-[2%]">
               <TeamLogo
@@ -262,7 +333,7 @@ export function LiveMatchModal() {
 
             {/* Skor Tim: Terkunci di dalam kartu putih dengan flex container rapi */}
             <div className="w-full h-[32%] flex items-center justify-center mb-[4%]">
-              <span
+              <FlipValue
                 className="font-bold tracking-wider select-none text-[clamp(18px,4.2vw,64px)] leading-none"
                 style={{
                   fontFamily: '"DSEG7ClassicMini", monospace',
@@ -271,11 +342,10 @@ export function LiveMatchModal() {
                   WebkitTextFillColor: "transparent",
                   filter: "drop-shadow(1px 2px 3px rgba(0,0,0,0.3))",
                 }}
-              >
-                {team2Score}
-              </span>
+                value={team2Score}
+              />
             </div>
-          </div>
+          </BumpOnIncrease>
         </motion.div>
       </motion.div>
     );
