@@ -3,7 +3,7 @@
 @font-face {
   font-family: "DSEG7ClassicMini";
   src: url("/fonts/DSEG/DSEG7ClassicMini-Bold.woff2") format("woff2");
-  font-weight: 700;
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
