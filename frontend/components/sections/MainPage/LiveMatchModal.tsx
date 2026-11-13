@@ -250,11 +250,11 @@ export function LiveMatchModal() {
             className="absolute left-[8.44%] top-[22.99%] w-[23.35%] h-[54.18%] z-20 flex flex-col items-center justify-between p-[2%] sm:p-[4%] pointer-events-none overflow-hidden"
           >
             {/* Logo Tim */}
-            <div className="relative w-[48%] aspect-square shrink-0 flex items-center justify-center mt-[2%]">
+            <div className="relative w-[76%] aspect-square shrink-0 flex items-center justify-center mt-[2%]">
               <TeamLogo
                 src={currentMatch.team1?.logo}
                 alt={`Logo ${team1Name}`}
-                sizes="120px"
+                sizes="(max-width: 640px) 30vw, 220px"
                 className="object-contain drop-shadow-sm"
               />
             </div>
@@ -269,7 +269,7 @@ export function LiveMatchModal() {
             </p>
 
             {/* Skor Tim: Terkunci di dalam kartu putih dengan flex container rapi */}
-            <div className="w-full h-[32%] flex items-center justify-center mb-[4%]">
+            <div className="w-full h-[26%] flex items-center justify-center mb-[4%]">
               <FlipValue
                 className="font-bold tracking-wider select-none text-[clamp(18px,4.2vw,64px)] leading-none"
                 style={{
@@ -313,11 +313,11 @@ export function LiveMatchModal() {
             className="absolute left-[68.26%] top-[22.99%] w-[23.35%] h-[54.18%] z-20 flex flex-col items-center justify-between p-[2%] sm:p-[4%] pointer-events-none overflow-hidden"
           >
             {/* Logo Tim */}
-            <div className="relative w-[48%] aspect-square shrink-0 flex items-center justify-center mt-[2%]">
+            <div className="relative w-[76%] aspect-square shrink-0 flex items-center justify-center mt-[2%]">
               <TeamLogo
                 src={currentMatch.team2?.logo}
                 alt={`Logo ${team2Name}`}
-                sizes="120px"
+                sizes="(max-width: 640px) 30vw, 220px"
                 className="object-contain drop-shadow-sm"
               />
             </div>
@@ -332,7 +332,7 @@ export function LiveMatchModal() {
             </p>
 
             {/* Skor Tim: Terkunci di dalam kartu putih dengan flex container rapi */}
-            <div className="w-full h-[32%] flex items-center justify-center mb-[4%]">
+            <div className="w-full h-[26%] flex items-center justify-center mb-[4%]">
               <FlipValue
                 className="font-bold tracking-wider select-none text-[clamp(18px,4.2vw,64px)] leading-none"
                 style={{
