@@ -4,7 +4,7 @@ import { ScheduleResultMainDetailSection } from "@/components/sections/ScheduleR
 
 export const metadata: Metadata = {
   title: "Game Detail | IBL 2K26",
-  description: "Detail pertandingan dan ringkasan statistik pertandingan IBL 2K26.",
+  description: "Detail pertandingan dan skor per kuarter IBL 2K26.",
 };
 
 export default function DetailGamePage() {

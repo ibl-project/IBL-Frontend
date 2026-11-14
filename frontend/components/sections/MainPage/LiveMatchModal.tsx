@@ -360,8 +360,8 @@ export function LiveMatchModal() {
             </div>
 
             {/* Kartu Tim A */}
-            <div className="flex items-center gap-3 rounded-xl border-[3px] border-[#8A8A8A] bg-[linear-gradient(180deg,#FFFFFF_0%,#E7F0F6_100%)] px-3 py-2.5 pointer-events-none">
-              <div className="relative h-14 w-14 shrink-0">
+            <div className="grid grid-cols-[1fr_2fr_1fr] items-center gap-2 rounded-xl border-[3px] border-[#8A8A8A] bg-[linear-gradient(180deg,#FFFFFF_0%,#E7F0F6_100%)] px-3 py-2.5 pointer-events-none">
+              <div className="relative h-14 w-14 justify-self-center">
                 <TeamLogo
                   src={currentMatch.team1?.logo}
                   alt={`Logo ${team1Name}`}
@@ -369,11 +369,11 @@ export function LiveMatchModal() {
                   className="object-contain object-center"
                 />
               </div>
-              <p className="min-w-0 flex-1 truncate text-base font-bold text-[#1a1a1a]" title={team1Name}>
+              <p className="min-w-0 truncate text-center text-lg font-bold text-[#1a1a1a]" title={team1Name}>
                 {team1Name}
               </p>
               <span
-                className="shrink-0 select-none font-bold leading-none text-[48px]"
+                className="justify-self-center select-none font-bold leading-none text-[48px]"
                 style={{ fontFamily: '"DSEG7ClassicMini", monospace', color: "#7E0202" }}
               >
                 {team1Score}
@@ -381,8 +381,8 @@ export function LiveMatchModal() {
             </div>
 
             {/* Kartu Tim B */}
-            <div className="flex items-center gap-3 rounded-xl border-[3px] border-[#8A8A8A] bg-[linear-gradient(180deg,#FFFFFF_0%,#E7F0F6_100%)] px-3 py-2.5 pointer-events-none">
-              <div className="relative h-14 w-14 shrink-0">
+            <div className="grid grid-cols-[1fr_2fr_1fr] items-center gap-2 rounded-xl border-[3px] border-[#8A8A8A] bg-[linear-gradient(180deg,#FFFFFF_0%,#E7F0F6_100%)] px-3 py-2.5 pointer-events-none">
+              <div className="relative h-14 w-14 justify-self-center">
                 <TeamLogo
                   src={currentMatch.team2?.logo}
                   alt={`Logo ${team2Name}`}
@@ -390,11 +390,11 @@ export function LiveMatchModal() {
                   className="object-contain object-center"
                 />
               </div>
-              <p className="min-w-0 flex-1 truncate text-base font-bold text-[#1a1a1a]" title={team2Name}>
+              <p className="min-w-0 truncate text-center text-lg font-bold text-[#1a1a1a]" title={team2Name}>
                 {team2Name}
               </p>
               <span
-                className="shrink-0 select-none font-bold leading-none text-[48px]"
+                className="justify-self-center select-none font-bold leading-none text-[48px]"
                 style={{ fontFamily: '"DSEG7ClassicMini", monospace', color: "#7E0202" }}
               >
                 {team2Score}
@@ -403,7 +403,7 @@ export function LiveMatchModal() {
 
             {/* Detail Game */}
             <Link
-              href={`/schedule-result?matchId=${currentMatch.id}`}
+              href={"/schedule-result-main/detail-game?id=" + currentMatch.id + (currentMatch.scheduledAt ? "&date=" + toWibFields(currentMatch.scheduledAt).date : "")}
               className="flex h-11 items-center justify-center rounded-xl bg-[#2E8B94] text-sm font-semibold text-white cursor-pointer transition-all active:scale-95"
             >
               Detail Game
