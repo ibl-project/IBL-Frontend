@@ -190,8 +190,22 @@ export function LiveMatchModal() {
     return liveCandidate;
   }, [snapshot, liveCandidate]);
 
+  const isOpen = Boolean(ready && currentMatch && !dismissed);
+
+  useEffect(() => {
+    if (!isOpen || !currentMatch) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        sessionStorage.setItem(`${DISMISS_KEY_PREFIX}${currentMatch.id}`, "true");
+        setDismissed(true);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isOpen, currentMatch]);
+
   // AnimatePresence harus selalu ter-render agar animasi exit sempat berjalan saat pop up ditutup.
-  return <AnimatePresence>{ready && currentMatch && !dismissed && renderModal(currentMatch)}</AnimatePresence>;
+  return <AnimatePresence>{isOpen && currentMatch && renderModal(currentMatch)}</AnimatePresence>;
 
   function renderModal(currentMatch: NonNullable<typeof liveCandidate> | NonNullable<typeof snapshot>) {
     const handleDismiss = () => {
@@ -214,7 +228,8 @@ export function LiveMatchModal() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, transition: { duration: 0.2, delay: 0.05 } }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-6 bg-black/65 backdrop-blur-sm"
+        onClick={handleDismiss}
+        className="fixed inset-0 z-[100] flex items-center justify-center p-5 sm:p-6 bg-black/65 backdrop-blur-sm"
         role="dialog"
         aria-modal="true"
         aria-label="Pertandingan Berlangsung"
@@ -224,16 +239,17 @@ export function LiveMatchModal() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.88, y: 24 }}
           transition={{ type: "spring", stiffness: 320, damping: 28 }}
-          className="relative flex w-[calc(100vw_-_16px)] max-h-[calc(100dvh_-_32px)] flex-col overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_0%_0%,#3d86a8_0%,transparent_45%),linear-gradient(180deg,#F2A81D_0%,#F7D26A_100%)] shadow-[0_24px_60px_rgba(0,0,0,0.65)] select-none sm:block sm:aspect-[1064/613] sm:max-h-none sm:w-[min(88vw,760px,calc(88vh_*_1064_/_613))] sm:rounded-[36px] sm:bg-transparent [@media(min-width:640px)_and_(max-height:500px)]:block [@media(min-width:640px)_and_(max-height:500px)]:aspect-[1064/613] [@media(min-width:640px)_and_(max-height:500px)]:max-h-none [@media(min-width:640px)_and_(max-height:500px)]:w-[min(96vw,760px,calc(88vh_*_1064_/_613))]"
+          onClick={(e) => e.stopPropagation()}
+          className="relative flex w-[min(86vw,360px)] max-h-[calc(100dvh_-_48px)] flex-col overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#337796_0%,#3E88A8_24%,#FFFFFF_24.4%,#FFFFFF_26.5%,#F1AF2A_26.9%,#F8CC46_100%)] ring-1 ring-black/20 shadow-[0_24px_60px_rgba(0,0,0,0.7)] select-none sm:block sm:aspect-[1064/613] sm:max-h-none sm:w-[min(88vw,760px,calc(88vh_*_1064_/_613))] sm:rounded-[36px] sm:bg-none sm:bg-transparent sm:ring-0 [@media(min-width:640px)_and_(max-height:500px)]:block [@media(min-width:640px)_and_(max-height:500px)]:aspect-[1064/613] [@media(min-width:640px)_and_(max-height:500px)]:max-h-none [@media(min-width:640px)_and_(max-height:500px)]:w-[min(96vw,760px,calc(88vh_*_1064_/_613))] [@media(min-width:640px)_and_(max-height:500px)]:bg-none [@media(min-width:640px)_and_(max-height:500px)]:bg-transparent [@media(min-width:640px)_and_(max-height:500px)]:ring-0"
         >
-          {/* ── Tombol Close Silang (X) — mobile 48px, desktop lebih besar (min 44px touch target) ── */}
+          {/* ── Tombol Close Silang (X) — mobile 44px+, desktop lebih besar ── */}
           <button
             type="button"
             onClick={handleDismiss}
             aria-label="Tutup pop up"
-            className="absolute right-1 top-1 z-40 flex h-12 w-12 items-center justify-center rounded-full cursor-pointer transition-all active:scale-90 sm:right-[1.5%] sm:top-[0.5%] sm:h-auto sm:w-[7%] sm:aspect-square sm:min-h-[56px] sm:min-w-[56px] sm:hover:bg-black/10"
+            className="absolute right-2 top-2 z-40 flex h-11 w-11 items-center justify-center rounded-full cursor-pointer transition-all hover:bg-black/10 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7E0202]/70 sm:right-[1.5%] sm:top-[0.5%] sm:h-auto sm:w-[7%] sm:aspect-square sm:min-h-[56px] sm:min-w-[56px]"
           >
-            <X className="h-[62%] w-[62%] text-[#7E0202]" strokeWidth={3.5} strokeLinecap="round" />
+            <X className="h-[60%] w-[60%] text-[#7E0202]" strokeWidth={3.5} strokeLinecap="round" />
           </button>
 
           {/* ══════ LAYOUT BOARD (desktop sm:+ & landscape pendek) ══════ */}
@@ -334,77 +350,121 @@ export function LiveMatchModal() {
           </div>
 
           {/* ══════ LAYOUT STACKED (mobile portrait <640px, tinggi >= 500px) ══════ */}
-          <div className="relative z-20 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain p-3 sm:hidden [@media(min-width:640px)_and_(max-height:500px)]:hidden">
+          <div className="relative z-20 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain p-4 pt-3.5 sm:hidden [@media(min-width:640px)_and_(max-height:500px)]:hidden">
+            {/* Aksen sinar halus di background mobile (selaras Figma) */}
+            <Image
+              src="/images/live-popup/bright-rays.svg"
+              alt=""
+              fill
+              aria-hidden="true"
+              className="pointer-events-none select-none object-cover opacity-30 mix-blend-overlay"
+            />
+
             {/* Header: LIVE · QRT · flip counter */}
-            <div className="relative flex w-full items-center">
-              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#7E0202] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-white">
-                <span className="h-1.5 w-1.5 rounded-full bg-white" />
+            <div className="relative z-10 flex w-full items-center pr-10">
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/40 bg-[linear-gradient(180deg,#9B0A0A_0%,#680202_100%)] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.18em] text-white shadow-[0_2px_6px_rgba(0,0,0,0.3)]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#FF3B30] shadow-[0_0_6px_rgba(255,59,48,0.9)]" />
                 Live
               </span>
-              <span className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
-                <span className="shrink-0 text-[16px] font-extrabold uppercase tracking-[0.12em] text-[#1a1a1a]">
+              <div className="ml-auto flex items-center gap-2">
+                <span
+                  className="shrink-0 text-[18px] font-black uppercase tracking-[0.1em] text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.35)]"
+                  style={{
+                    WebkitTextStroke: "3.5px #1E293B",
+                    paintOrder: "stroke fill",
+                  }}
+                >
                   QRT
                 </span>
-                <span className="flex h-8 w-11 shrink-0 items-center justify-center rounded-md bg-[#17171A] ring-1 ring-black/20">
-                  <span
-                    className="text-white font-bold leading-none text-[22px]"
+                <span className="relative flex h-9 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-black/50 bg-[linear-gradient(180deg,#2A2A2E_0%,#141417_100%)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),0_3px_8px_rgba(0,0,0,0.35)]">
+                  <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-1/2 h-px -translate-y-px bg-black/80" />
+                  <FlipValue
+                    value={quarterText}
+                    className="relative z-10 text-white font-bold leading-none text-[24px]"
                     style={{
                       fontFamily: '"DSEG7ClassicMini", monospace',
+                      filter: "drop-shadow(0 0 6px rgba(255,255,255,0.35))",
                       transform: quarterText === "1" ? "translateX(-30.3%)" : undefined,
                     }}
-                  >
-                    {quarterText}
-                  </span>
+                  />
                 </span>
-              </span>
+              </div>
             </div>
 
             {/* Kartu Tim A */}
-            <div className="grid grid-cols-[1fr_2fr_1fr] items-center gap-2 rounded-xl border-[3px] border-[#8A8A8A] bg-[linear-gradient(180deg,#FFFFFF_0%,#E7F0F6_100%)] px-3 py-2.5 pointer-events-none">
-              <div className="relative h-14 w-14 justify-self-center">
-                <TeamLogo
-                  src={currentMatch.team1?.logo}
-                  alt={`Logo ${team1Name}`}
-                  sizes="64px"
-                  className="object-contain object-center"
-                />
+            <BumpOnIncrease
+              value={team1Score}
+              className="relative z-10 rounded-2xl border border-black/45 bg-[linear-gradient(180deg,#A1AAB3_0%,#6D7680_50%,#4B525A_100%)] p-[4px] shadow-[0_6px_14px_rgba(0,0,0,0.28)]"
+            >
+              <div className="grid grid-cols-[52px_1fr_auto] items-center gap-3 rounded-[12px] border border-black/70 bg-[linear-gradient(180deg,#FFFFFF_0%,#CAE4EE_75%,#A5C6D4_100%)] px-3 py-2.5 pointer-events-none">
+                <div className="relative h-[52px] w-[52px] shrink-0 flex items-center justify-center">
+                  <TeamLogo
+                    src={currentMatch.team1?.logo}
+                    alt={`Logo ${team1Name}`}
+                    sizes="56px"
+                    className="object-contain object-center drop-shadow-sm"
+                  />
+                </div>
+                <p
+                  className="min-w-0 truncate text-center text-base font-normal uppercase tracking-wide text-black"
+                  style={{ fontFamily: "var(--font-drowner)" }}
+                  title={team1Name}
+                >
+                  {team1Name}
+                </p>
+                <div className="flex min-w-[64px] items-center justify-end">
+                  <FlipValue
+                    value={team1Score}
+                    className="select-none font-bold leading-none text-[42px]"
+                    style={{
+                      fontFamily: '"DSEG7ClassicMini", monospace',
+                      color: "#7E0202",
+                      filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.35))",
+                    }}
+                  />
+                </div>
               </div>
-              <p className="min-w-0 truncate text-center text-lg font-bold text-[#1a1a1a]" title={team1Name}>
-                {team1Name}
-              </p>
-              <span
-                className="justify-self-center select-none font-bold leading-none text-[48px]"
-                style={{ fontFamily: '"DSEG7ClassicMini", monospace', color: "#7E0202" }}
-              >
-                {team1Score}
-              </span>
-            </div>
+            </BumpOnIncrease>
 
             {/* Kartu Tim B */}
-            <div className="grid grid-cols-[1fr_2fr_1fr] items-center gap-2 rounded-xl border-[3px] border-[#8A8A8A] bg-[linear-gradient(180deg,#FFFFFF_0%,#E7F0F6_100%)] px-3 py-2.5 pointer-events-none">
-              <div className="relative h-14 w-14 justify-self-center">
-                <TeamLogo
-                  src={currentMatch.team2?.logo}
-                  alt={`Logo ${team2Name}`}
-                  sizes="64px"
-                  className="object-contain object-center"
-                />
+            <BumpOnIncrease
+              value={team2Score}
+              className="relative z-10 rounded-2xl border border-black/45 bg-[linear-gradient(180deg,#A1AAB3_0%,#6D7680_50%,#4B525A_100%)] p-[4px] shadow-[0_6px_14px_rgba(0,0,0,0.28)]"
+            >
+              <div className="grid grid-cols-[52px_1fr_auto] items-center gap-3 rounded-[12px] border border-black/70 bg-[linear-gradient(180deg,#FFFFFF_0%,#CAE4EE_75%,#A5C6D4_100%)] px-3 py-2.5 pointer-events-none">
+                <div className="relative h-[52px] w-[52px] shrink-0 flex items-center justify-center">
+                  <TeamLogo
+                    src={currentMatch.team2?.logo}
+                    alt={`Logo ${team2Name}`}
+                    sizes="56px"
+                    className="object-contain object-center drop-shadow-sm"
+                  />
+                </div>
+                <p
+                  className="min-w-0 truncate text-center text-base font-normal uppercase tracking-wide text-black"
+                  style={{ fontFamily: "var(--font-drowner)" }}
+                  title={team2Name}
+                >
+                  {team2Name}
+                </p>
+                <div className="flex min-w-[64px] items-center justify-end">
+                  <FlipValue
+                    value={team2Score}
+                    className="select-none font-bold leading-none text-[42px]"
+                    style={{
+                      fontFamily: '"DSEG7ClassicMini", monospace',
+                      color: "#7E0202",
+                      filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.35))",
+                    }}
+                  />
+                </div>
               </div>
-              <p className="min-w-0 truncate text-center text-lg font-bold text-[#1a1a1a]" title={team2Name}>
-                {team2Name}
-              </p>
-              <span
-                className="justify-self-center select-none font-bold leading-none text-[48px]"
-                style={{ fontFamily: '"DSEG7ClassicMini", monospace', color: "#7E0202" }}
-              >
-                {team2Score}
-              </span>
-            </div>
+            </BumpOnIncrease>
 
             {/* Detail Game */}
             <Link
               href={"/schedule-result-main/detail-game?id=" + currentMatch.id + (currentMatch.scheduledAt ? "&date=" + toWibFields(currentMatch.scheduledAt).date : "")}
-              className="flex h-11 items-center justify-center rounded-xl bg-[#2E8B94] text-sm font-semibold text-white cursor-pointer transition-all active:scale-95"
+              className="relative z-10 mt-0.5 flex h-11 min-h-[44px] items-center justify-center rounded-xl border border-white/25 bg-[linear-gradient(180deg,#3A9BA6_0%,#1D6D7A_100%)] text-sm font-bold tracking-wide text-white shadow-[0_4px_12px_rgba(0,0,0,0.28)] cursor-pointer transition-all hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
             >
               Detail Game
             </Link>
