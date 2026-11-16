@@ -1,0 +1,14 @@
+import { fileURLToPath } from "node:url";
+import { defineConfig } from "vitest/config";
+
+// Unit test (Vitest). Test integrasi browser ada di e2e/ dan dijalankan oleh Playwright, bukan Vitest.
+export default defineConfig({
+  resolve: {
+    alias: { "@": fileURLToPath(new URL(".", import.meta.url)) },
+  },
+  test: {
+    environment: "node",
+    include: ["**/*.test.ts", "**/*.test.tsx"],
+    exclude: ["node_modules/**", ".next/**", "e2e/**"],
+  },
+});

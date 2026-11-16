@@ -1,4 +1,4 @@
-import { getFontEmbedCSS, toJpeg } from "html-to-image";
+import { getFontEmbedCSS, toSvg } from "html-to-image";
 import jsPDF from "jspdf";
 
 import { type MatchSnapshot, type PlayerLine, type StatCounts, STAT_KEYS, periodLabel } from "@/lib/matchesApi";
@@ -168,24 +168,54 @@ export function prewarmBoxScoreExport(element: HTMLElement): void {
 
 const PIXEL_RATIO = 1.5;
 
+const JPEG_QUALITY = 0.92;
+
 /**
- * JPEG, bukan PNG: encode di browser jauh lebih cepat, dan jsPDF menyisipkan JPEG apa adanya
- * tanpa decode + kompres ulang (bagian paling lambat pada PNG). Kualitas 0.92 tetap tajam
- * untuk teks hitam di latar putih.
+ * Muat gambar SVG tanpa menunggu requestAnimationFrame.
+ *
+ * toPng/toJpeg/toCanvas di html-to-image menunggu satu requestAnimationFrame per capture, dan browser
+ * MENGHENTIKAN rAF di tab yang tersembunyi. Tombol Score Detail membuka tab PDF di depan, sehingga
+ * halaman yang sedang generate tersembunyi dan capture macet sampai user kembali ke tab itu.
+ * Karena itu hanya toSvg yang dipakai (tidak memakai rAF) dan rasterisasi dilakukan di sini.
+ */
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      image.decode().then(() => resolve(image), () => resolve(image));
+    };
+    image.onerror = () => reject(new Error("Gagal memuat gambar lembar export"));
+    image.crossOrigin = "anonymous";
+    image.decoding = "async";
+    image.src = src;
+  });
+}
+
+/**
+ * Lembar export -> JPEG. JPEG, bukan PNG: encode di browser jauh lebih cepat, dan jsPDF menyisipkan
+ * JPEG apa adanya tanpa decode + kompres ulang. Kualitas 0.92 tetap tajam untuk teks hitam di latar putih.
  */
 async function capture(element: HTMLElement): Promise<{ dataUrl: string; width: number; height: number }> {
   const width = element.scrollWidth;
   const height = element.scrollHeight;
-  const dataUrl = await toJpeg(element, {
-    quality: 0.92,
-    pixelRatio: PIXEL_RATIO,
-    backgroundColor: "#ffffff",
+  const svg = await toSvg(element, {
     fontEmbedCSS: await fontEmbedCss(element),
     cacheBust: false,
     width,
     height,
   });
-  return { dataUrl, width: width * PIXEL_RATIO, height: height * PIXEL_RATIO };
+  const image = await loadImage(svg);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(width * PIXEL_RATIO);
+  canvas.height = Math.round(height * PIXEL_RATIO);
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Canvas 2D tidak tersedia");
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  return { dataUrl: canvas.toDataURL("image/jpeg", JPEG_QUALITY), width: canvas.width, height: canvas.height };
 }
 
 /** Generate PDF A4 landscape sebagai Blob (untuk preview/embed atau unduh). */
