@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { assetUrl } from "@/lib/apiClient";
-import { type ExportSection, generateBoxScorePdf } from "@/lib/boxScoreExport";
+import { type ExportSection, generateBoxScorePdf, prewarmBoxScoreExport } from "@/lib/boxScoreExport";
 import type { MatchSnapshot } from "@/lib/matchesApi";
 import { ScoringExportSheet } from "@/components/sections/ScoringPage/ScoringExportSheet";
 
@@ -98,6 +98,8 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
     latestMatchRef.current = match;
   }, [match]);
   const pendingTabRef = useRef<Window | null>(null);
+  // PDF siap tapi tab tidak bisa dibuka (diblokir popup blocker / tab ditutup user): tampilkan link manual.
+  const [readyPdfUrl, setReadyPdfUrl] = useState<string | null>(null);
   const sheetsRef = useRef<HTMLDivElement>(null);
 
   // Hanya generate lembar "Total" (Box Score lengkap pertandingan) agar proses cepat dan efisien
@@ -107,6 +109,29 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
 
   const team1Name = match?.team1.name || "Team 1";
   const team2Name = match?.team2.name || "Team 2";
+
+  // Lepas blob URL link manual saat diganti atau komponen di-unmount. Ditunda agar tab yang baru
+  // dibuka dari link sempat memuat PDF-nya dulu.
+  useEffect(() => {
+    if (!readyPdfUrl) return;
+    return () => {
+      setTimeout(() => URL.revokeObjectURL(readyPdfUrl), 60_000);
+    };
+  }, [readyPdfUrl]);
+
+  /**
+   * Tampilkan PDF di tab yang dibuka saat klik. Kalau tab itu tidak ada (diblokir) atau sudah ditutup,
+   * jangan panggil window.open di sini: setelah await, browser tidak menganggapnya aksi user dan ikut memblokir.
+   * Sebagai gantinya tampilkan link "Buka PDF" yang diklik user sendiri.
+   */
+  const deliverPdf = (url: string, targetTab: Window | null) => {
+    if (targetTab && !targetTab.closed) {
+      targetTab.location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } else {
+      setReadyPdfUrl(url);
+    }
+  };
 
   // Generate PDF secara dinamis dari DOM offscreen jika tidak ada file upload admin
   useEffect(() => {
@@ -119,18 +144,10 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
       const targetTab = pendingTabRef.current;
       try {
         await document.fonts?.ready;
-        await new Promise((resolve) => setTimeout(resolve, 80));
+        // Tunggu dua frame agar lembar offscreen sudah di-layout (lebih cepat dari jeda tetap 80ms)
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         const blob = await generateBoxScorePdf(Array.from(container.children) as HTMLElement[]);
-        const url = URL.createObjectURL(blob);
-
-        if (targetTab && !targetTab.closed) {
-          targetTab.location.href = url;
-        } else {
-          window.open(url, "_blank");
-        }
-
-        // Revoke URL setelah beberapa menit agar tidak ada memory leak
-        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        deliverPdf(URL.createObjectURL(blob), targetTab);
       } catch (err) {
         console.error("Gagal generate PDF:", err);
         if (targetTab && !targetTab.closed) {
@@ -155,6 +172,7 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
 
   const handleClick = async () => {
     if (!match || isPreparing) return;
+    setReadyPdfUrl(null);
 
     // Buka tab baru secara sinkron dari event klik user agar tidak diblokir popup blocker
     const newTab = window.open("", "_blank");
@@ -173,15 +191,7 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const blob = await res.blob();
         const pdfBlob = new Blob([blob], { type: "application/pdf" });
-        const url = URL.createObjectURL(pdfBlob);
-
-        if (newTab && !newTab.closed) {
-          newTab.location.href = url;
-        } else {
-          window.open(url, "_blank");
-        }
-
-        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        deliverPdf(URL.createObjectURL(pdfBlob), newTab);
         setIsPreparing(false);
         pendingTabRef.current = null;
         return;
@@ -206,10 +216,12 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
     "transition-colors select-none";
 
   return (
-    <>
+    <div className="flex flex-col items-center gap-[0.6cqw]">
       <motion.button
         type="button"
         onClick={handleClick}
+        onPointerEnter={prewarmBoxScoreExport}
+        onFocus={prewarmBoxScoreExport}
         disabled={!match || isPreparing}
         title={!match ? "Memuat data pertandingan..." : "Buka Lembar Skor di Tab Baru"}
         whileHover={!isPreparing && match ? { scale: 1.05, filter: "brightness(1.1)" } : {}}
@@ -232,6 +244,18 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
         )}
       </motion.button>
 
+      {readyPdfUrl && (
+        <a
+          href={readyPdfUrl}
+          target="_blank"
+          rel="noopener"
+          onClick={() => setReadyPdfUrl(null)}
+          className="rounded-[4px] border border-[#380606] bg-[#fff5df] px-[0.8em] py-[0.3em] font-poppins text-[clamp(8px,1.1cqw,13px)] font-bold text-[#760807] shadow-[2px_2px_0_#380606] hover:bg-white"
+        >
+          PDF siap · Buka PDF
+        </a>
+      )}
+
       {/* Lembar export PDF: dirender di luar layar hanya selama generate PDF berjalan */}
       {exportSnapshot && (
         <div aria-hidden="true" className="pointer-events-none fixed top-0 left-[-20000px]">
@@ -248,6 +272,6 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
