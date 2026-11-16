@@ -21,7 +21,12 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     trace: "retain-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    // Engine Safari (WebKit) dengan viewport, touch, dan user agent iPhone. Bukan iOS sungguhan:
+    // popup blocker, PDF viewer iOS, dan in-app browser tetap harus dicek di iPhone asli.
+    { name: "iphone", use: { ...devices["iPhone 15"] } },
+  ],
   webServer: {
     // Port sendiri agar tidak bentrok dengan `npm run dev` yang mungkin sedang jalan di 3000.
     command: `npx next dev --port ${PORT}`,

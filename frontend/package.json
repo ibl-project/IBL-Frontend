@@ -10,7 +10,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test --project=chromium",
+    "test:e2e:iphone": "docker run --rm --ipc=host --user \"$(id -u):$(id -g)\" -e HOME=/tmp -e NEXT_TELEMETRY_DISABLED=1 -v \"$PWD\":/work -w /work mcr.microsoft.com/playwright:v1.65.1-noble npx playwright test --project=iphone"
   },
   "dependencies": {
     "framer-motion": "^12.42.0",
