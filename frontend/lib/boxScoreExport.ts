@@ -1,4 +1,4 @@
-import { toPng } from "html-to-image";
+import { getFontEmbedCSS, toPng } from "html-to-image";
 import jsPDF from "jspdf";
 
 import { type MatchSnapshot, type PlayerLine, type StatCounts, STAT_KEYS, periodLabel } from "@/lib/matchesApi";
@@ -138,11 +138,27 @@ export function downloadCsv(content: string, fileName: string): void {
 // PDF (dari lembar export statis yang dirender di luar layar)
 // ----------------------------------------------------------------------------
 
-function capture(element: HTMLElement): Promise<string> {
+/**
+ * CSS @font-face (Poppins dkk.) yang di-embed ke tiap capture. Mengambil dan meng-inline font itu lambat,
+ * jadi dihitung sekali per halaman lalu dipakai ulang untuk semua lembar dan export berikutnya.
+ * Kalau gagal, cache dikosongkan supaya export berikutnya mencoba lagi (bukan diam-diam tanpa font).
+ */
+let fontEmbedCssPromise: Promise<string> | null = null;
+
+function fontEmbedCss(element: HTMLElement): Promise<string> {
+  fontEmbedCssPromise ??= getFontEmbedCSS(element).catch((error: unknown) => {
+    console.warn("Gagal embed font untuk PDF, memakai font fallback:", error);
+    fontEmbedCssPromise = null;
+    return "";
+  });
+  return fontEmbedCssPromise;
+}
+
+async function capture(element: HTMLElement): Promise<string> {
   return toPng(element, {
     pixelRatio: 1.5,
     backgroundColor: "#ffffff",
-    fontEmbedCSS: "", // Hindari scanning dan re-fetching seluruh stylesheet/font yang lambat
+    fontEmbedCSS: await fontEmbedCss(element),
     cacheBust: false,
     width: element.scrollWidth,
     height: element.scrollHeight,
