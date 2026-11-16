@@ -140,16 +140,17 @@ export function downloadCsv(content: string, fileName: string): void {
 
 function capture(element: HTMLElement): Promise<string> {
   return toPng(element, {
-    pixelRatio: 2,
+    pixelRatio: 1.5,
     backgroundColor: "#ffffff",
-    cacheBust: true,
+    fontEmbedCSS: "", // Hindari scanning dan re-fetching seluruh stylesheet/font yang lambat
+    cacheBust: false,
     width: element.scrollWidth,
     height: element.scrollHeight,
   });
 }
 
-/** PDF A4 landscape, satu halaman per lembar. */
-export async function exportPdf(sheets: HTMLElement[], fileName: string): Promise<void> {
+/** Generate PDF A4 landscape sebagai Blob (untuk preview/embed atau unduh). */
+export async function generateBoxScorePdf(sheets: HTMLElement[]): Promise<Blob> {
   const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
@@ -167,5 +168,18 @@ export async function exportPdf(sheets: HTMLElement[], fileName: string): Promis
     if (index > 0) pdf.addPage("a4", "landscape");
     pdf.addImage(dataUrl, "PNG", (pageWidth - width) / 2, (pageHeight - height) / 2, width, height, undefined, "FAST");
   }
-  pdf.save(fileName);
+  return pdf.output("blob");
+}
+
+/** PDF A4 landscape, satu halaman per lembar, lalu unduh langsung. */
+export async function exportPdf(sheets: HTMLElement[], fileName: string): Promise<void> {
+  const blob = await generateBoxScorePdf(sheets);
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }

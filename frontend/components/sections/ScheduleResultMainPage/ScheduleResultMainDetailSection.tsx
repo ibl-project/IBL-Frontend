@@ -15,6 +15,7 @@ import { type MatchSide, type MatchSnapshot, REGULATION_QUARTERS, getMatch, isLi
 import { isDateKey } from "@/lib/scheduleDays";
 import { MatchHeader } from "./MatchHeader";
 import { SummaryTable } from "./SummaryTable";
+import { ScoreDetailButton } from "./ScoreDetailButton";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LIVE_REFRESH_MS = 60_000;
@@ -320,9 +321,12 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
                 />
               </motion.div>
 
-              {/* Layer 4: Summary Table (Inside Red Box, beneath SUMMARY banner) */}
-              <div className="absolute left-1/2 top-[52%] z-[25] w-[70.4%] -translate-x-1/2">
+              {/* Layer 4: Summary Table & Score Detail (Inside Red Box, beneath SUMMARY banner) */}
+              <div className="absolute left-1/2 top-[52%] z-[25] w-[70.4%] -translate-x-1/2 flex flex-col items-center">
                 <SummaryTable teams={match ? { team1: match.team1, team2: match.team2 } : null} />
+                <div className="mt-[1.8cqw] flex justify-center @max-[480px]/detail:mt-[1cqw]">
+                  <ScoreDetailButton match={match} />
+                </div>
               </div>
             </div>
           </motion.article>
