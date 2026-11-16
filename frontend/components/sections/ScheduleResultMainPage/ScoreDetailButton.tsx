@@ -104,8 +104,6 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
 
   // Hanya generate lembar "Total" (Box Score lengkap pertandingan) agar proses cepat dan efisien
   const sections: ExportSection[] = useMemo(() => ["total"], []);
-  const color1 = match?.team1.color || "#074770";
-  const color2 = match?.team2.color || "#760807";
 
   const team1Name = match?.team1.name || "Team 1";
   const team2Name = match?.team2.name || "Team 2";
@@ -132,6 +130,10 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
       setReadyPdfUrl(url);
     }
   };
+
+  // Warna tim diambil dari snapshot yang dibekukan, sama seperti datanya
+  const color1 = exportSnapshot?.team1.color || "#074770";
+  const color2 = exportSnapshot?.team2.color || "#760807";
 
   // Generate PDF secara dinamis dari DOM offscreen jika tidak ada file upload admin
   useEffect(() => {
@@ -220,8 +222,8 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
       <motion.button
         type="button"
         onClick={handleClick}
-        onPointerEnter={prewarmBoxScoreExport}
-        onFocus={prewarmBoxScoreExport}
+        onPointerEnter={(event) => prewarmBoxScoreExport(event.currentTarget)}
+        onFocus={(event) => prewarmBoxScoreExport(event.currentTarget)}
         disabled={!match || isPreparing}
         title={!match ? "Memuat data pertandingan..." : "Buka Lembar Skor di Tab Baru"}
         whileHover={!isPreparing && match ? { scale: 1.05, filter: "brightness(1.1)" } : {}}

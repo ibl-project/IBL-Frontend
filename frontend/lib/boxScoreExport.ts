@@ -157,9 +157,13 @@ function fontEmbedCss(element: HTMLElement): Promise<string> {
 /**
  * Mulai ambil font lebih awal (mis. saat kursor menyentuh tombol export), supaya klik pertama
  * tidak menunggu download font. Aman dipanggil berkali-kali.
+ *
+ * `element` harus kecil dan memakai font yang sama dengan lembar export (Poppins), misalnya tombol itu sendiri.
+ * Jangan pakai document.body: html-to-image akan menelusuri seluruh halaman dan meng-embed semua font
+ * halaman ke tiap capture, sehingga justru lebih lambat.
  */
-export function prewarmBoxScoreExport(): void {
-  if (typeof document !== "undefined") void fontEmbedCss(document.body);
+export function prewarmBoxScoreExport(element: HTMLElement): void {
+  void fontEmbedCss(element);
 }
 
 const PIXEL_RATIO = 1.5;
