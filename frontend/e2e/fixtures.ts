@@ -1,4 +1,4 @@
-import type { Page, Route } from "@playwright/test";
+import type { Download, Page, Route } from "@playwright/test";
 import type { MatchSide, MatchSnapshot, PlayerLine, ResultFile, TeamSummary } from "@/lib/matchesApi";
 import { FAKE_API_URL } from "../playwright.config";
 
@@ -141,6 +141,29 @@ export async function blockPopups(page: Page): Promise<void> {
   await page.addInitScript(() => {
     window.open = () => null;
   });
+}
+
+/**
+ * Tangkap unduhan berikutnya di tab MANA PUN dalam context, termasuk tab yang belum dibuka.
+ * Dipakai untuk link target=_blank yang langsung menunjuk PDF: tab baru langsung mengunduh,
+ * sebelum test sempat memasang listener di tab itu. Panggil SEBELUM klik.
+ */
+export function nextDownload(opener: Page): Promise<Download> {
+  const context = opener.context();
+  return new Promise<Download>((resolve) => {
+    const watch = (tab: Page) => tab.once("download", resolve);
+    context.pages().forEach(watch);
+    context.on("page", watch);
+  });
+}
+
+/**
+ * Alamat dan isi PDF dari unduhan. Chromium headless (yang dipakai Playwright) tidak punya PDF viewer:
+ * membuka PDF di tab menjadi UNDUHAN dan navigasinya dilaporkan net::ERR_ABORTED, jadi PDF dicek lewat unduhan.
+ */
+export async function pdfFrom(download: Promise<Download>, opener: Page): Promise<{ url: string; text: string }> {
+  const url = (await download).url();
+  return { url, text: await readBlobText(opener, url) };
 }
 
 /** Baca isi URL blob dari dalam halaman yang membuatnya (blob hanya bisa dibaca dari origin yang sama). */

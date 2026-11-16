@@ -6,6 +6,8 @@ import {
   blockPopups,
   finishedMatch,
   mockApi,
+  nextDownload,
+  pdfFrom,
   readBlobText,
 } from "./fixtures";
 
@@ -14,8 +16,9 @@ import {
  * halaman sungguhan (next dev) + render PDF sungguhan (html-to-image + jsPDF), API dipalsukan.
  */
 
+// Dicari lewat title, bukan teks: teksnya berubah jadi "Opening PDF..." selama proses.
 const scoreDetailButton = (page: import("@playwright/test").Page) =>
-  page.getByRole("button", { name: "Score Detail" });
+  page.getByRole("button").and(page.getByTitle("Buka Lembar Skor di Tab Baru"));
 
 test.describe("Score Detail", () => {
   test("tanpa PDF admin: membuka tab loading lalu PDF box score yang dibuat dari data match", async ({ page }) => {
@@ -25,15 +28,16 @@ test.describe("Score Detail", () => {
     const button = scoreDetailButton(page);
     await expect(button).toBeEnabled();
 
+    const downloaded = nextDownload(page);
     const [popup] = await Promise.all([page.waitForEvent("popup"), button.click()]);
 
     // Tab loading bertema muncul dulu, dengan nama kedua tim
     await expect(popup).toHaveTitle("Score Detail · Elektro vs Sipil");
     await expect(popup.locator("h1")).toHaveText("Score Detail");
 
-    // Lalu berpindah ke PDF hasil generate
-    await popup.waitForURL(/^blob:/, { timeout: 30_000 });
-    const pdf = await readBlobText(page, popup.url());
+    // Lalu tab itu membuka PDF hasil generate
+    const { url, text: pdf } = await pdfFrom(downloaded, page);
+    expect(url).toMatch(/^blob:/);
     expect(pdf.startsWith("%PDF-")).toBe(true);
     // Satu lembar ("Total") = satu halaman, gambar disisipkan sebagai JPEG
     expect(pdf.match(/\/Type \/Page\b/g)).toHaveLength(1);
@@ -48,10 +52,10 @@ test.describe("Score Detail", () => {
     await mockApi(page, finishedMatch({ resultFile: adminResultFile }));
     await page.goto(DETAIL_URL);
 
-    const [popup] = await Promise.all([page.waitForEvent("popup"), scoreDetailButton(page).click()]);
-    await popup.waitForURL(/^blob:/);
+    const downloaded = nextDownload(page);
+    await scoreDetailButton(page).click();
 
-    expect(await readBlobText(page, popup.url())).toBe(ADMIN_PDF_BYTES);
+    expect((await pdfFrom(downloaded, page)).text).toBe(ADMIN_PDF_BYTES);
   });
 
   test("PDF admin gagal diambil: beralih ke PDF hasil generate", async ({ page }) => {
@@ -70,10 +74,10 @@ test.describe("Score Detail", () => {
     );
     await page.goto(DETAIL_URL);
 
-    const [popup] = await Promise.all([page.waitForEvent("popup"), scoreDetailButton(page).click()]);
-    await popup.waitForURL(/^blob:/, { timeout: 30_000 });
+    const downloaded = nextDownload(page);
+    await scoreDetailButton(page).click();
 
-    const pdf = await readBlobText(page, popup.url());
+    const { text: pdf } = await pdfFrom(downloaded, page);
     expect(pdf.startsWith("%PDF-")).toBe(true);
     expect(pdf).not.toBe(ADMIN_PDF_BYTES);
   });
@@ -92,8 +96,10 @@ test.describe("Score Detail", () => {
     expect((await readBlobText(page, href!)).startsWith("%PDF-")).toBe(true);
 
     // Klik link membuka tab baru (target=_blank) dan link hilang
-    const [popup] = await Promise.all([page.waitForEvent("popup"), link.click()]);
-    expect(popup.url()).toBe(href);
+    // Listener dipasang sebelum klik: tab baru langsung mengunduh PDF begitu terbuka
+    const downloaded = nextDownload(page);
+    await link.click();
+    expect((await downloaded).url()).toBe(href);
     await expect(link).toBeHidden();
   });
 
@@ -106,24 +112,27 @@ test.describe("Score Detail", () => {
     let dialogShown = false;
     page.context().on("page", (p) => p.on("dialog", (d) => ((dialogShown = true), d.dismiss())));
 
+    const downloaded = nextDownload(page);
     const [popup] = await Promise.all([page.waitForEvent("popup"), scoreDetailButton(page).click()]);
     await expect(popup).toHaveTitle("Score Detail · <img src=x onerror=alert(1)> vs Sipil");
     await expect(popup.locator(".teams b").first()).toHaveText("<img src=x onerror=alert(1)>");
-    await popup.waitForURL(/^blob:/, { timeout: 30_000 });
+    await pdfFrom(downloaded, page);
     expect(dialogShown).toBe(false);
   });
 
-  test("klik dua kali cepat hanya membuka satu tab", async ({ page }) => {
+  test("double-click hanya membuka satu tab", async ({ page }) => {
     await mockApi(page, finishedMatch());
     await page.goto(DETAIL_URL);
 
-    const popups: unknown[] = [];
+    const popups: import("@playwright/test").Page[] = [];
     page.on("popup", (p) => popups.push(p));
 
+    // Double-click sungguhan: dua klik dalam satu gerakan, seperti user yang tidak sabar
     const button = scoreDetailButton(page);
-    await button.click();
-    await button.click({ force: true }).catch(() => {});
+    await button.dblclick();
 
+    // Tunggu tab pertama muncul dan proses selesai (tombol kembali normal), baru hitung tab
+    await expect.poll(() => popups.length).toBeGreaterThan(0);
     await expect(button).toHaveText("Score Detail", { timeout: 30_000 });
     expect(popups).toHaveLength(1);
   });
