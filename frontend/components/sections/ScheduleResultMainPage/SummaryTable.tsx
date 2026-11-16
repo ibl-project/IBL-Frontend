@@ -77,25 +77,27 @@ export function SummaryTable({ teams }: { teams: { team1: MatchSide; team2: Matc
       {teams && (
         <>
           {/* Tabel asli untuk pembaca layar; tampilan di bawahnya disembunyikan dari mereka. */}
-          <table className="sr-only">
-            <caption>Ringkasan statistik pertandingan</caption>
-            <thead>
-              <tr>
-                <th scope="col">Statistik</th>
-                <th scope="col">{name1}</th>
-                <th scope="col">{name2}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {SUMMARY_ROWS.map((row) => (
-                <tr key={row.label}>
-                  <th scope="row">{row.label}</th>
-                  <td>{row.value(teams.team1)}</td>
-                  <td>{row.value(teams.team2)}</td>
+          <div className="sr-only">
+            <table>
+              <caption className="sr-only">Ringkasan statistik pertandingan</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Statistik</th>
+                  <th scope="col">{name1}</th>
+                  <th scope="col">{name2}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {SUMMARY_ROWS.map((row) => (
+                  <tr key={row.label}>
+                    <th scope="row">{row.label}</th>
+                    <td>{row.value(teams.team1)}</td>
+                    <td>{row.value(teams.team2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           <div aria-hidden="true">
             <HeaderName text={name1} className="left-[1.58%]" />
