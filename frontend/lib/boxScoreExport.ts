@@ -1,4 +1,4 @@
-import { getFontEmbedCSS, toPng } from "html-to-image";
+import { getFontEmbedCSS, toJpeg } from "html-to-image";
 import jsPDF from "jspdf";
 
 import { type MatchSnapshot, type PlayerLine, type StatCounts, STAT_KEYS, periodLabel } from "@/lib/matchesApi";
@@ -154,15 +154,34 @@ function fontEmbedCss(element: HTMLElement): Promise<string> {
   return fontEmbedCssPromise;
 }
 
-async function capture(element: HTMLElement): Promise<string> {
-  return toPng(element, {
-    pixelRatio: 1.5,
+/**
+ * Mulai ambil font lebih awal (mis. saat kursor menyentuh tombol export), supaya klik pertama
+ * tidak menunggu download font. Aman dipanggil berkali-kali.
+ */
+export function prewarmBoxScoreExport(): void {
+  if (typeof document !== "undefined") void fontEmbedCss(document.body);
+}
+
+const PIXEL_RATIO = 1.5;
+
+/**
+ * JPEG, bukan PNG: encode di browser jauh lebih cepat, dan jsPDF menyisipkan JPEG apa adanya
+ * tanpa decode + kompres ulang (bagian paling lambat pada PNG). Kualitas 0.92 tetap tajam
+ * untuk teks hitam di latar putih.
+ */
+async function capture(element: HTMLElement): Promise<{ dataUrl: string; width: number; height: number }> {
+  const width = element.scrollWidth;
+  const height = element.scrollHeight;
+  const dataUrl = await toJpeg(element, {
+    quality: 0.92,
+    pixelRatio: PIXEL_RATIO,
     backgroundColor: "#ffffff",
     fontEmbedCSS: await fontEmbedCss(element),
     cacheBust: false,
-    width: element.scrollWidth,
-    height: element.scrollHeight,
+    width,
+    height,
   });
+  return { dataUrl, width: width * PIXEL_RATIO, height: height * PIXEL_RATIO };
 }
 
 /** Generate PDF A4 landscape sebagai Blob (untuk preview/embed atau unduh). */
@@ -173,16 +192,13 @@ export async function generateBoxScorePdf(sheets: HTMLElement[]): Promise<Blob> 
   const margin = 8;
 
   for (const [index, sheet] of sheets.entries()) {
-    const dataUrl = await capture(sheet);
-    const image = new Image();
-    image.src = dataUrl;
-    await image.decode();
-
-    const scale = Math.min((pageWidth - margin * 2) / image.naturalWidth, (pageHeight - margin * 2) / image.naturalHeight);
-    const width = image.naturalWidth * scale;
-    const height = image.naturalHeight * scale;
+    // Ukuran gambar sudah diketahui dari elemen, jadi tidak perlu decode ulang gambarnya
+    const { dataUrl, width: imageWidth, height: imageHeight } = await capture(sheet);
+    const scale = Math.min((pageWidth - margin * 2) / imageWidth, (pageHeight - margin * 2) / imageHeight);
+    const width = imageWidth * scale;
+    const height = imageHeight * scale;
     if (index > 0) pdf.addPage("a4", "landscape");
-    pdf.addImage(dataUrl, "PNG", (pageWidth - width) / 2, (pageHeight - height) / 2, width, height, undefined, "FAST");
+    pdf.addImage(dataUrl, "JPEG", (pageWidth - width) / 2, (pageHeight - height) / 2, width, height, undefined, "FAST");
   }
   return pdf.output("blob");
 }
