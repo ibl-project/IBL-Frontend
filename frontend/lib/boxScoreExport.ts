@@ -1,4 +1,4 @@
-import { toPng } from "html-to-image";
+import { getFontEmbedCSS, toJpeg } from "html-to-image";
 import jsPDF from "jspdf";
 
 import { type MatchSnapshot, type PlayerLine, type StatCounts, STAT_KEYS, periodLabel } from "@/lib/matchesApi";
@@ -138,34 +138,84 @@ export function downloadCsv(content: string, fileName: string): void {
 // PDF (dari lembar export statis yang dirender di luar layar)
 // ----------------------------------------------------------------------------
 
-function capture(element: HTMLElement): Promise<string> {
-  return toPng(element, {
-    pixelRatio: 2,
-    backgroundColor: "#ffffff",
-    cacheBust: true,
-    width: element.scrollWidth,
-    height: element.scrollHeight,
+/**
+ * CSS @font-face (Poppins dkk.) yang di-embed ke tiap capture. Mengambil dan meng-inline font itu lambat,
+ * jadi dihitung sekali per halaman lalu dipakai ulang untuk semua lembar dan export berikutnya.
+ * Kalau gagal, cache dikosongkan supaya export berikutnya mencoba lagi (bukan diam-diam tanpa font).
+ */
+let fontEmbedCssPromise: Promise<string> | null = null;
+
+function fontEmbedCss(element: HTMLElement): Promise<string> {
+  fontEmbedCssPromise ??= getFontEmbedCSS(element).catch((error: unknown) => {
+    console.warn("Gagal embed font untuk PDF, memakai font fallback:", error);
+    fontEmbedCssPromise = null;
+    return "";
   });
+  return fontEmbedCssPromise;
 }
 
-/** PDF A4 landscape, satu halaman per lembar. */
-export async function exportPdf(sheets: HTMLElement[], fileName: string): Promise<void> {
+/**
+ * Mulai ambil font lebih awal (mis. saat kursor menyentuh tombol export), supaya klik pertama
+ * tidak menunggu download font. Aman dipanggil berkali-kali.
+ *
+ * `element` harus kecil dan memakai font yang sama dengan lembar export (Poppins), misalnya tombol itu sendiri.
+ * Jangan pakai document.body: html-to-image akan menelusuri seluruh halaman dan meng-embed semua font
+ * halaman ke tiap capture, sehingga justru lebih lambat.
+ */
+export function prewarmBoxScoreExport(element: HTMLElement): void {
+  void fontEmbedCss(element);
+}
+
+const PIXEL_RATIO = 1.5;
+
+/**
+ * JPEG, bukan PNG: encode di browser jauh lebih cepat, dan jsPDF menyisipkan JPEG apa adanya
+ * tanpa decode + kompres ulang (bagian paling lambat pada PNG). Kualitas 0.92 tetap tajam
+ * untuk teks hitam di latar putih.
+ */
+async function capture(element: HTMLElement): Promise<{ dataUrl: string; width: number; height: number }> {
+  const width = element.scrollWidth;
+  const height = element.scrollHeight;
+  const dataUrl = await toJpeg(element, {
+    quality: 0.92,
+    pixelRatio: PIXEL_RATIO,
+    backgroundColor: "#ffffff",
+    fontEmbedCSS: await fontEmbedCss(element),
+    cacheBust: false,
+    width,
+    height,
+  });
+  return { dataUrl, width: width * PIXEL_RATIO, height: height * PIXEL_RATIO };
+}
+
+/** Generate PDF A4 landscape sebagai Blob (untuk preview/embed atau unduh). */
+export async function generateBoxScorePdf(sheets: HTMLElement[]): Promise<Blob> {
   const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 8;
 
   for (const [index, sheet] of sheets.entries()) {
-    const dataUrl = await capture(sheet);
-    const image = new Image();
-    image.src = dataUrl;
-    await image.decode();
-
-    const scale = Math.min((pageWidth - margin * 2) / image.naturalWidth, (pageHeight - margin * 2) / image.naturalHeight);
-    const width = image.naturalWidth * scale;
-    const height = image.naturalHeight * scale;
+    // Ukuran gambar sudah diketahui dari elemen, jadi tidak perlu decode ulang gambarnya
+    const { dataUrl, width: imageWidth, height: imageHeight } = await capture(sheet);
+    const scale = Math.min((pageWidth - margin * 2) / imageWidth, (pageHeight - margin * 2) / imageHeight);
+    const width = imageWidth * scale;
+    const height = imageHeight * scale;
     if (index > 0) pdf.addPage("a4", "landscape");
-    pdf.addImage(dataUrl, "PNG", (pageWidth - width) / 2, (pageHeight - height) / 2, width, height, undefined, "FAST");
+    pdf.addImage(dataUrl, "JPEG", (pageWidth - width) / 2, (pageHeight - height) / 2, width, height, undefined, "FAST");
   }
-  pdf.save(fileName);
+  return pdf.output("blob");
+}
+
+/** PDF A4 landscape, satu halaman per lembar, lalu unduh langsung. */
+export async function exportPdf(sheets: HTMLElement[], fileName: string): Promise<void> {
+  const blob = await generateBoxScorePdf(sheets);
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
