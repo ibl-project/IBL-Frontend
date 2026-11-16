@@ -1,139 +1,144 @@
-import { expect, test } from "@playwright/test";
+import { type Page, expect, test } from "@playwright/test";
 import {
   ADMIN_PDF_BYTES,
   DETAIL_URL,
+  MATCH_ID,
+  SCORE_DETAIL_URL,
   adminResultFile,
-  blockPopups,
   finishedMatch,
   mockApi,
   nextDownload,
   pdfFrom,
-  readBlobText,
 } from "./fixtures";
 
 /**
- * Integrasi tombol "Score Detail" di halaman detail pertandingan publik:
- * halaman sungguhan (next dev) + render PDF sungguhan (html-to-image + jsPDF), API dipalsukan.
+ * Integrasi "Score Detail": tombol di halaman detail game membuka halaman /schedule-result-main/score-detail,
+ * dan halaman itu yang membuat PDF (di tab yang sedang dilihat, jadi tidak dibekukan browser HP).
+ * Halaman sungguhan (next dev) + render PDF sungguhan (html-to-image + jsPDF), API dipalsukan.
  */
 
-// Dicari lewat title, bukan teks: teksnya berubah jadi "Opening PDF..." selama proses.
-const scoreDetailButton = (page: import("@playwright/test").Page) =>
-  page.getByRole("button").and(page.getByTitle("Buka Lembar Skor di Tab Baru"));
+// Dicari lewat title: tetap sama walau tampilannya berubah
+const scoreDetailLink = (page: Page) => page.getByRole("link").and(page.getByTitle("Buka Lembar Skor di Tab Baru"));
+
+// Next.js juga punya elemen role="alert" sendiri (route announcer, kosong), jadi ambil yang berisi teks
+const statusAlert = (page: Page) => page.getByRole("alert").filter({ hasText: /\S/ });
+
+/** Cek PDF hasil generate: header PDF, satu halaman ("Total"), gambar JPEG. */
+function expectGeneratedPdf(pdf: string) {
+  expect(pdf.startsWith("%PDF-")).toBe(true);
+  expect(pdf.match(/\/Type \/Page\b/g)).toHaveLength(1);
+  expect(pdf).toContain("/DCTDecode");
+}
+
+/** 500 dengan header CORS lengkap, supaya yang diuji benar-benar error HTTP, bukan error CORS. */
+const serverError = (route: import("@playwright/test").Route) =>
+  route.fulfill({
+    status: 500,
+    headers: { "Access-Control-Allow-Origin": route.request().headers()["origin"] ?? "*" },
+    json: { success: false, error: { code: "INTERNAL", message: "error (mock e2e)" } },
+  });
 
 test.describe("Score Detail", () => {
-  test("tanpa PDF admin: membuka tab loading lalu PDF box score yang dibuat dari data match", async ({ page }) => {
+  test("tombol membuka halaman Score Detail di tab baru, lalu halaman itu menampilkan PDF", async ({ page }) => {
     await mockApi(page, finishedMatch());
     await page.goto(DETAIL_URL);
 
-    const button = scoreDetailButton(page);
-    await expect(button).toBeEnabled();
-
     const downloaded = nextDownload(page);
-    const [popup] = await Promise.all([page.waitForEvent("popup"), button.click()]);
+    const [tab] = await Promise.all([page.waitForEvent("popup"), scoreDetailLink(page).click()]);
+    await expect(tab).toHaveURL(new RegExp(`/schedule-result-main/score-detail\\?id=${MATCH_ID}$`));
 
-    // Tab loading bertema muncul dulu, dengan nama kedua tim
-    await expect(popup).toHaveTitle("Score Detail · Elektro vs Sipil");
-    await expect(popup.locator("h1")).toHaveText("Score Detail");
-
-    // Lalu tab itu membuka PDF hasil generate
-    const { url, text: pdf } = await pdfFrom(downloaded, page);
+    const { url, text } = await pdfFrom(downloaded);
     expect(url).toMatch(/^blob:/);
-    expect(pdf.startsWith("%PDF-")).toBe(true);
-    // Satu lembar ("Total") = satu halaman, gambar disisipkan sebagai JPEG
-    expect(pdf.match(/\/Type \/Page\b/g)).toHaveLength(1);
-    expect(pdf).toContain("/DCTDecode");
-
-    // Tombol kembali normal setelah selesai
-    await expect(button).toBeEnabled();
-    await expect(button).toHaveText("Score Detail");
+    expectGeneratedPdf(text);
   });
 
-  test("dengan PDF admin: membuka file yang diunggah admin, bukan PDF hasil generate", async ({ page }) => {
-    await mockApi(page, finishedMatch({ resultFile: adminResultFile }));
-    await page.goto(DETAIL_URL);
-
+  test("dibuka langsung di tab yang sama (in-app browser, reload) tetap membuat PDF", async ({ page }) => {
+    await mockApi(page, finishedMatch());
     const downloaded = nextDownload(page);
-    await scoreDetailButton(page).click();
+    await page.goto(SCORE_DETAIL_URL);
 
-    expect((await pdfFrom(downloaded, page)).text).toBe(ADMIN_PDF_BYTES);
+    expectGeneratedPdf((await pdfFrom(downloaded)).text);
+  });
+
+  test("selama PDF disiapkan: judul, nama tim (sebagai teks biasa), dan progress", async ({ page }) => {
+    const match = finishedMatch();
+    match.team1.name = "<img src=x onerror=alert(1)>";
+    await mockApi(page, match);
+    // Tahan pembuatan PDF (fonts.ready tidak pernah selesai) agar tampilan loading bisa diperiksa
+    await page.addInitScript(() => {
+      Object.defineProperty(document.fonts, "ready", { get: () => new Promise(() => {}) });
+    });
+    let dialogShown = false;
+    page.on("dialog", (dialog) => {
+      dialogShown = true;
+      void dialog.dismiss();
+    });
+
+    await page.goto(SCORE_DETAIL_URL);
+
+    await expect(page).toHaveTitle("Score Detail | IBL 2K26");
+    await expect(page.getByRole("heading", { name: "Score Detail" })).toBeVisible();
+    // .first(): nama tim juga ada di lembar PDF offscreen; yang pertama adalah strip "A VS B" yang terlihat
+    await expect(page.getByText("<img src=x onerror=alert(1)>", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Sipil", { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("progressbar", { name: "Menyiapkan box score" })).toBeVisible();
+    expect(dialogShown).toBe(false);
+  });
+
+  test("dengan PDF admin: menampilkan file yang diunggah admin, bukan PDF hasil generate", async ({ page }) => {
+    await mockApi(page, finishedMatch({ resultFile: adminResultFile }));
+    const downloaded = nextDownload(page);
+    await page.goto(SCORE_DETAIL_URL);
+
+    expect((await pdfFrom(downloaded)).text).toBe(ADMIN_PDF_BYTES);
   });
 
   test("PDF admin gagal diambil: beralih ke PDF hasil generate", async ({ page }) => {
     await mockApi(page, finishedMatch({ resultFile: adminResultFile }));
-    // Didaftarkan setelah mockApi sehingga didahulukan: endpoint file hasil error 500.
-    // Header CORS harus lengkap (origin + credentials), kalau tidak yang diuji malah error CORS, bukan 500.
-    await page.context().route("**/result-file**", (route) =>
-      route.fulfill({
-        status: 500,
-        headers: {
-          "Access-Control-Allow-Origin": route.request().headers()["origin"] ?? "*",
-          "Access-Control-Allow-Credentials": "true",
-        },
-        body: "error",
-      }),
-    );
-    await page.goto(DETAIL_URL);
-
+    // Didaftarkan setelah mockApi sehingga didahulukan
+    await page.context().route("**/result-file**", serverError);
     const downloaded = nextDownload(page);
-    await scoreDetailButton(page).click();
+    await page.goto(SCORE_DETAIL_URL);
 
-    const { text: pdf } = await pdfFrom(downloaded, page);
-    expect(pdf.startsWith("%PDF-")).toBe(true);
-    expect(pdf).not.toBe(ADMIN_PDF_BYTES);
+    expectGeneratedPdf((await pdfFrom(downloaded)).text);
   });
 
-  test("popup diblokir: menampilkan link 'Buka PDF' yang membuka PDF saat diklik", async ({ page }) => {
-    await blockPopups(page);
+  test("match tidak ditemukan: pesan jelas dan link ke jadwal", async ({ page }) => {
     await mockApi(page, finishedMatch());
-    await page.goto(DETAIL_URL);
+    await page.goto("/schedule-result-main/score-detail?id=99999999-2222-4333-8444-555555555555");
 
-    await scoreDetailButton(page).click();
-
-    const link = page.getByRole("link", { name: /Buka PDF/ });
-    await expect(link).toBeVisible({ timeout: 30_000 });
-    const href = await link.getAttribute("href");
-    expect(href).toMatch(/^blob:/);
-    expect((await readBlobText(page, href!)).startsWith("%PDF-")).toBe(true);
-
-    // Klik link membuka tab baru (target=_blank) dan link hilang
-    // Listener dipasang sebelum klik: tab baru langsung mengunduh PDF begitu terbuka
-    const downloaded = nextDownload(page);
-    await link.click();
-    expect((await downloaded).url()).toBe(href);
-    await expect(link).toBeHidden();
+    await expect(statusAlert(page)).toContainText("Pertandingan tidak ditemukan.");
+    await expect(page.getByRole("link", { name: "Ke jadwal" })).toHaveAttribute("href", "/schedule-result-main");
   });
 
-  test("nama tim berisi HTML tampil sebagai teks di tab loading, bukan markup", async ({ page }) => {
-    const match = finishedMatch();
-    match.team1.name = "<img src=x onerror=alert(1)>";
-    await mockApi(page, match);
-    await page.goto(DETAIL_URL);
+  test("API error: pesan + 'Coba lagi' yang berhasil setelah API pulih", async ({ page }) => {
+    await mockApi(page, finishedMatch());
+    let failing = true;
+    await page.context().route(`**/api/matches/${MATCH_ID}`, (route) =>
+      failing ? serverError(route) : route.fallback(),
+    );
+    await page.goto(SCORE_DETAIL_URL);
 
-    let dialogShown = false;
-    page.context().on("page", (p) => p.on("dialog", (d) => ((dialogShown = true), d.dismiss())));
+    await expect(statusAlert(page)).toContainText("Gagal memuat data pertandingan.");
+    await expect(page.getByRole("link", { name: "Kembali" })).toHaveAttribute("href", `/schedule-result-main/detail-game?id=${MATCH_ID}`);
 
+    failing = false;
     const downloaded = nextDownload(page);
-    const [popup] = await Promise.all([page.waitForEvent("popup"), scoreDetailButton(page).click()]);
-    await expect(popup).toHaveTitle("Score Detail · <img src=x onerror=alert(1)> vs Sipil");
-    await expect(popup.locator(".teams b").first()).toHaveText("<img src=x onerror=alert(1)>");
-    await pdfFrom(downloaded, page);
-    expect(dialogShown).toBe(false);
+    await page.getByRole("button", { name: "Coba lagi" }).click();
+    expectGeneratedPdf((await pdfFrom(downloaded)).text);
   });
 
   test("double-click hanya membuka satu tab", async ({ page }) => {
     await mockApi(page, finishedMatch());
     await page.goto(DETAIL_URL);
 
-    const popups: import("@playwright/test").Page[] = [];
-    page.on("popup", (p) => popups.push(p));
+    const tabs: Page[] = [];
+    page.on("popup", (tab) => tabs.push(tab));
 
-    // Double-click sungguhan: dua klik dalam satu gerakan, seperti user yang tidak sabar
-    const button = scoreDetailButton(page);
-    await button.dblclick();
-
-    // Tunggu tab pertama muncul dan proses selesai (tombol kembali normal), baru hitung tab
-    await expect.poll(() => popups.length).toBeGreaterThan(0);
-    await expect(button).toHaveText("Score Detail", { timeout: 30_000 });
-    expect(popups).toHaveLength(1);
+    await scoreDetailLink(page).dblclick();
+    await expect.poll(() => tabs.length).toBeGreaterThan(0);
+    // Beri waktu tab kedua (kalau ada) untuk muncul sebelum menghitung
+    await page.waitForTimeout(1_500);
+    expect(tabs).toHaveLength(1);
   });
 });
