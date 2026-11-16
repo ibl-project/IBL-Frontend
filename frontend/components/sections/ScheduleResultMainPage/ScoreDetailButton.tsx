@@ -90,7 +90,13 @@ function buildLoadingPage(team1: string, team2: string, origin: string): string 
 
 export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
   const [isPreparing, setIsPreparing] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  // Salinan data pertandingan yang dibekukan saat generate dimulai. Refresh live (tiap 60 detik)
+  // tidak mengubah lembar yang sedang di-capture dan tidak memicu generate kedua; klik lagi untuk data terbaru.
+  const [exportSnapshot, setExportSnapshot] = useState<MatchSnapshot | null>(null);
+  const latestMatchRef = useRef(match);
+  useEffect(() => {
+    latestMatchRef.current = match;
+  }, [match]);
   const pendingTabRef = useRef<Window | null>(null);
   const sheetsRef = useRef<HTMLDivElement>(null);
 
@@ -104,7 +110,7 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
 
   // Generate PDF secara dinamis dari DOM offscreen jika tidak ada file upload admin
   useEffect(() => {
-    if (!isGenerating || !match) return;
+    if (!exportSnapshot) return;
     const container = sheetsRef.current;
     if (!container) return;
 
@@ -133,7 +139,7 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
         alert("Gagal memuat detail score. Silakan coba lagi.");
       } finally {
         if (active) {
-          setIsGenerating(false);
+          setExportSnapshot(null);
           setIsPreparing(false);
           pendingTabRef.current = null;
         }
@@ -145,7 +151,7 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
     return () => {
       active = false;
     };
-  }, [isGenerating, match]);
+  }, [exportSnapshot]);
 
   const handleClick = async () => {
     if (!match || isPreparing) return;
@@ -185,7 +191,8 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
     }
 
     // 2. Jika tidak ada file manual dari admin, generate otomatis dari data pertandingan
-    setIsGenerating(true);
+    // Pakai data terbaru saat generate dimulai (bisa lebih baru dari saat klik bila fetch file admin gagal)
+    setExportSnapshot(latestMatchRef.current ?? match);
   };
 
   const buttonStyle =
@@ -226,13 +233,13 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
       </motion.button>
 
       {/* Lembar export PDF: dirender di luar layar hanya selama generate PDF berjalan */}
-      {isGenerating && match && (
+      {exportSnapshot && (
         <div aria-hidden="true" className="pointer-events-none fixed top-0 left-[-20000px]">
           <div ref={sheetsRef} className="flex w-[1280px] flex-col gap-6 bg-white">
             {sections.map((section) => (
               <ScoringExportSheet
                 key={String(section)}
-                snapshot={match}
+                snapshot={exportSnapshot}
                 section={section}
                 color1={color1}
                 color2={color2}
