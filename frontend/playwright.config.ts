@@ -34,6 +34,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
     // Environment variable proses mengalahkan .env.local, jadi dev server memakai API palsu.
-    env: { NEXT_PUBLIC_API_URL: FAKE_API_URL },
+    // NEXT_DIST_DIR: folder build terpisah, jadi test tidak bentrok dengan `npm run dev` yang sedang jalan.
+    env: { NEXT_PUBLIC_API_URL: FAKE_API_URL, NEXT_DIST_DIR: ".next-e2e" },
   },
 });
