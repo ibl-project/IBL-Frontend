@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
-import { popSpringVariants } from "@/lib/animations";
+import { popSpringVariants, popPunchVariants } from "@/lib/animations";
 import { ApiError } from "@/lib/apiClient";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
 import { openMatchStream, snapshotHandlers } from "@/lib/hooks/useMatchLive";
@@ -14,6 +14,7 @@ import { teamLabel } from "@/lib/matchDisplay";
 import { type MatchSide, type MatchSnapshot, REGULATION_QUARTERS, getMatch, isLiveNow } from "@/lib/matchesApi";
 import { isDateKey } from "@/lib/scheduleDays";
 import { MatchHeader } from "./MatchHeader";
+import { SummaryTable } from "./SummaryTable";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LIVE_REFRESH_MS = 60_000;
@@ -158,7 +159,7 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
   return (
     <section
       aria-label="Detail Game"
-      className="relative isolate min-h-screen overflow-hidden bg-[#f3e6ce] pb-14 pt-[calc(var(--navbar-height)+12px)] sm:pb-20 md:pt-[calc(var(--navbar-height)+20px)]"
+      className="relative isolate min-h-screen overflow-hidden bg-[#f3e6ce] pb-14 pt-[calc(var(--navbar-height)+20px)] sm:pb-20 md:pt-[calc(var(--navbar-height)+28px)]"
     >
       {/* Background Graphic Overlay from Figma */}
       <Image
@@ -213,7 +214,7 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
 
       <div className="relative z-10 mx-auto flex w-full max-w-[1128px] flex-col items-center px-3 sm:px-6">
         {/* Navigation & Back Action */}
-        <div className="mb-2 flex w-full max-w-[1080px] justify-start sm:mb-4">
+        <div className="mb-6 flex w-full max-w-[1080px] justify-start sm:mb-8">
           <Link
             href={backHref}
             className="group inline-flex items-center gap-2 rounded-full border-2 border-[#760807] bg-[#fff5df] px-3.5 py-1.5 font-poppins text-xs font-bold text-[#760807] shadow-[2px_2px_0_#380606] transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[3px_3px_0_#380606] sm:text-sm"
@@ -242,7 +243,7 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
         )}
 
         {(loading || match) && (
-          /* Match detail: backboard, quarter scores, and team information */
+          /* Unified Match Graphic (Backboard + Ring + Net + Red Summary Box + Table) */
           <motion.article
             initial="hidden"
             animate="visible"
@@ -251,8 +252,20 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
             aria-busy={loading}
             className="relative z-20 w-full max-w-[1080px] drop-shadow-[0_12px_32px_rgba(0,0,0,0.25)]"
           >
-            <div className="@container/detail relative w-full aspect-[1080/761]">
-              {/* Basketball Backboard + Ring & Net */}
+            {/* Frame 1080 × 1280 (1 unit = 1 px Figma desktop); container "detail" untuk ukuran isinya. */}
+            <div className="@container/detail relative w-full aspect-[1080/1280]">
+              {/* Layer 1: Red Textbox Summary Box (Big full-width, under backboard rim) */}
+              <div className="absolute left-0 top-[33.6%] z-10 w-full aspect-[1611/1223]">
+                <Image
+                  src="/images/textboxsummary.png"
+                  alt=""
+                  fill
+                  priority
+                  className="pointer-events-none object-contain select-none"
+                />
+              </div>
+
+              {/* Layer 2: Basketball Backboard + Ring & Net (In front of Red Box, behind SUMMARY) */}
               <div className="absolute left-0 top-0 z-20 w-full aspect-[1080/761]">
                 <Image
                   src="/images/ring.png"
@@ -283,12 +296,34 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
               </div>
 
               {/* Header: logos, team names, venue, time (IMPLEMENTATION_DETAIL.md §3.2, §4) */}
-              <div className="absolute left-[15.13%] top-[11.8%] z-[26] w-[68.52%] @max-[480px]/detail:left-[3.55%] @max-[480px]/detail:top-[8.75%] @max-[480px]/detail:w-[92.9%]">
+              <div className="absolute left-[15.13%] top-[7%] z-[26] w-[68.52%] @max-[480px]/detail:left-[3.55%] @max-[480px]/detail:top-[5.2%] @max-[480px]/detail:w-[92.9%]">
                 <MatchHeader
                   data={match ? { team1: match.team1, team2: match.team2, venue: match.venue, scheduledAt: match.scheduledAt } : null}
                 />
               </div>
 
+              {/* Layer 3: SUMMARY 3D Banner (Right in front of the basketball net) */}
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={popPunchVariants}
+                custom={{ delay: 0.15, rotation: 0 }}
+                className="absolute left-1/2 top-[43.8%] z-30 w-[44.5%] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]"
+              >
+                <Image
+                  src="/svg/figma/summary.svg"
+                  alt="SUMMARY"
+                  width={432}
+                  height={99}
+                  className="h-auto w-full select-none"
+                  priority
+                />
+              </motion.div>
+
+              {/* Layer 4: Summary Table (Inside Red Box, beneath SUMMARY banner) */}
+              <div className="absolute left-1/2 top-[52%] z-[25] w-[70.4%] -translate-x-1/2">
+                <SummaryTable teams={match ? { team1: match.team1, team2: match.team2 } : null} />
+              </div>
             </div>
           </motion.article>
         )}
