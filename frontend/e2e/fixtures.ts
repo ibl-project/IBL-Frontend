@@ -1,9 +1,11 @@
+import { readFile } from "node:fs/promises";
 import type { Download, Page, Route } from "@playwright/test";
 import type { MatchSide, MatchSnapshot, PlayerLine, ResultFile, TeamSummary } from "@/lib/matchesApi";
 import { FAKE_API_URL } from "../playwright.config";
 
 export const MATCH_ID = "11111111-2222-4333-8444-555555555555";
 export const DETAIL_URL = `/schedule-result-main/detail-game?id=${MATCH_ID}`;
+export const SCORE_DETAIL_URL = `/schedule-result-main/score-detail?id=${MATCH_ID}`;
 
 /** Isi PDF palsu untuk file hasil yang diunggah admin. Cukup header PDF; isinya tidak dirender di test. */
 export const ADMIN_PDF_BYTES = "%PDF-1.4\n% admin upload\n%%EOF\n";
@@ -136,13 +138,6 @@ export async function mockApi(page: Page, match: MatchSnapshot): Promise<void> {
   });
 }
 
-/** Simulasikan popup blocker: window.open selalu mengembalikan null. */
-export async function blockPopups(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    window.open = () => null;
-  });
-}
-
 /**
  * Tangkap unduhan berikutnya di tab MANA PUN dalam context, termasuk tab yang belum dibuka.
  * Dipakai untuk link target=_blank yang langsung menunjuk PDF: tab baru langsung mengunduh,
@@ -159,14 +154,9 @@ export function nextDownload(opener: Page): Promise<Download> {
 
 /**
  * Alamat dan isi PDF dari unduhan. Chromium headless (yang dipakai Playwright) tidak punya PDF viewer:
- * membuka PDF di tab menjadi UNDUHAN dan navigasinya dilaporkan net::ERR_ABORTED, jadi PDF dicek lewat unduhan.
+ * membuka PDF di tab menjadi UNDUHAN, jadi PDF dicek lewat file unduhan yang disimpan Playwright.
  */
-export async function pdfFrom(download: Promise<Download>, opener: Page): Promise<{ url: string; text: string }> {
-  const url = (await download).url();
-  return { url, text: await readBlobText(opener, url) };
-}
-
-/** Baca isi URL blob dari dalam halaman yang membuatnya (blob hanya bisa dibaca dari origin yang sama). */
-export async function readBlobText(page: Page, url: string): Promise<string> {
-  return page.evaluate(async (blobUrl) => (await fetch(blobUrl)).text(), url);
+export async function pdfFrom(download: Promise<Download>): Promise<{ url: string; text: string }> {
+  const file = await download;
+  return { url: file.url(), text: await readFile(await file.path(), "latin1") };
 }
