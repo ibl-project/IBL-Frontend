@@ -31,57 +31,17 @@ This repository contains the frontend web application for the **IBL 2K26** editi
 
 ---
 
-## Registration Page Design & Layout Context
+## Code Style
 
-The registration page layout is designed to overlay key functional components onto a high-resolution background asset: [Full_Page_Desktop.png](file:///c:/Users/justi/Documents/IBL/frontend/public/images/Full_Page_Desktop.png) (dimensions: `2880px` wide by `6646px` tall, artboard-equivalent `1440px` by `3323px`).
+- Comments, docblocks, identifiers and commit messages are in English (Conventional Commits). User-facing text stays Indonesian. Translate old Indonesian comments when you touch a file.
+- Components: `export function Name(props: NameProps)` with named exports. Default exports only where Next.js requires them (`page.tsx`, `layout.tsx`, `route.ts`).
+- Formatting is Prettier (`npm run format`); CI fails on `npm run format:check`.
+- Keep components under about 300 lines (ESLint `max-lines` warns): move state into hooks and split subcomponents. Pure logic goes in `lib/` with a Vitest test next to it.
+- No `any`: use `unknown` and narrow it.
 
-### 1. Section Dividers
+---
 
-In [page.tsx](file:///c:/Users/justi/Documents/IBL/frontend/app/register/page.tsx), the page is split vertically to align with background imagery coordinates:
-
-- **LandingSection**: `height: 22.57%` (y: 0 to 1500px on 6646px scale)
-- **MidSection**: `height: 45.14%` (y: 1500px to 4500px on 6646px scale)
-- **FormSection**: `height: 32.29%` (y: 4500px to 6646px on 6646px scale)
-
-### 2. Sizing & Alignment Coordinates (Figma to Code)
-
-To ensure the form cards overlay correctly on the background court graphics across all browser viewport sizes, we map the Figma artboard design pixels (based on a `1440px` viewport width) into responsive `vw` and percentage styles:
-
-- **Horizontal offsets & widths**: `calc(100% * pixelValue / 1440)`
-- **Vertical offsets & heights**: `calc(100vw * pixelValue / 1440)`
-
-#### Step 4: Upload Berkas Box Coordinates
-
-The upload container (CV, KTM, Twibbon, Bukti Follow, Portofolio grid) follows the exact same sizing and position coordinates as the normal form steps for visual consistency:
-
-- **Width**: `54%` (derived from Figma dimensions `863px` / `1600px` canvas reference)
-- **Height**: `70%`
-- **Top**: `16.5%`
-- **Left**: Centered horizontally (`left-1/2 -translate-x-1/2` or `left: 50%`, `transform: translateX(-50%)`)
-- **Border styling**: Linear Gradient: `#F4631E` -> `#893310` -> `#7E0202` (rendered dynamically using `background-clip` and `background-origin` to support rounded corners).
-- **Internal divider lines**: Slanted at 4 degrees using matching gradient-stop colors `#893310` and `#7E0202`.
-- **Navigation Row**: Positioned at `top: 89%`, centered (`left-1/2 -translate-x-1/2`), with width `74%` (exactly matching the normal form steps navigation row to maintain uniformity).
-
-#### Steps 1-3: Form Section Styling
-
-The normal form steps (Informasi Umum, Subdivisi 1, Subdivisi 2) follow the second form reference composition:
-
-- `star bg.png` and `Sinar Atas.svg` are decorative absolute layers inside `FormSection`; they must not add layout height or push content.
-- Do not add a new solid background color in `FormSection`; preserve the page/background imagery already provided by `page.tsx`.
-- Header badge, form card, and navigation row use absolute percentage coordinates inside the fixed FormSection bounds to prevent white overflow below the section.
-- For FormSection vertical placement, prefer section-height percentages (for example `top: "14%"`) over `100vw` math; `100vw` can exceed the fixed FormSection height on wide desktop screens.
-- The header badge should stay compact: red fill, black border, black offset shadow, Hollywood font, and tight line-height.
-- The form card and bottom navigation must remain inside the FormSection height on desktop; avoid flow-based vertical stacking (`py-*` + natural content height) for the main form layout.
-
-### 3. Responsive Scaling System (CSS Variables)
-
-To maintain the proportional design ratio on all desktop widths (resolving the vertical stretching and empty space issue inside the card container on widescreen/Samsung monitors), form elements are sized using dynamic CSS custom properties:
-
-- **Base variables**: Font-sizes (`--form-font-size`), paddings (`--form-padding-y`/`x`), textareas (`--form-textarea-min-height`), margins, and borders are defined globally in `globals.css`.
-- **Dynamic viewport scaling**: For viewports `>= 1024px`, these variables scale dynamically using the Figma-to-code viewport width formula `calc(100vw * pixelValue / 1440)`. This allows text, inputs, labels, active/inactive basketball indicators, buttons, and Navbar elements to resize at the same rate as the background graphics.
-- **Form Card Sizing**: The card container uses a fixed `height: "70%"` and `h-full`. Since the inputs and text inside scale proportionally with `vw`, the content fills the exact same ratio of the card on all monitor sizes without requiring vertical scrollbars.
-
-### 4. iOS WKWebView & In-App Browser Compatibility
+## iOS WKWebView & In-App Browser Compatibility
 
 To ensure the web app works inside restricted environments like the Google Search App on iOS (WKWebView), adhere to the following rules:
 
