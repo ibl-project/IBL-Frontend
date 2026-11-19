@@ -1,21 +1,19 @@
 import React from "react";
 import Image from "next/image";
 
-// Background Assets & Layout Components
-import Texture from "@/public/images/announcement/Texture.svg";
-import TwoSixSection from "@/components/sections/Announcement/TwoSixSection";
-import PageScaleWrapper from "@/components/sections/Announcement/PageScaleWrapper";
 import HeightSpacer from "@/components/sections/Announcement/HeightSpacer";
-import PlayersAnimationResult from "@/components/sections/Announcement/result/PlayersAnimationResult";
-
+import PageScaleWrapper from "@/components/sections/Announcement/PageScaleWrapper";
 // Result Section Components
 import LolosSection from "@/components/sections/Announcement/result/LolosSection";
+import PlayersAnimationResult from "@/components/sections/Announcement/result/PlayersAnimationResult";
 import TidakLolosSection from "@/components/sections/Announcement/result/TidakLolosSection";
 import TidakTerdaftarSection from "@/components/sections/Announcement/result/TidakTerdaftarSection";
-
+import TwoSixSection from "@/components/sections/Announcement/TwoSixSection";
 // Direct server-side database imports for verification
 import lolosStaff from "@/constants/lolos_staff.json";
 import tidakLolosStaff from "@/constants/tidak_lolos_staff.json";
+// Background Assets & Layout Components
+import Texture from "@/public/images/announcement/Texture.svg";
 
 interface StaffDetail {
   nama: string;
@@ -97,25 +95,19 @@ export default async function ResultPage({
       />
     );
   } else if (result.status === "tidak_terdaftar") {
-    resultSection = (
-      <TidakTerdaftarSection
-        nrp={nrp}
-        cpName={result.cp_name}
-        cpPhone={result.cp_phone}
-      />
-    );
+    resultSection = <TidakTerdaftarSection nrp={nrp} cpName={result.cp_name} cpPhone={result.cp_phone} />;
   } else {
     resultSection = <TidakLolosSection nrp={nrp} urlName={result.nama} />;
   }
 
   return (
-    <div className="min-h-dvh bg-bone relative w-full overflow-x-hidden overflow-y-auto">
+    <div className="relative min-h-dvh w-full overflow-x-hidden overflow-y-auto bg-bone">
       {/* Invisible spacer to push page height dynamically on large screens */}
       <HeightSpacer />
 
       {/* === LAYER 1: Players & TwoSix (z-5 di root saat large screen) === */}
       <PageScaleWrapper zIndex={5}>
-        <div className="relative min-h-full flex flex-col items-center w-full">
+        <div className="relative flex min-h-full w-full flex-col items-center">
           {/* TwoSix — DOM pertama di dalam wrapper = z paling bawah di atas texture */}
           <TwoSixSection />
           <PlayersAnimationResult />
@@ -123,20 +115,15 @@ export default async function ResultPage({
       </PageScaleWrapper>
 
       {/* === LAYER 2: Texture (z-20 di root, absolute — tidak ikut scroll) === */}
-      <div className="absolute inset-0 z-[20] pointer-events-none">
-        <Image
-          src={Texture}
-          alt="Background texture"
-          fill
-          className="object-cover"
-        />
+      <div className="pointer-events-none absolute inset-0 z-[20]">
+        <Image src={Texture} alt="Background texture" fill className="object-cover" />
       </div>
 
       {/* === LAYER 3: Result Cards (z-30 di root saat large screen) === */}
       <PageScaleWrapper zIndex={30}>
-        <div className="relative min-h-full flex flex-col items-center w-full">
+        <div className="relative flex min-h-full w-full flex-col items-center">
           {/* Center layout container, positioned exactly where LandingSection is */}
-          <div className="absolute top-[152px] left-1/2 -translate-x-1/2 flex flex-col items-center z-[100] w-full max-w-[90vw] sm:w-auto sm:max-w-none">
+          <div className="absolute top-[152px] left-1/2 z-[100] flex w-full max-w-[90vw] -translate-x-1/2 flex-col items-center sm:w-auto sm:max-w-none">
             {resultSection}
           </div>
         </div>
@@ -144,4 +131,3 @@ export default async function ResultPage({
     </div>
   );
 }
-

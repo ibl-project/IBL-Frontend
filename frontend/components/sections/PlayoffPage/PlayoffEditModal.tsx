@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useId, useMemo, useState } from "react";
+
+import { Modal } from "@/components/ui/Modal";
+import { OutlinedField } from "@/components/ui/OutlinedField";
+import { TeamCombobox, type TeamOption } from "@/components/ui/TeamCombobox";
 import { createSchedule, updateSchedule, type PlayoffRound } from "@/lib/matchesApi";
 import type { PlayoffMatch } from "@/lib/standingsApi";
 import type { Team } from "@/lib/teamsApi";
-import { Modal } from "@/components/ui/Modal";
-import { TeamCombobox, type TeamOption } from "@/components/ui/TeamCombobox";
-import { OutlinedField } from "@/components/ui/OutlinedField";
 
 interface PlayoffEditModalProps {
   open: boolean;
@@ -31,12 +32,8 @@ export const PlayoffEditModal: React.FC<PlayoffEditModalProps> = ({
 
   const [team1Id, setTeam1Id] = useState<string | null>(match?.team1.id ?? null);
   const [team2Id, setTeam2Id] = useState<string | null>(match?.team2.id ?? null);
-  const [score1, setScore1] = useState<string>(
-    typeof match?.team1.score === "number" ? String(match.team1.score) : ""
-  );
-  const [score2, setScore2] = useState<string>(
-    typeof match?.team2.score === "number" ? String(match.team2.score) : ""
-  );
+  const [score1, setScore1] = useState<string>(typeof match?.team1.score === "number" ? String(match.team1.score) : "");
+  const [score2, setScore2] = useState<string>(typeof match?.team2.score === "number" ? String(match.team2.score) : "");
   const [busy, setBusy] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -47,15 +44,9 @@ export const PlayoffEditModal: React.FC<PlayoffEditModalProps> = ({
     group: team.group,
   });
 
-  const team1Options = useMemo(
-    () => teams.filter((t) => t.id !== team2Id).map(toOption),
-    [teams, team2Id]
-  );
+  const team1Options = useMemo(() => teams.filter((t) => t.id !== team2Id).map(toOption), [teams, team2Id]);
 
-  const team2Options = useMemo(
-    () => teams.filter((t) => t.id !== team1Id).map(toOption),
-    [teams, team1Id]
-  );
+  const team2Options = useMemo(() => teams.filter((t) => t.id !== team1Id).map(toOption), [teams, team1Id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,24 +101,21 @@ export const PlayoffEditModal: React.FC<PlayoffEditModalProps> = ({
 
   return (
     <Modal open={open} onClose={onClose} labelledBy={titleId}>
-      <div className="relative mx-auto w-full max-w-2xl bg-white rounded-3xl p-8 sm:p-10 shadow-2xl border border-slate-100 font-poppins">
+      <div className="relative mx-auto w-full max-w-2xl rounded-3xl border border-slate-100 bg-white p-8 font-poppins shadow-2xl sm:p-10">
         {/* Title */}
-        <h2
-          id={titleId}
-          className="text-center text-sm font-semibold text-slate-800 mb-8"
-        >
+        <h2 id={titleId} className="mb-8 text-center text-sm font-semibold text-slate-800">
           {modalTitle}
         </h2>
 
         {errorMsg && (
-          <div className="mb-6 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-700">
             {errorMsg}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Baris 1: Team 1 vs Team 2 */}
-          <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="flex flex-col items-center gap-4 sm:flex-row">
             <div className="w-full sm:flex-1">
               <TeamCombobox
                 id="playoff-team-1"
@@ -139,9 +127,7 @@ export const PlayoffEditModal: React.FC<PlayoffEditModalProps> = ({
               />
             </div>
 
-            <div className="text-base font-extrabold text-slate-800 uppercase select-none px-1">
-              VS
-            </div>
+            <div className="px-1 text-base font-extrabold text-slate-800 uppercase select-none">VS</div>
 
             <div className="w-full sm:flex-1">
               <TeamCombobox
@@ -156,7 +142,7 @@ export const PlayoffEditModal: React.FC<PlayoffEditModalProps> = ({
           </div>
 
           {/* Baris 2: Skor Team 1 & Skor Team 2 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-10">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-10">
             <div>
               <OutlinedField label="Skor Team 1" htmlFor="skor-team-1">
                 <input
@@ -192,14 +178,14 @@ export const PlayoffEditModal: React.FC<PlayoffEditModalProps> = ({
               type="button"
               disabled={busy}
               onClick={onClose}
-              className="h-10 px-7 rounded-full bg-[#E54D2E] hover:bg-[#D43D1E] text-white text-xs font-semibold shadow-sm transition-all active:scale-95 disabled:opacity-50"
+              className="h-10 rounded-full bg-[#E54D2E] px-7 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#D43D1E] active:scale-95 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={busy}
-              className="h-10 px-7 rounded-full bg-[#FF9A00] hover:bg-[#E68A00] text-white text-xs font-semibold shadow-sm transition-all active:scale-95 disabled:opacity-60"
+              className="h-10 rounded-full bg-[#FF9A00] px-7 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#E68A00] active:scale-95 disabled:opacity-60"
             >
               {busy ? "Saving..." : "Create"}
             </button>

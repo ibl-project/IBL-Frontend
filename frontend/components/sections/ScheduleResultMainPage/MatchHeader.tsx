@@ -28,8 +28,7 @@ export interface MatchHeaderData {
 
 // Ukuran teks: max(floor, min(ukuran desain, lebar kotak / (jumlah huruf × lebar per huruf))).
 // Nama panjang mengecil sendiri tanpa mengukur DOM; sisanya terpotong dengan elipsis.
-const FIT_TEXT =
-  "text-[length:max(var(--floor),min(var(--fs),calc(var(--box)/(var(--chars)*var(--per-char)))))]";
+const FIT_TEXT = "text-[length:max(var(--floor),min(var(--fs),calc(var(--box)/(var(--chars)*var(--per-char)))))]";
 
 const GRADIENT_TEAM = "bg-[linear-gradient(168.07deg,#F48F42_21.6%,#F4CB81_91.28%)]";
 const GRADIENT_VENUE = "bg-[linear-gradient(168.07deg,#CB0404_21.6%,#F4CB81_91.28%)]";
@@ -85,14 +84,10 @@ function TeamLogoBlock({ side, position }: { side: MatchTeamSide | null; positio
     >
       <span
         aria-hidden="true"
-        className={`absolute left-[13.16%] right-[35.01%] top-[45.27%] bottom-[2.41%] rounded-[50%] bg-[rgba(235,223,188,0.7)] blur-[4.73cqw] @max-[480px]/detail:blur-[3.83cqw]`}
+        className={`absolute top-[45.27%] right-[35.01%] bottom-[2.41%] left-[13.16%] rounded-[50%] bg-[rgba(235,223,188,0.7)] blur-[4.73cqw] @max-[480px]/detail:blur-[3.83cqw]`}
       />
       <div className="absolute inset-0">
-        <TeamLogo
-          src={side?.logo}
-          alt={side ? `Logo ${teamLabel(side)}` : ""}
-          sizes="(max-width: 504px) 64px, 200px"
-        />
+        <TeamLogo src={side?.logo} alt={side ? `Logo ${teamLabel(side)}` : ""} sizes="(max-width: 504px) 64px, 200px" />
       </div>
     </div>
   );
@@ -175,7 +170,7 @@ export function MatchHeader({ data }: { data: MatchHeaderData | null }) {
           </TextRow>
 
           <TextRow className={DATE_ROW} chars={kickoff.length}>
-            <span className="block w-full overflow-hidden text-ellipsis whitespace-nowrap pl-[var(--ls)] text-center">
+            <span className="block w-full overflow-hidden pl-[var(--ls)] text-center text-ellipsis whitespace-nowrap">
               {kickoff}
             </span>
           </TextRow>

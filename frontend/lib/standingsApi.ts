@@ -139,9 +139,7 @@ function toDuel(round: PlayoffRound, slot: PlayoffSlot): PlayoffDuel {
 export function toBracket(playoffs: Playoffs): PlayoffTournamentData {
   const duels = (round: PlayoffRound, side: BracketSide) => {
     const found = playoffs.rounds.find((item) => item.round === round);
-    return (found?.slots ?? [])
-      .filter((slot) => slot.side === side)
-      .map((slot) => toDuel(round, slot));
+    return (found?.slots ?? []).filter((slot) => slot.side === side).map((slot) => toDuel(round, slot));
   };
   const single = (round: PlayoffRound, side: BracketSide): PlayoffDuel =>
     duels(round, side)[0] ?? { id: `${round}-${side}`, teamA: { name: "TBD" }, teamB: { name: "TBD" } };

@@ -1,9 +1,10 @@
 import React, { useId, useRef } from "react";
 import Image from "next/image";
+
 import { Search, X } from "lucide-react";
 
-import { ARTBOARD, TEAMS_COLORS, TEXT_FILLS, type ArtboardVariant } from "./teamsMainTheme";
 import { OutlinedText } from "./OutlinedText";
+import { ARTBOARD, TEAMS_COLORS, TEXT_FILLS, type ArtboardVariant } from "./teamsMainTheme";
 
 interface SectionBarProps {
   variant: ArtboardVariant;
@@ -67,7 +68,13 @@ export function SectionBar({ variant, label, search }: SectionBarProps) {
         outlineColor="#060606"
         fill={TEXT_FILLS.goldTeal}
         className="absolute uppercase"
-        style={{ left: bar.labelLeft, top: bar.labelTop, fontFamily: "var(--font-drowner)", fontSize: bar.label, letterSpacing: "0.17em" }}
+        style={{
+          left: bar.labelLeft,
+          top: bar.labelTop,
+          fontFamily: "var(--font-drowner)",
+          fontSize: bar.label,
+          letterSpacing: "0.17em",
+        }}
       >
         {label}
       </OutlinedText>

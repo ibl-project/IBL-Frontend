@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
+
 import { AnimatePresence } from "framer-motion";
-import { LoadingScreen } from "@/components/ui/LoadingScreen";
+
+import { FormSection } from "@/components/sections/RegisterPage/FormSection";
 import { LandingSection } from "@/components/sections/RegisterPage/LandingSection";
 import { MidSection } from "@/components/sections/RegisterPage/MidSection";
-import { FormSection } from "@/components/sections/RegisterPage/FormSection";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 import { useScaleRatio } from "@/lib/hooks/useScaleRatio";
 
 export default function Register() {
@@ -24,13 +26,11 @@ export default function Register() {
 
   return (
     <>
-      <AnimatePresence mode="wait">
-        {isLoading && <LoadingScreen key="loading" />}
-      </AnimatePresence>
+      <AnimatePresence mode="wait">{isLoading && <LoadingScreen key="loading" />}</AnimatePresence>
 
       {!isLoading && (
         <main
-          className="w-full relative overflow-hidden"
+          className="relative w-full overflow-hidden"
           style={{
             width: "100%",
             aspectRatio: "2880 / 6646",
@@ -52,7 +52,7 @@ export default function Register() {
             height={6646}
             priority
             sizes="100vw"
-            className="absolute inset-0 block w-full h-auto select-none pointer-events-none"
+            className="pointer-events-none absolute inset-0 block h-auto w-full select-none"
           />
           <h1 className="sr-only">Open Recruitment Staff IBL 2K26 — Pendaftaran</h1>
 
@@ -74,4 +74,3 @@ export default function Register() {
     </>
   );
 }
-

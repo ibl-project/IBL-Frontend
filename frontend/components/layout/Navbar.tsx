@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -88,16 +88,12 @@ export const Navbar = () => {
       {/* NAVBAR BAR                                                          */}
       {/* ------------------------------------------------------------------ */}
       <header
-        className="fixed top-0 left-0 right-0 z-[200] bg-[#fdf6dd] shadow-[0px_2px_30px_0px_rgba(0,0,0,0.10)]"
+        className="fixed top-0 right-0 left-0 z-[200] bg-[#fdf6dd] shadow-[0px_2px_30px_0px_rgba(0,0,0,0.10)]"
         style={{ height: "var(--navbar-height)" }}
       >
-        <div className="w-full max-w-[1440px] mx-auto h-full flex items-center justify-between px-6 sm:px-8 lg:px-10 xl:px-12">
-
+        <div className="mx-auto flex h-full w-full max-w-[1440px] items-center justify-between px-6 sm:px-8 lg:px-10 xl:px-12">
           {/* Logo — left */}
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 no-underline shrink-0"
-          >
+          <Link href="/" className="flex shrink-0 items-center gap-2.5 no-underline">
             <Image
               alt="Logo IBL 2K26"
               src="/images/LOGO_1.svg"
@@ -108,7 +104,7 @@ export const Navbar = () => {
               priority
             />
             <span
-              className="font-hollywood text-stone-900 font-extrabold leading-tight"
+              className="font-hollywood leading-tight font-extrabold text-stone-900"
               style={{ fontSize: "var(--navbar-font-size)" }}
             >
               IBL
@@ -120,16 +116,13 @@ export const Navbar = () => {
           {/* ---------------------------------------------------------------- */}
           {/* DESKTOP NAV LINKS                                                */}
           {/* ---------------------------------------------------------------- */}
-          <nav
-            className="hidden lg:flex items-center gap-4 xl:gap-6 2xl:gap-8"
-            aria-label="Main navigation"
-          >
+          <nav className="hidden items-center gap-4 lg:flex xl:gap-6 2xl:gap-8" aria-label="Main navigation">
             {NAV_ITEMS.map((item) => (
               <div key={item.plainLabel} className="relative flex flex-col items-end">
                 {/* "soon" badge — flex-end horizontally */}
                 {item.soon && (
                   <span
-                    className="absolute -top-4 right-0 text-red-900 text-xs xl:text-sm font-extrabold font-['Inter'] leading-none select-none whitespace-nowrap"
+                    className="absolute -top-4 right-0 font-['Inter'] text-xs leading-none font-extrabold whitespace-nowrap text-red-900 select-none xl:text-sm"
                     aria-label="coming soon"
                   >
                     soon
@@ -138,7 +131,7 @@ export const Navbar = () => {
 
                 {item.soon ? (
                   <span
-                    className="text-stone-900 font-['Drowner'] tracking-[1.5px] xl:tracking-[3px] leading-6 cursor-not-allowed select-none whitespace-nowrap"
+                    className="cursor-not-allowed font-['Drowner'] leading-6 tracking-[1.5px] whitespace-nowrap text-stone-900 select-none xl:tracking-[3px]"
                     style={{ fontSize: "var(--navbar-font-size)" }}
                     aria-disabled="true"
                   >
@@ -147,7 +140,7 @@ export const Navbar = () => {
                 ) : (
                   <Link
                     href={item.href}
-                    className="text-stone-900 font-['Drowner'] tracking-[1.2px] xl:tracking-[2px] leading-5 transition-opacity hover:opacity-70 whitespace-nowrap"
+                    className="font-['Drowner'] leading-5 tracking-[1.2px] whitespace-nowrap text-stone-900 transition-opacity hover:opacity-70 xl:tracking-[2px]"
                     style={{ fontSize: "var(--navbar-font-size)" }}
                   >
                     {item.label}
@@ -161,21 +154,15 @@ export const Navbar = () => {
           {/* MOBILE BURGER BUTTON                                             */}
           {/* ---------------------------------------------------------------- */}
           <button
-            className="lg:hidden flex flex-col justify-center items-center w-9 h-9 gap-[5px] cursor-pointer z-[201]"
+            className="z-[201] flex h-9 w-9 cursor-pointer flex-col items-center justify-center gap-[5px] lg:hidden"
             onClick={() => setIsOpen(true)}
             aria-label="Open navigation menu"
             aria-expanded={isOpen}
             aria-controls="mobile-drawer"
           >
-            <span
-              className="block w-6 h-[2px] bg-stone-900 rounded-full transition-all duration-300"
-            />
-            <span
-              className="block w-6 h-[2px] bg-stone-900 rounded-full transition-all duration-300"
-            />
-            <span
-              className="block w-4 h-[2px] bg-stone-900 rounded-full transition-all duration-300"
-            />
+            <span className="block h-[2px] w-6 rounded-full bg-stone-900 transition-all duration-300" />
+            <span className="block h-[2px] w-6 rounded-full bg-stone-900 transition-all duration-300" />
+            <span className="block h-[2px] w-4 rounded-full bg-stone-900 transition-all duration-300" />
           </button>
         </div>
       </header>
@@ -186,8 +173,8 @@ export const Navbar = () => {
       {/* Outer clipping viewport: overflow-hidden & visibility toggle completely
           prevent any off-screen subpixel bleed or flash artifacts */}
       <div
-        className={`fixed inset-0 z-[300] lg:hidden overflow-hidden transition-[visibility] duration-300 ${
-          isOpen ? "visible pointer-events-auto" : "invisible pointer-events-none"
+        className={`fixed inset-0 z-[300] overflow-hidden transition-[visibility] duration-300 lg:hidden ${
+          isOpen ? "pointer-events-auto visible" : "pointer-events-none invisible"
         }`}
         aria-hidden={!isOpen}
       >
@@ -203,7 +190,7 @@ export const Navbar = () => {
         {/* Drawer panel: smooth fluid spring-like cubic bezier slide from right */}
         <aside
           id="mobile-drawer"
-          className={`fixed top-0 right-0 h-full w-[min(320px,90vw)] bg-[#fdf6dd] flex flex-col shadow-[-10px_0_30px_rgba(0,0,0,0.15)] transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
+          className={`fixed top-0 right-0 flex h-full w-[min(320px,90vw)] flex-col bg-[#fdf6dd] shadow-[-10px_0_30px_rgba(0,0,0,0.15)] transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
             isOpen ? "translate-x-0" : "translate-x-full"
           }`}
           aria-label="Mobile navigation"
@@ -211,45 +198,26 @@ export const Navbar = () => {
           aria-modal="true"
         >
           {/* Drawer header */}
-          <div className="flex items-center justify-between px-6 py-5 border-b border-stone-200">
+          <div className="flex items-center justify-between border-b border-stone-200 px-6 py-5">
             <Link href="/" onClick={closeDrawer} className="flex items-center gap-2">
-              <Image
-                alt="Logo IBL 2K26"
-                src="/images/LOGO_1.svg"
-                width={40}
-                height={44}
-                className="object-contain"
-              />
-              <span className="font-hollywood text-stone-900 font-extrabold text-lg leading-tight">
-                IBL 2K26
-              </span>
+              <Image alt="Logo IBL 2K26" src="/images/LOGO_1.svg" width={40} height={44} className="object-contain" />
+              <span className="font-hollywood text-lg leading-tight font-extrabold text-stone-900">IBL 2K26</span>
             </Link>
 
             {/* Close button */}
             <button
               onClick={closeDrawer}
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-stone-200 transition-colors duration-200 cursor-pointer"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 hover:bg-stone-200"
               aria-label="Close navigation menu"
             >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M2 2L18 18M18 2L2 18"
-                  stroke="#1C1917"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M2 2L18 18M18 2L2 18" stroke="#1C1917" strokeWidth="2.5" strokeLinecap="round" />
               </svg>
             </button>
           </div>
 
           {/* Drawer nav items with staggered entrance */}
-          <nav className="flex-1 overflow-y-auto py-6 px-6" aria-label="Mobile navigation links">
+          <nav className="flex-1 overflow-y-auto px-6 py-6" aria-label="Mobile navigation links">
             <ul className="flex flex-col gap-1" role="list">
               {NAV_ITEMS.map((item, i) => (
                 <li
@@ -264,13 +232,11 @@ export const Navbar = () => {
                 >
                   {item.soon ? (
                     <div
-                      className="flex items-center justify-between px-4 py-3.5 rounded-xl cursor-not-allowed opacity-50 select-none"
+                      className="flex cursor-not-allowed items-center justify-between rounded-xl px-4 py-3.5 opacity-50 select-none"
                       aria-disabled="true"
                     >
-                      <span className="font-['Drowner'] text-stone-900 text-xl tracking-[3px]">
-                        {item.plainLabel}
-                      </span>
-                      <span className="text-red-900 text-xs font-extrabold font-['Inter'] bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+                      <span className="font-['Drowner'] text-xl tracking-[3px] text-stone-900">{item.plainLabel}</span>
+                      <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 font-['Inter'] text-xs font-extrabold text-red-900">
                         soon
                       </span>
                     </div>
@@ -278,9 +244,9 @@ export const Navbar = () => {
                     <Link
                       href={item.href}
                       onClick={closeDrawer}
-                      className="flex items-center px-4 py-3.5 rounded-xl hover:bg-orange-100 active:bg-orange-200 transition-colors duration-150 group"
+                      className="group flex items-center rounded-xl px-4 py-3.5 transition-colors duration-150 hover:bg-orange-100 active:bg-orange-200"
                     >
-                      <span className="font-['Drowner'] text-stone-900 text-xl tracking-[3px] group-hover:text-stone-700 transition-colors">
+                      <span className="font-['Drowner'] text-xl tracking-[3px] text-stone-900 transition-colors group-hover:text-stone-700">
                         {item.plainLabel}
                       </span>
                     </Link>
@@ -291,10 +257,8 @@ export const Navbar = () => {
           </nav>
 
           {/* Drawer footer */}
-          <div className="px-6 pb-8 pt-4 border-t border-stone-200">
-            <p className="text-stone-500 text-xs font-['Inter'] text-center">
-              ITS Basketball League 2K26
-            </p>
+          <div className="border-t border-stone-200 px-6 pt-4 pb-8">
+            <p className="text-center font-['Inter'] text-xs text-stone-500">ITS Basketball League 2K26</p>
           </div>
         </aside>
       </div>

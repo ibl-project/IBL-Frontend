@@ -1,8 +1,8 @@
 import React from "react";
 
-import { formatWib } from "@/lib/datetime";
-import { type MatchListItem, type MatchTeamSide, stageLabel } from "@/lib/matchesApi";
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
+import { formatWib } from "@/lib/datetime";
+import { stageLabel, type MatchListItem, type MatchTeamSide } from "@/lib/matchesApi";
 
 interface MatchCardProps {
   match: MatchListItem;
@@ -68,7 +68,7 @@ export const MatchCard = ({
         <p className="w-full truncate text-sm text-[#202224]" title={match.venue ?? undefined}>
           {match.venue ?? "Tempat belum diatur"}
         </p>
-        <p className="whitespace-nowrap text-sm font-medium text-red-700">{formatWib(match.scheduledAt)}</p>
+        <p className="text-sm font-medium whitespace-nowrap text-red-700">{formatWib(match.scheduledAt)}</p>
         <button
           type="button"
           onClick={onAction}

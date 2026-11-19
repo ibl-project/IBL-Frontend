@@ -1,6 +1,9 @@
 import { readFile } from "node:fs/promises";
+
 import type { Download, Page, Route } from "@playwright/test";
+
 import type { MatchSide, MatchSnapshot, PlayerLine, ResultFile, TeamSummary } from "@/lib/matchesApi";
+
 import { FAKE_API_URL } from "../playwright.config";
 
 export const MATCH_ID = "11111111-2222-4333-8444-555555555555";
@@ -88,8 +91,20 @@ export function finishedMatch(overrides: Partial<MatchSnapshot> = {}): MatchSnap
     startedAt: "2026-11-10T10:05:00+07:00",
     finishedAt: "2026-11-10T11:40:00+07:00",
     resultFile: null,
-    team1: side("t1", "Elektro", "#074770", [10, 12, 8, 14], [player("p1", "Andi", "4", 5), player("p2", "Budi", "7", 3)]),
-    team2: side("t2", "Sipil", "#760807", [9, 11, 10, 7], [player("p3", "Cahya", "10", 4), player("p4", "Dodi", "12", 2)]),
+    team1: side(
+      "t1",
+      "Elektro",
+      "#074770",
+      [10, 12, 8, 14],
+      [player("p1", "Andi", "4", 5), player("p2", "Budi", "7", 3)],
+    ),
+    team2: side(
+      "t2",
+      "Sipil",
+      "#760807",
+      [9, 11, 10, 7],
+      [player("p3", "Cahya", "10", 4), player("p4", "Dodi", "12", 2)],
+    ),
     ...overrides,
   };
 }

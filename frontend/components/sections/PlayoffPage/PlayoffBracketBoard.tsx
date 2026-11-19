@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
-import type { PlayoffMatch, PlayoffSlot, Playoffs } from "@/lib/standingsApi";
+
 import type { PlayoffRound } from "@/lib/matchesApi";
+import type { PlayoffMatch, Playoffs, PlayoffSlot } from "@/lib/standingsApi";
+
 import { PlayoffMatchCard } from "./PlayoffMatchCard";
 
 interface PlayoffBracketBoardProps {
@@ -10,10 +12,7 @@ interface PlayoffBracketBoardProps {
   onEditSlot: (round: PlayoffRound, position: number, match: PlayoffMatch | null) => void;
 }
 
-export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({
-  playoffs,
-  onEditSlot,
-}) => {
+export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({ playoffs, onEditSlot }) => {
   const getSlot = (round: PlayoffRound, position: number): PlayoffSlot | null => {
     if (!playoffs) return null;
     const r = playoffs.rounds.find((rnd) => rnd.round === round);
@@ -32,17 +31,17 @@ export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({
   ];
 
   return (
-    <div className="w-full flex flex-col gap-6 overflow-hidden">
+    <div className="flex w-full flex-col gap-6 overflow-hidden">
       {/* Scrollable Container */}
-      <div className="w-full overflow-x-auto pb-6 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
-        <div className="relative mx-auto w-[1440px] min-w-[1440px] h-[720px] select-none">
+      <div className="w-full scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent overflow-x-auto pb-6">
+        <div className="relative mx-auto h-[720px] w-[1440px] min-w-[1440px] select-none">
           {/* Header Badges Rail */}
-          <div className="absolute top-0 left-0 w-full h-[40px] z-20">
+          <div className="absolute top-0 left-0 z-20 h-[40px] w-full">
             {roundBadges.map((badge, idx) => (
               <span
                 key={idx}
                 style={{ left: `${badge.left}px` }}
-                className="absolute top-0 w-36 py-2 px-3 rounded-lg bg-[#6E9398] text-white text-xs font-semibold shadow-sm tracking-wide text-center"
+                className="absolute top-0 w-36 rounded-lg bg-[#6E9398] px-3 py-2 text-center text-xs font-semibold tracking-wide text-white shadow-sm"
               >
                 {badge.label}
               </span>
@@ -74,7 +73,7 @@ export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({
           {/* Left R16 Connector Tracks */}
           {/* Upper Fork: R16 1 & 2 -> QF 1 */}
           <div
-            className="absolute pointer-events-none z-0"
+            className="pointer-events-none absolute z-0"
             style={{
               left: "184px",
               top: "123px",
@@ -82,15 +81,15 @@ export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({
               height: "145px",
             }}
           >
-            <div className="absolute left-0 top-0 w-[28px] h-[2px] bg-[#401212]" />
-            <div className="absolute left-0 bottom-0 w-[28px] h-[2px] bg-[#401212]" />
-            <div className="absolute left-[27px] top-0 bottom-0 w-[2px] bg-[#401212]" />
-            <div className="absolute left-[27px] right-0 top-[72px] h-[2px] bg-[#401212]" />
+            <div className="absolute top-0 left-0 h-[2px] w-[28px] bg-[#401212]" />
+            <div className="absolute bottom-0 left-0 h-[2px] w-[28px] bg-[#401212]" />
+            <div className="absolute top-0 bottom-0 left-[27px] w-[2px] bg-[#401212]" />
+            <div className="absolute top-[72px] right-0 left-[27px] h-[2px] bg-[#401212]" />
           </div>
 
           {/* Lower Fork: R16 3 & 4 -> QF 2 */}
           <div
-            className="absolute pointer-events-none z-0"
+            className="pointer-events-none absolute z-0"
             style={{
               left: "184px",
               top: "423px",
@@ -98,40 +97,24 @@ export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({
               height: "145px",
             }}
           >
-            <div className="absolute left-0 top-0 w-[28px] h-[2px] bg-[#401212]" />
-            <div className="absolute left-0 bottom-0 w-[28px] h-[2px] bg-[#401212]" />
-            <div className="absolute left-[27px] top-0 bottom-0 w-[2px] bg-[#401212]" />
-            <div className="absolute left-[27px] right-0 top-[72px] h-[2px] bg-[#401212]" />
+            <div className="absolute top-0 left-0 h-[2px] w-[28px] bg-[#401212]" />
+            <div className="absolute bottom-0 left-0 h-[2px] w-[28px] bg-[#401212]" />
+            <div className="absolute top-0 bottom-0 left-[27px] w-[2px] bg-[#401212]" />
+            <div className="absolute top-[72px] right-0 left-[27px] h-[2px] bg-[#401212]" />
           </div>
 
           {/* Left Quarter Final Cards (2 duels) */}
-          <div
-            style={{ left: "238px", top: "132px" }}
-            className="absolute z-10"
-          >
-            <PlayoffMatchCard
-              round="QUARTERFINAL"
-              position={1}
-              slot={getSlot("QUARTERFINAL", 1)}
-              onEdit={onEditSlot}
-            />
+          <div style={{ left: "238px", top: "132px" }} className="absolute z-10">
+            <PlayoffMatchCard round="QUARTERFINAL" position={1} slot={getSlot("QUARTERFINAL", 1)} onEdit={onEditSlot} />
           </div>
 
-          <div
-            style={{ left: "238px", top: "432px" }}
-            className="absolute z-10"
-          >
-            <PlayoffMatchCard
-              round="QUARTERFINAL"
-              position={2}
-              slot={getSlot("QUARTERFINAL", 2)}
-              onEdit={onEditSlot}
-            />
+          <div style={{ left: "238px", top: "432px" }} className="absolute z-10">
+            <PlayoffMatchCard round="QUARTERFINAL" position={2} slot={getSlot("QUARTERFINAL", 2)} onEdit={onEditSlot} />
           </div>
 
           {/* Left QF Connector Track (QF 1 & QF 2 -> SF 1) */}
           <div
-            className="absolute pointer-events-none z-0"
+            className="pointer-events-none absolute z-0"
             style={{
               left: "398px",
               top: "195px",
@@ -139,29 +122,21 @@ export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({
               height: "300px",
             }}
           >
-            <div className="absolute left-0 top-0 w-[24px] h-[2px] bg-[#401212]" />
-            <div className="absolute left-0 bottom-0 w-[24px] h-[2px] bg-[#401212]" />
-            <div className="absolute left-[23px] top-0 bottom-0 w-[2px] bg-[#401212]" />
-            <div className="absolute left-[23px] right-0 top-[150px] h-[2px] bg-[#401212]" />
+            <div className="absolute top-0 left-0 h-[2px] w-[24px] bg-[#401212]" />
+            <div className="absolute bottom-0 left-0 h-[2px] w-[24px] bg-[#401212]" />
+            <div className="absolute top-0 bottom-0 left-[23px] w-[2px] bg-[#401212]" />
+            <div className="absolute top-[150px] right-0 left-[23px] h-[2px] bg-[#401212]" />
           </div>
 
           {/* Left Semi Final Card (1 duel) */}
-          <div
-            style={{ left: "444px", top: "282px" }}
-            className="absolute z-10"
-          >
-            <PlayoffMatchCard
-              round="SEMIFINAL"
-              position={1}
-              slot={getSlot("SEMIFINAL", 1)}
-              onEdit={onEditSlot}
-            />
+          <div style={{ left: "444px", top: "282px" }} className="absolute z-10">
+            <PlayoffMatchCard round="SEMIFINAL" position={1} slot={getSlot("SEMIFINAL", 1)} onEdit={onEditSlot} />
           </div>
 
           {/* Left SF Connector Track */}
           {/* Connector Rail dari SF 1 (kiri) ke Final (atas) & 3rd Place (bawah) */}
           <div
-            className="absolute pointer-events-none z-0"
+            className="pointer-events-none absolute z-0"
             style={{
               left: "604px",
               top: "145px",
@@ -170,24 +145,21 @@ export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({
             }}
           >
             {/* Garis vertikal di tengah antara SF 1 dan Final/3rd Place */}
-            <div className="absolute left-[16px] top-0 bottom-0 w-[2px] bg-[#401212]" />
+            <div className="absolute top-0 bottom-0 left-[16px] w-[2px] bg-[#401212]" />
             {/* Cabang horizontal keluar dari sisi kanan SF 1 ke garis vertikal */}
-            <div className="absolute left-0 top-[200px] w-[18px] h-[2px] bg-[#401212]" />
+            <div className="absolute top-[200px] left-0 h-[2px] w-[18px] bg-[#401212]" />
             {/* Cabang horizontal masuk ke Final (ke dalam / ke kanan) */}
-            <div className="absolute left-[16px] right-0 top-0 h-[2px] bg-[#401212]" />
+            <div className="absolute top-0 right-0 left-[16px] h-[2px] bg-[#401212]" />
             {/* Cabang horizontal masuk ke 3rd Place (ke dalam / ke kanan) */}
-            <div className="absolute left-[16px] right-0 bottom-0 h-[2px] bg-[#401212]" />
+            <div className="absolute right-0 bottom-0 left-[16px] h-[2px] bg-[#401212]" />
           </div>
 
           {/* ══════════════════════════════════════════════════════════
               CENTER COLUMN (CHAMPION & 3RD PLACE)
           ══════════════════════════════════════════════════════════ */}
           {/* Final Match (Champion) */}
-          <div
-            style={{ left: "637px", top: "75px" }}
-            className="absolute z-10 flex flex-col items-center gap-1.5"
-          >
-            <div className="text-base font-black tracking-wider uppercase text-[#E5B338] drop-shadow-sm flex items-center gap-1 select-none">
+          <div style={{ left: "637px", top: "75px" }} className="absolute z-10 flex flex-col items-center gap-1.5">
+            <div className="flex items-center gap-1 text-base font-black tracking-wider text-[#E5B338] uppercase drop-shadow-sm select-none">
               CHAMPION
             </div>
             <PlayoffMatchCard
@@ -195,22 +167,14 @@ export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({
               position={1}
               slot={getSlot("FINAL", 1)}
               onEdit={onEditSlot}
-              className="ring-2 ring-[#E5B338]/60 shadow-lg"
+              className="shadow-lg ring-2 ring-[#E5B338]/60"
             />
           </div>
 
           {/* 3rd Place Match */}
-          <div
-            style={{ left: "637px", top: "435px" }}
-            className="absolute z-10 flex flex-col items-center gap-1.5"
-          >
-            <PlayoffMatchCard
-              round="THIRD_PLACE"
-              position={1}
-              slot={getSlot("THIRD_PLACE", 1)}
-              onEdit={onEditSlot}
-            />
-            <div className="text-sm font-extrabold tracking-wider uppercase text-slate-600 drop-shadow-sm select-none">
+          <div style={{ left: "637px", top: "435px" }} className="absolute z-10 flex flex-col items-center gap-1.5">
+            <PlayoffMatchCard round="THIRD_PLACE" position={1} slot={getSlot("THIRD_PLACE", 1)} onEdit={onEditSlot} />
+            <div className="text-sm font-extrabold tracking-wider text-slate-600 uppercase drop-shadow-sm select-none">
               3RD PLACE
             </div>
           </div>
@@ -220,7 +184,7 @@ export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({
           ══════════════════════════════════════════════════════════ */}
           {/* Connector Rail dari SF 2 (kanan) ke Final (atas) & 3rd Place (bawah) */}
           <div
-            className="absolute pointer-events-none z-0"
+            className="pointer-events-none absolute z-0"
             style={{
               left: "797px",
               top: "145px",
@@ -229,31 +193,23 @@ export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({
             }}
           >
             {/* Garis vertikal di tengah antara Final/3rd Place dan SF 2 */}
-            <div className="absolute left-[15px] top-0 bottom-0 w-[2px] bg-[#401212]" />
+            <div className="absolute top-0 bottom-0 left-[15px] w-[2px] bg-[#401212]" />
             {/* Cabang horizontal masuk ke Final dari garis vertikal (ke dalam / ke kiri) */}
-            <div className="absolute left-0 top-0 w-[17px] h-[2px] bg-[#401212]" />
+            <div className="absolute top-0 left-0 h-[2px] w-[17px] bg-[#401212]" />
             {/* Cabang horizontal masuk ke 3rd Place dari garis vertikal (ke dalam / ke kiri) */}
-            <div className="absolute left-0 bottom-0 w-[17px] h-[2px] bg-[#401212]" />
+            <div className="absolute bottom-0 left-0 h-[2px] w-[17px] bg-[#401212]" />
             {/* Cabang horizontal keluar dari garis vertikal ke sisi kiri SF 2 */}
-            <div className="absolute left-[15px] right-0 top-[200px] h-[2px] bg-[#401212]" />
+            <div className="absolute top-[200px] right-0 left-[15px] h-[2px] bg-[#401212]" />
           </div>
 
           {/* Right Semi Final Card (1 duel) */}
-          <div
-            style={{ left: "830px", top: "282px" }}
-            className="absolute z-10"
-          >
-            <PlayoffMatchCard
-              round="SEMIFINAL"
-              position={2}
-              slot={getSlot("SEMIFINAL", 2)}
-              onEdit={onEditSlot}
-            />
+          <div style={{ left: "830px", top: "282px" }} className="absolute z-10">
+            <PlayoffMatchCard round="SEMIFINAL" position={2} slot={getSlot("SEMIFINAL", 2)} onEdit={onEditSlot} />
           </div>
 
           {/* Right QF Connector Track (SF 2 -> QF 3 & QF 4) */}
           <div
-            className="absolute pointer-events-none z-0"
+            className="pointer-events-none absolute z-0"
             style={{
               left: "990px",
               top: "195px",
@@ -261,41 +217,25 @@ export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({
               height: "300px",
             }}
           >
-            <div className="absolute left-0 top-[150px] w-[24px] h-[2px] bg-[#401212]" />
-            <div className="absolute left-[23px] top-0 bottom-0 w-[2px] bg-[#401212]" />
-            <div className="absolute left-[23px] right-0 top-0 h-[2px] bg-[#401212]" />
-            <div className="absolute left-[23px] right-0 bottom-0 h-[2px] bg-[#401212]" />
+            <div className="absolute top-[150px] left-0 h-[2px] w-[24px] bg-[#401212]" />
+            <div className="absolute top-0 bottom-0 left-[23px] w-[2px] bg-[#401212]" />
+            <div className="absolute top-0 right-0 left-[23px] h-[2px] bg-[#401212]" />
+            <div className="absolute right-0 bottom-0 left-[23px] h-[2px] bg-[#401212]" />
           </div>
 
           {/* Right Quarter Final Cards (2 duels) */}
-          <div
-            style={{ left: "1036px", top: "132px" }}
-            className="absolute z-10"
-          >
-            <PlayoffMatchCard
-              round="QUARTERFINAL"
-              position={3}
-              slot={getSlot("QUARTERFINAL", 3)}
-              onEdit={onEditSlot}
-            />
+          <div style={{ left: "1036px", top: "132px" }} className="absolute z-10">
+            <PlayoffMatchCard round="QUARTERFINAL" position={3} slot={getSlot("QUARTERFINAL", 3)} onEdit={onEditSlot} />
           </div>
 
-          <div
-            style={{ left: "1036px", top: "432px" }}
-            className="absolute z-10"
-          >
-            <PlayoffMatchCard
-              round="QUARTERFINAL"
-              position={4}
-              slot={getSlot("QUARTERFINAL", 4)}
-              onEdit={onEditSlot}
-            />
+          <div style={{ left: "1036px", top: "432px" }} className="absolute z-10">
+            <PlayoffMatchCard round="QUARTERFINAL" position={4} slot={getSlot("QUARTERFINAL", 4)} onEdit={onEditSlot} />
           </div>
 
           {/* Right R16 Connector Tracks */}
           {/* Upper Fork: QF 3 <- R16 5 & 6 */}
           <div
-            className="absolute pointer-events-none z-0"
+            className="pointer-events-none absolute z-0"
             style={{
               left: "1196px",
               top: "123px",
@@ -303,15 +243,15 @@ export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({
               height: "145px",
             }}
           >
-            <div className="absolute left-0 top-[72px] w-[28px] h-[2px] bg-[#401212]" />
-            <div className="absolute left-[27px] top-0 bottom-0 w-[2px] bg-[#401212]" />
-            <div className="absolute left-[27px] right-0 top-0 h-[2px] bg-[#401212]" />
-            <div className="absolute left-[27px] right-0 bottom-0 h-[2px] bg-[#401212]" />
+            <div className="absolute top-[72px] left-0 h-[2px] w-[28px] bg-[#401212]" />
+            <div className="absolute top-0 bottom-0 left-[27px] w-[2px] bg-[#401212]" />
+            <div className="absolute top-0 right-0 left-[27px] h-[2px] bg-[#401212]" />
+            <div className="absolute right-0 bottom-0 left-[27px] h-[2px] bg-[#401212]" />
           </div>
 
           {/* Lower Fork: QF 4 <- R16 7 & 8 */}
           <div
-            className="absolute pointer-events-none z-0"
+            className="pointer-events-none absolute z-0"
             style={{
               left: "1196px",
               top: "423px",
@@ -319,10 +259,10 @@ export const PlayoffBracketBoard: React.FC<PlayoffBracketBoardProps> = ({
               height: "145px",
             }}
           >
-            <div className="absolute left-0 top-[72px] w-[28px] h-[2px] bg-[#401212]" />
-            <div className="absolute left-[27px] top-0 bottom-0 w-[2px] bg-[#401212]" />
-            <div className="absolute left-[27px] right-0 top-0 h-[2px] bg-[#401212]" />
-            <div className="absolute left-[27px] right-0 bottom-0 h-[2px] bg-[#401212]" />
+            <div className="absolute top-[72px] left-0 h-[2px] w-[28px] bg-[#401212]" />
+            <div className="absolute top-0 bottom-0 left-[27px] w-[2px] bg-[#401212]" />
+            <div className="absolute top-0 right-0 left-[27px] h-[2px] bg-[#401212]" />
+            <div className="absolute right-0 bottom-0 left-[27px] h-[2px] bg-[#401212]" />
           </div>
 
           {/* Right R16 Cards (4 duels) */}

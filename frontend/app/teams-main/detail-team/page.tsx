@@ -11,7 +11,9 @@ export const metadata: Metadata = {
 export default function DetailTeamPage() {
   return (
     <Suspense
-      fallback={<div className="min-h-screen bg-[#EC5D12] pt-24 text-center font-bold text-[#FDF6DD]">Memuat data tim...</div>}
+      fallback={
+        <div className="min-h-screen bg-[#EC5D12] pt-24 text-center font-bold text-[#FDF6DD]">Memuat data tim...</div>
+      }
     >
       <TeamsMainDetailSection />
     </Suspense>

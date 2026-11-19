@@ -11,7 +11,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test --project=chromium",
-    "test:e2e:iphone": "docker run --rm --ipc=host --user \"$(id -u):$(id -g)\" -e HOME=/tmp -e NEXT_TELEMETRY_DISABLED=1 -v \"$PWD\":/work -w /work mcr.microsoft.com/playwright:v1.65.1-noble npx playwright test --project=iphone"
+    "test:e2e:iphone": "docker run --rm --ipc=host --user \"$(id -u):$(id -g)\" -e HOME=/tmp -e NEXT_TELEMETRY_DISABLED=1 -v \"$PWD\":/work -w /work mcr.microsoft.com/playwright:v1.65.1-noble npx playwright test --project=iphone",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "framer-motion": "^12.42.0",
@@ -28,6 +30,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
     "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
@@ -35,7 +38,10 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "eslint-config-prettier": "^10.1.8",
     "jsdom": "^26.1.0",
+    "prettier": "^3.10.1",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.7"

@@ -3,8 +3,8 @@
 import React from "react";
 import Link from "next/link";
 
-import type { ScoringBoardItem } from "@/lib/matchesApi";
 import { MatchCard } from "@/components/sections/ScheduleResultPage/MatchCard";
+import type { ScoringBoardItem } from "@/lib/matchesApi";
 
 interface ScoringChooseMatchSectionProps {
   /** Jadwal yang belum dimulai. */

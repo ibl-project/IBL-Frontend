@@ -1,9 +1,10 @@
 import React, { useId, type CSSProperties } from "react";
 
 import type { TeamPlayer } from "@/lib/teamsApi";
-import { ARTBOARD, TEAMS_COLORS, textShadow, type ArtboardVariant, type TableSpec } from "./teamsMainTheme";
+
 import { OutlinedText } from "./OutlinedText";
 import type { StatColumn } from "./playerStatsColumns";
+import { ARTBOARD, TEAMS_COLORS, textShadow, type ArtboardVariant, type TableSpec } from "./teamsMainTheme";
 
 interface PlayerStatsTableProps {
   variant: ArtboardVariant;
@@ -27,7 +28,14 @@ function cellStyle(table: TableSpec): CSSProperties {
 }
 
 /** Tabel statistik pemain. Nilai dari backend sudah siap tampil ("15.0", "50%", "-"). */
-export function PlayerStatsTable({ variant, title, columns, players, playerColumnWidth, minWidth }: PlayerStatsTableProps) {
+export function PlayerStatsTable({
+  variant,
+  title,
+  columns,
+  players,
+  playerColumnWidth,
+  minWidth,
+}: PlayerStatsTableProps) {
   const table = ARTBOARD[variant].table;
   const titleId = useId();
   const gridTemplateColumns = [playerColumnWidth, ...columns.map((column) => column.width)]
@@ -47,7 +55,11 @@ export function PlayerStatsTable({ variant, title, columns, players, playerColum
   const rule = `${table.rule}px solid ${TEAMS_COLORS.slate}`;
 
   return (
-    <section aria-labelledby={titleId} className="mx-auto overflow-x-auto overscroll-x-contain" style={{ width: table.width }}>
+    <section
+      aria-labelledby={titleId}
+      className="mx-auto overflow-x-auto overscroll-x-contain"
+      style={{ width: table.width }}
+    >
       <div role="table" aria-labelledby={titleId} style={{ minWidth: minWidth || undefined }}>
         <div
           className="relative z-10 overflow-hidden"
@@ -101,12 +113,22 @@ export function PlayerStatsTable({ variant, title, columns, players, playerColum
             </p>
           ) : (
             players.map((player, index) => (
-              <div key={player.id} role="row" className="grid" style={{ gridTemplateColumns, borderTop: index === 0 ? "none" : rule }}>
+              <div
+                key={player.id}
+                role="row"
+                className="grid"
+                style={{ gridTemplateColumns, borderTop: index === 0 ? "none" : rule }}
+              >
                 <span role="cell" title={player.name} className="truncate px-2 text-center" style={cellStyle(table)}>
                   {player.isCaptain ? `${player.name} (C)` : player.name}
                 </span>
                 {columns.map((column) => (
-                  <span key={column.key} role="cell" className="text-center" style={{ ...cellStyle(table), borderLeft: rule }}>
+                  <span
+                    key={column.key}
+                    role="cell"
+                    className="text-center"
+                    style={{ ...cellStyle(table), borderLeft: rule }}
+                  >
                     {player.stats[column.key]}
                   </span>
                 ))}

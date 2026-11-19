@@ -65,7 +65,11 @@ beforeEach(() => {
   vi.stubGlobal("Image", FakeImage);
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(
     () =>
-      ({ drawImage: canvasCalls.drawImage, fillRect: canvasCalls.fillRect, fillStyle: "" }) as unknown as CanvasRenderingContext2D,
+      ({
+        drawImage: canvasCalls.drawImage,
+        fillRect: canvasCalls.fillRect,
+        fillStyle: "",
+      }) as unknown as CanvasRenderingContext2D,
   );
   vi.spyOn(HTMLCanvasElement.prototype, "toDataURL").mockImplementation(canvasCalls.toDataURL);
 });

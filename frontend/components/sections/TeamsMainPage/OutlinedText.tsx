@@ -36,7 +36,12 @@ export function OutlinedText({
   id,
 }: OutlinedTextProps) {
   const fillStyle: CSSProperties = fill.includes("gradient(")
-    ? { backgroundImage: fill, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }
+    ? {
+        backgroundImage: fill,
+        WebkitBackgroundClip: "text",
+        backgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+      }
     : { color: fill };
 
   return (

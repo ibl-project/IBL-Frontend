@@ -2,24 +2,21 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { Navbar } from "./Navbar";
+
 import { Footer } from "./Footer";
+import { Navbar } from "./Navbar";
 
 /**
  * PublicLayoutWrapper
- * 
+ *
  * Komponen pembungkus untuk membedakan layout publik (Home, Registration, Announcement)
  * dengan layout dashboard (Teams, Scoring).
- * 
+ *
  * - Jika rute adalah '/teams' (atau di bawahnya) atau '/scoring', Navbar dan Footer umum tidak akan dirender,
  *   sehingga layout dashboard (Sidebar + Topbar) dapat tampil penuh dan bersih.
  * - Jika rute publik, Navbar dan Footer dirender seperti biasa.
  */
-export function PublicLayoutWrapper({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function PublicLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   // Cek apakah halaman saat ini merupakan bagian dari dashboard (Teams, Scoring, Schedule Result, Playoff) atau halaman login
@@ -28,7 +25,8 @@ export function PublicLayoutWrapper({
     pathname?.startsWith("/teams/") ||
     pathname?.startsWith("/scoring") ||
     pathname?.startsWith("/playoff") ||
-    (pathname === "/schedule-result" || pathname?.startsWith("/schedule-result/")) ||
+    pathname === "/schedule-result" ||
+    pathname?.startsWith("/schedule-result/") ||
     pathname?.startsWith("/login");
 
   if (isDashboardRoute) {

@@ -2,14 +2,16 @@
 
 import React from "react";
 import Image from "next/image";
+
 import { motion } from "framer-motion";
-import TimelineTitleSvg from "@/public/images/timeline/timeline-title-287-1145.svg";
-import TimelineDetailDesktopImg from "@/public/images/timeline/Timeline_Detail.png";
+
 import { popSpringVariants } from "@/lib/animations";
+import TimelineDetailDesktopImg from "@/public/images/timeline/Timeline_Detail.png";
+import TimelineTitleSvg from "@/public/images/timeline/timeline-title-287-1145.svg";
 
 export const TimelineSection = () => {
   return (
-    <section className="w-full max-w-[1440px] mx-auto flex flex-col items-center px-0 py-0 select-none">
+    <section className="mx-auto flex w-full max-w-[1440px] flex-col items-center px-0 py-0 select-none">
       {/* 
         1. Timeline Title SVG
         - Size: 685.96px x 201.69px (1440px scale)
@@ -29,11 +31,7 @@ export const TimelineSection = () => {
           marginBottom: "calc(100% * 27.31 / 1440)",
         }}
       >
-        <Image
-          src={TimelineTitleSvg}
-          alt="TIMELINE"
-          className="w-full h-full object-contain"
-        />
+        <Image src={TimelineTitleSvg} alt="TIMELINE" className="h-full w-full object-contain" />
       </motion.div>
 
       {/* 
@@ -46,8 +44,8 @@ export const TimelineSection = () => {
         whileInView="visible"
         viewport={{ once: false, amount: 0.2 }}
         variants={popSpringVariants}
-        custom={0.30}
-        className="relative flex-shrink-0 timeline-detail-container max-md:mb-[var(--timeline-detail-mb-mobile,0px)]"
+        custom={0.3}
+        className="timeline-detail-container relative flex-shrink-0 max-md:mb-[var(--timeline-detail-mb-mobile,0px)]"
         style={{
           width: "calc(100% * 1116.04 / 1440)",
           aspectRatio: "1116.04 / 618",
@@ -56,12 +54,12 @@ export const TimelineSection = () => {
         <motion.div
           animate={{ y: [-4, 4, -4] }}
           transition={{ duration: 5.0, repeat: Infinity, ease: "easeInOut" }}
-          className="w-full h-full"
+          className="h-full w-full"
         >
           <Image
             src={TimelineDetailDesktopImg}
             alt="Timeline Detail IBL 2K26"
-            className="w-full h-full object-contain"
+            className="h-full w-full object-contain"
           />
         </motion.div>
       </motion.div>

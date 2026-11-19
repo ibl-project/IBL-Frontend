@@ -2,12 +2,14 @@
 
 import React from "react";
 import Image from "next/image";
+
+import { motion, Variants } from "framer-motion";
+
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import orangKanan from "@/public/images/orang kanan.svg";
 import orangKiri from "@/public/images/orang kiri.svg";
-import vectorHitam from "@/public/images/vector hitam.svg";
 import vectorBiru from "@/public/images/vector biru.svg";
-import { motion, Variants } from "framer-motion";
-import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
+import vectorHitam from "@/public/images/vector hitam.svg";
 
 // Builder varian: animasi entrance selalu jalan; "breathing" (scale loop `repeat:
 // Infinity`) hanya aktif saat `breathe=true` (desktop). Pada layar kecil kita
@@ -36,12 +38,7 @@ const makeVectorVariants = (breathe: boolean, breathDuration: number): Variants 
   },
 });
 
-const makeOrangVariants = (
-  breathe: boolean,
-  breathDuration: number,
-  fromX: number,
-  delay: number,
-): Variants => ({
+const makeOrangVariants = (breathe: boolean, breathDuration: number, fromX: number, delay: number): Variants => ({
   hidden: { opacity: 0, x: fromX, scale: 1 },
   visible: {
     opacity: 1,
@@ -82,14 +79,14 @@ export const LandingSection = () => {
   // layer yang memicu crash jetsam WebKit di ambang memori. Desktop: animasi penuh.
   if (!isDesktop) {
     return (
-      <div className="relative w-[1440px] flex items-center">
-        <div className="absolute z-2 top-0">
+      <div className="relative flex w-[1440px] items-center">
+        <div className="absolute top-0 z-2">
           <Image src={vectorHitam} alt="Decorative Vector Hitam" loading="lazy" />
         </div>
-        <div className="absolute z-1 top-0">
+        <div className="absolute top-0 z-1">
           <Image src={vectorBiru} alt="Decorative Vector Biru" loading="lazy" />
         </div>
-        <div className="flex absolute gap-[7px] top-[341px] justify-center w-full z-5">
+        <div className="absolute top-[341px] z-5 flex w-full justify-center gap-[7px]">
           <div className="flex items-center justify-center">
             <Image src={orangKiri} alt="Ilustrasi pemain basket kiri" loading="lazy" />
           </div>
@@ -97,7 +94,7 @@ export const LandingSection = () => {
             <Image src={orangKanan} alt="Ilustrasi pemain basket kanan" loading="lazy" />
           </div>
         </div>
-        <div className="flex absolute top-[719px] gap-[47px] w-full justify-center">
+        <div className="absolute top-[719px] flex w-full justify-center gap-[47px]">
           <Image src="/texts/IBL.svg" alt="IBL" width={666} height={199} priority />
           <Image src="/texts/2K26.svg" alt="2K26" width={666} height={199} loading="lazy" />
         </div>
@@ -110,26 +107,20 @@ export const LandingSection = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="relative w-[1440px] flex items-center"
+      className="relative flex w-[1440px] items-center"
     >
       {/* Vector Hitam */}
-      <motion.div
-        variants={vectorHitamVariants}
-        className="absolute z-2 top-0"
-      >
+      <motion.div variants={vectorHitamVariants} className="absolute top-0 z-2">
         <Image src={vectorHitam} alt="Decorative Vector Hitam" />
       </motion.div>
 
       {/* Vector Biru */}
-      <motion.div
-        variants={vectorBiruVariants}
-        className="absolute z-1 top-0"
-      >
+      <motion.div variants={vectorBiruVariants} className="absolute top-0 z-1">
         <Image src={vectorBiru} alt="Decorative Vector Biru" />
       </motion.div>
 
       {/* Orang */}
-      <div className="flex absolute gap-[7px] top-[341px] justify-center w-full z-5">
+      <div className="absolute top-[341px] z-5 flex w-full justify-center gap-[7px]">
         <motion.div
           initial="hidden"
           animate="visible"
@@ -149,20 +140,14 @@ export const LandingSection = () => {
       </div>
 
       {/* Logo IBL */}
-      <div className="flex absolute top-[719px] gap-[47px] w-full justify-center">
+      <div className="absolute top-[719px] flex w-full justify-center gap-[47px]">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: false, amount: 0.4 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <Image
-            src="/texts/IBL.svg"
-            alt="IBL"
-            width={666}
-            height={199}
-            priority
-          />
+          <Image src="/texts/IBL.svg" alt="IBL" width={666} height={199} priority />
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 40 }}

@@ -3,8 +3,9 @@ import Link from "next/link";
 
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 import type { Team } from "@/lib/teamsApi";
-import { ARTBOARD, TEXT_FILLS, teamDetailHref, type ArtboardVariant } from "./teamsMainTheme";
+
 import { OutlinedText } from "./OutlinedText";
+import { ARTBOARD, teamDetailHref, TEXT_FILLS, type ArtboardVariant } from "./teamsMainTheme";
 
 interface TeamCardProps {
   team: Pick<Team, "id" | "name" | "logo">;

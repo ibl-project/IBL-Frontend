@@ -2,12 +2,14 @@
 
 import React from "react";
 import Image from "next/image";
+
 import { motion } from "framer-motion";
-import ThemeBgImg from "@/public/images/theme/fix/theme-bg.png";
-import ThemeImg from "@/public/images/theme/fix/theme.png";
+
+import { popPunchVariants, popSpringVariants } from "@/lib/animations";
 import IblPopImg from "@/public/images/theme/fix/ibl-pop.png";
+import ThemeBgImg from "@/public/images/theme/fix/theme-bg.png";
 import ThemeDetailImg from "@/public/images/theme/fix/theme-detail.png";
-import { popSpringVariants, popPunchVariants } from "@/lib/animations";
+import ThemeImg from "@/public/images/theme/fix/theme.png";
 
 /**
  * Patokan koordinat Desktop 1440px:
@@ -24,7 +26,7 @@ import { popSpringVariants, popPunchVariants } from "@/lib/animations";
 export const ThemeSection = () => {
   return (
     <section
-      className="relative w-full max-w-[1440px] mx-auto select-none md:scale-[0.75] md:origin-center"
+      className="relative mx-auto w-full max-w-[1440px] select-none md:origin-center md:scale-[0.75]"
       style={{
         aspectRatio: "1440 / 1200",
       }}
@@ -43,7 +45,7 @@ export const ThemeSection = () => {
         viewport={{ once: false, amount: 0.2 }}
         variants={popSpringVariants}
         custom={0.08}
-        className="absolute pointer-events-none z-10"
+        className="pointer-events-none absolute z-10"
         style={{
           width: "calc(100% * 923 / 1440)",
           height: "calc(100% * 438.5 / 1200)",
@@ -51,11 +53,7 @@ export const ThemeSection = () => {
           top: "calc(100% * -186 / 1200)",
         }}
       >
-        <Image
-          src={ThemeBgImg}
-          alt="Theme Background"
-          className="w-full h-full object-contain"
-        />
+        <Image src={ThemeBgImg} alt="Theme Background" className="h-full w-full object-contain" />
       </motion.div>
 
       {/* 
@@ -70,7 +68,7 @@ export const ThemeSection = () => {
         viewport={{ once: false, amount: 0.2 }}
         variants={popSpringVariants}
         custom={0.24}
-        className="absolute pointer-events-none z-20 left-1/2 -translate-x-1/2"
+        className="pointer-events-none absolute left-1/2 z-20 -translate-x-1/2"
         style={{
           width: "calc(100% * 1394 / 1440)",
           height: "calc(100% * 841 / 1200)",
@@ -80,12 +78,12 @@ export const ThemeSection = () => {
         <motion.div
           animate={{ y: [-5, 5, -5] }}
           transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-          className="w-full h-full"
+          className="h-full w-full"
         >
           <Image
             src={ThemeDetailImg}
             alt="Theme Detail: Fastbreak, Fastbreak Collector, Collector"
-            className="w-full h-full object-contain"
+            className="h-full w-full object-contain"
           />
         </motion.div>
       </motion.div>
@@ -102,18 +100,14 @@ export const ThemeSection = () => {
         viewport={{ once: false, amount: 0.2 }}
         variants={popPunchVariants}
         custom={{ delay: 0.38, rotation: -2 }}
-        className="absolute pointer-events-none z-22 left-1/2 -translate-x-1/2"
+        className="pointer-events-none absolute left-1/2 z-22 -translate-x-1/2"
         style={{
           width: "calc(100% * 609.5 / 1440)",
           height: "calc(100% * 225.5 / 1200)",
           top: "calc(100% * -35 / 1200)",
         }}
       >
-        <Image
-          src={ThemeImg}
-          alt="THEME"
-          className="w-full h-full object-contain"
-        />
+        <Image src={ThemeImg} alt="THEME" className="h-full w-full object-contain" />
       </motion.div>
 
       {/* 
@@ -128,7 +122,7 @@ export const ThemeSection = () => {
         viewport={{ once: false, amount: 0.2 }}
         variants={popPunchVariants}
         custom={{ delay: 0.52, rotation: 5 }}
-        className="absolute pointer-events-none z-25"
+        className="pointer-events-none absolute z-25"
         style={{
           width: "calc(100% * 382 / 1440)",
           height: "calc(100% * 264 / 1200)",
@@ -136,11 +130,7 @@ export const ThemeSection = () => {
           top: "calc(100% * 71 / 1200)",
         }}
       >
-        <Image
-          src={IblPopImg}
-          alt="IBL Pop"
-          className="w-full h-full object-contain"
-        />
+        <Image src={IblPopImg} alt="IBL Pop" className="h-full w-full object-contain" />
       </motion.div>
     </section>
   );

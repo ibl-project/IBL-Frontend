@@ -7,16 +7,21 @@ interface WhatsAppContactProps {
   disablePrefill?: boolean;
 }
 
-export default function WhatsAppContact({ contactName, phoneNumber, customText, disablePrefill }: WhatsAppContactProps) {
+export default function WhatsAppContact({
+  contactName,
+  phoneNumber,
+  customText,
+  disablePrefill,
+}: WhatsAppContactProps) {
   let waLink = `https://wa.me/${phoneNumber}`;
-  
+
   if (!disablePrefill && customText) {
     waLink += `?text=${encodeURIComponent(customText)}`;
   }
 
   return (
     <div
-      className="absolute flex flex-col items-center justify-center w-full"
+      className="absolute flex w-full flex-col items-center justify-center"
       style={{
         top: "100%",
         left: "50%",
@@ -27,7 +32,7 @@ export default function WhatsAppContact({ contactName, phoneNumber, customText, 
     >
       {/* Dynamic text above the button */}
       <p
-        className="font-drowner text-black select-none text-center"
+        className="text-center font-drowner text-black select-none"
         style={{
           fontFamily: "var(--font-drowner), sans-serif",
           fontStyle: "normal",
@@ -47,7 +52,7 @@ export default function WhatsAppContact({ contactName, phoneNumber, customText, 
         href={waLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="font-drowner flex items-center justify-center gap-1.5 min-[426px]:gap-2.5 hover:opacity-90 active:translate-y-0.5 active:shadow-[4px_4px_0px_#000] min-[426px]:active:shadow-[6px_6px_0px_#000] transition-all select-none cursor-pointer"
+        className="flex cursor-pointer items-center justify-center gap-1.5 font-drowner transition-all select-none hover:opacity-90 active:translate-y-0.5 active:shadow-[4px_4px_0px_#000] min-[426px]:gap-2.5 min-[426px]:active:shadow-[6px_6px_0px_#000]"
         style={{
           width: "clamp(200px, 60vw, 350px)",
           height: "clamp(24px, 5.5vw, 32px)",
@@ -74,7 +79,7 @@ export default function WhatsAppContact({ contactName, phoneNumber, customText, 
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="w-4 h-4 min-[426px]:w-6 min-[426px]:h-6 flex-shrink-0"
+          className="h-4 w-4 flex-shrink-0 min-[426px]:h-6 min-[426px]:w-6"
         >
           <path stroke="none" d="M0 0h24v24H0z" fill="none" />
           <path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9" />
@@ -87,4 +92,3 @@ export default function WhatsAppContact({ contactName, phoneNumber, customText, 
     </div>
   );
 }
-

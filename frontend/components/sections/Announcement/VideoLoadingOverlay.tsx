@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useRef, useEffect, useSyncExternalStore } from "react";
+import React, { useEffect, useRef, useSyncExternalStore } from "react";
+
 import { createPortal } from "react-dom";
 
 interface VideoLoadingOverlayProps {
@@ -17,7 +18,7 @@ export default function VideoLoadingOverlay({ onVideoEnd, videoType }: VideoLoad
   const mounted = useSyncExternalStore(
     subscribeNoop,
     () => true,
-    () => false
+    () => false,
   );
 
   useEffect(() => {
@@ -87,11 +88,7 @@ export default function VideoLoadingOverlay({ onVideoEnd, videoType }: VideoLoad
           `,
         }}
       />
-      <audio
-        ref={audioRef}
-        src="/audio/bbc_drums---lo_07011243.mp3"
-        preload="auto"
-      />
+      <audio ref={audioRef} src="/audio/bbc_drums---lo_07011243.mp3" preload="auto" />
       <video
         ref={videoRef}
         src={videoType === "lolos" ? "/video/AnnouncementVideo/Success.mp4" : "/video/AnnouncementVideo/Miss.mp4"}

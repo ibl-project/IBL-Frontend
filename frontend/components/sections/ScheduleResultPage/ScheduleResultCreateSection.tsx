@@ -2,9 +2,10 @@
 
 import React from "react";
 
+import { Modal } from "@/components/ui/Modal";
 import { createSchedule } from "@/lib/matchesApi";
 import type { Team } from "@/lib/teamsApi";
-import { Modal } from "@/components/ui/Modal";
+
 import { ScheduleForm } from "./ScheduleForm";
 
 interface ScheduleResultCreateSectionProps {

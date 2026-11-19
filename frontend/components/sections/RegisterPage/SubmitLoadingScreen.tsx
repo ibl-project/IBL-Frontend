@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import Image from "next/image";
+
 import { motion } from "framer-motion";
+import { createPortal } from "react-dom";
 
 // Tahapan proses (perceived progress). Backend GAS memproses semua berkas &
 // database dalam satu request POST, jadi daftar ini memberi ilusi kemajuan
@@ -50,11 +51,11 @@ export const SubmitLoadingScreen = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0C0B0A]/95 select-none px-6"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0C0B0A]/95 px-6 select-none"
       role="status"
       aria-live="polite"
     >
-      <div className="flex flex-col items-center gap-[24px] w-full max-w-[420px]">
+      <div className="flex w-full max-w-[420px] flex-col items-center gap-[24px]">
         {/* Logo (bola) */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
@@ -68,7 +69,7 @@ export const SubmitLoadingScreen = () => {
             width={120}
             height={126}
             priority
-            className="w-[120px] h-auto drop-shadow-[0_0_15px_rgba(244,99,30,0.3)]"
+            className="h-auto w-[120px] drop-shadow-[0_0_15px_rgba(244,99,30,0.3)]"
           />
         </motion.div>
 
@@ -78,13 +79,13 @@ export const SubmitLoadingScreen = () => {
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
-          className="font-crosner text-center text-white text-base sm:text-lg uppercase tracking-widest min-h-[1.5em]"
+          className="min-h-[1.5em] text-center font-crosner text-base tracking-widest text-white uppercase sm:text-lg"
         >
           {STAGES[stage]}
         </motion.p>
 
         {/* Progress bar */}
-        <div className="w-[240px] h-[6px] bg-[#2A2725] rounded-full overflow-hidden relative">
+        <div className="relative h-[6px] w-[240px] overflow-hidden rounded-full bg-[#2A2725]">
           <motion.div
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
@@ -100,10 +101,10 @@ export const SubmitLoadingScreen = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
-          className="mt-4 flex items-start gap-2 max-w-[320px]"
+          className="mt-4 flex max-w-[320px] items-start gap-2"
         >
           <svg
-            className="w-5 h-5 text-[#F4631E] shrink-0 mt-0.5"
+            className="mt-0.5 h-5 w-5 shrink-0 text-[#F4631E]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -116,12 +117,13 @@ export const SubmitLoadingScreen = () => {
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          <p className="font-body text-xs sm:text-sm text-[#D1D1D1] leading-relaxed text-left">
-            Mohon <span className="text-white font-semibold">jangan tutup tab atau browser</span> selama proses pengunggahan berkas berlangsung.
+          <p className="text-left font-body text-xs leading-relaxed text-[#D1D1D1] sm:text-sm">
+            Mohon <span className="font-semibold text-white">jangan tutup tab atau browser</span> selama proses
+            pengunggahan berkas berlangsung.
           </p>
         </motion.div>
       </div>
     </motion.div>,
-    document.body
+    document.body,
   );
 };

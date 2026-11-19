@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useRef } from "react";
+
 import { motion } from "framer-motion";
+
 import type { MatchSnapshot } from "@/lib/matchesApi";
 
 interface ScoreDetailButtonProps {
@@ -32,7 +34,11 @@ export function ScoreDetailButton({ match }: ScoreDetailButtonProps) {
 
   if (!match) {
     return (
-      <span aria-disabled="true" title="Memuat data pertandingan..." className={`${className} cursor-not-allowed opacity-50`}>
+      <span
+        aria-disabled="true"
+        title="Memuat data pertandingan..."
+        className={`${className} cursor-not-allowed opacity-50`}
+      >
         Score Detail
       </span>
     );

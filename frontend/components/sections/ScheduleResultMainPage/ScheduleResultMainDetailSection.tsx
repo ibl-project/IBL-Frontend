@@ -4,18 +4,21 @@ import React, { useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
-import { popSpringVariants, popPunchVariants } from "@/lib/animations";
+
+import { popPunchVariants, popSpringVariants } from "@/lib/animations";
 import { ApiError } from "@/lib/apiClient";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
 import { openMatchStream, snapshotHandlers } from "@/lib/hooks/useMatchLive";
 import { teamLabel } from "@/lib/matchDisplay";
-import { type MatchSide, type MatchSnapshot, REGULATION_QUARTERS, getMatch, isLiveNow } from "@/lib/matchesApi";
+import { getMatch, isLiveNow, REGULATION_QUARTERS, type MatchSide, type MatchSnapshot } from "@/lib/matchesApi";
 import { isDateKey } from "@/lib/scheduleDays";
+
 import { MatchHeader } from "./MatchHeader";
-import { SummaryTable } from "./SummaryTable";
 import { ScoreDetailButton } from "./ScoreDetailButton";
+import { SummaryTable } from "./SummaryTable";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LIVE_REFRESH_MS = 60_000;
@@ -49,7 +52,7 @@ function QuarterTable({ match }: { match: MatchSnapshot | null }) {
     <table className="h-full w-full table-fixed border-collapse text-center">
       <thead>
         <tr className="font-poppins text-[length:max(0.5625rem,1.92cqw)] font-black text-[#101010]">
-          <th className="w-[28%] border-b border-r border-[#7E0202]/50 px-1 py-0.5">Team</th>
+          <th className="w-[28%] border-r border-b border-[#7E0202]/50 px-1 py-0.5">Team</th>
           {headers.map((label, index) => (
             <th
               key={label}
@@ -72,7 +75,7 @@ function QuarterTable({ match }: { match: MatchSnapshot | null }) {
             <tr key={rowIndex} className={rowIndex === 0 ? "border-b border-[#7E0202]/50" : ""}>
               <td
                 title={name}
-                className={`${QUARTER_CELL} overflow-hidden text-ellipsis whitespace-nowrap px-1 font-black text-[#7E0202]`}
+                className={`${QUARTER_CELL} overflow-hidden px-1 font-black text-ellipsis whitespace-nowrap text-[#7E0202]`}
               >
                 {name}
               </td>
@@ -160,7 +163,7 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
   return (
     <section
       aria-label="Detail Game"
-      className="relative isolate min-h-screen overflow-hidden bg-[#f3e6ce] pb-14 pt-[calc(var(--navbar-height)+20px)] sm:pb-20 md:pt-[calc(var(--navbar-height)+28px)]"
+      className="relative isolate min-h-screen overflow-hidden bg-[#f3e6ce] pt-[calc(var(--navbar-height)+20px)] pb-14 sm:pb-20 md:pt-[calc(var(--navbar-height)+28px)]"
     >
       {/* Background Graphic Overlay from Figma */}
       <Image
@@ -176,7 +179,7 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
-        className="pointer-events-none absolute left-3 top-[20%] z-0 hidden w-[15vw] max-w-[240px] xl:block 2xl:left-8"
+        className="pointer-events-none absolute top-[20%] left-3 z-0 hidden w-[15vw] max-w-[240px] xl:block 2xl:left-8"
       >
         <motion.div
           animate={{ y: [-5, 5, -5], rotate: [-1, 1, -1] }}
@@ -197,7 +200,7 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, delay: 0.25 }}
-        className="pointer-events-none absolute right-3 top-[34%] z-0 hidden w-[15vw] max-w-[240px] xl:block 2xl:right-8"
+        className="pointer-events-none absolute top-[34%] right-3 z-0 hidden w-[15vw] max-w-[240px] xl:block 2xl:right-8"
       >
         <motion.div
           animate={{ y: [5, -5, 5], rotate: [1, -1, 1] }}
@@ -254,9 +257,9 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
             className="relative z-20 w-full max-w-[1080px] drop-shadow-[0_12px_32px_rgba(0,0,0,0.25)]"
           >
             {/* Frame 1080 × 1280 (1 unit = 1 px Figma desktop); container "detail" untuk ukuran isinya. */}
-            <div className="@container/detail relative w-full aspect-[1080/1280]">
+            <div className="@container/detail relative aspect-[1080/1280] w-full">
               {/* Layer 1: Red Textbox Summary Box (Big full-width, under backboard rim) */}
-              <div className="absolute left-0 top-[33.6%] z-10 w-full aspect-[1611/1223]">
+              <div className="absolute top-[33.6%] left-0 z-10 aspect-[1611/1223] w-full">
                 <Image
                   src="/images/textboxsummary.png"
                   alt=""
@@ -267,7 +270,7 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
               </div>
 
               {/* Layer 2: Basketball Backboard + Ring & Net (In front of Red Box, behind SUMMARY) */}
-              <div className="absolute left-0 top-0 z-20 w-full aspect-[1080/761]">
+              <div className="absolute top-0 left-0 z-20 aspect-[1080/761] w-full">
                 <Image
                   src="/images/ring.png"
                   alt=""
@@ -277,7 +280,7 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
                 />
 
                 {/* Quarter Scores Table Box (tablebox ring.svg) */}
-                <div className="@container/quarters absolute left-1/2 top-[36.5%] z-20 w-[67.6%] -translate-x-1/2 aspect-[730/233]">
+                <div className="@container/quarters absolute top-[36.5%] left-1/2 z-20 aspect-[730/233] w-[67.6%] -translate-x-1/2">
                   <Image
                     src="/svg/figma/tablebox%20ring.svg"
                     alt=""
@@ -290,16 +293,20 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
                       LIVE
                     </span>
                   )}
-                  <div className="absolute left-[3.5%] top-[8.5%] h-[72.5%] w-[93%] overflow-hidden">
+                  <div className="absolute top-[8.5%] left-[3.5%] h-[72.5%] w-[93%] overflow-hidden">
                     <QuarterTable match={match} />
                   </div>
                 </div>
               </div>
 
               {/* Header: logos, team names, venue, time (IMPLEMENTATION_DETAIL.md §3.2, §4) */}
-              <div className="absolute left-[15.13%] top-[7%] z-[26] w-[68.52%] @max-[480px]/detail:left-[3.55%] @max-[480px]/detail:top-[5.2%] @max-[480px]/detail:w-[92.9%]">
+              <div className="absolute top-[7%] left-[15.13%] z-[26] w-[68.52%] @max-[480px]/detail:top-[5.2%] @max-[480px]/detail:left-[3.55%] @max-[480px]/detail:w-[92.9%]">
                 <MatchHeader
-                  data={match ? { team1: match.team1, team2: match.team2, venue: match.venue, scheduledAt: match.scheduledAt } : null}
+                  data={
+                    match
+                      ? { team1: match.team1, team2: match.team2, venue: match.venue, scheduledAt: match.scheduledAt }
+                      : null
+                  }
                 />
               </div>
 
@@ -309,7 +316,7 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
                 animate="visible"
                 variants={popPunchVariants}
                 custom={{ delay: 0.15, rotation: 0 }}
-                className="absolute left-1/2 top-[43.8%] z-30 w-[44.5%] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]"
+                className="absolute top-[43.8%] left-1/2 z-30 w-[44.5%] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]"
               >
                 <Image
                   src="/svg/figma/summary.svg"
@@ -322,7 +329,7 @@ export const ScheduleResultMainDetailSection: React.FC = () => {
               </motion.div>
 
               {/* Layer 4: Summary Table & Score Detail (Inside Red Box, beneath SUMMARY banner) */}
-              <div className="absolute left-1/2 top-[52%] z-[25] w-[70.4%] -translate-x-1/2 flex flex-col items-center">
+              <div className="absolute top-[52%] left-1/2 z-[25] flex w-[70.4%] -translate-x-1/2 flex-col items-center">
                 <SummaryTable teams={match ? { team1: match.team1, team2: match.team2 } : null} />
                 <div className="mt-[1.8cqw] flex justify-center @max-[480px]/detail:mt-[1cqw]">
                   <ScoreDetailButton match={match} />

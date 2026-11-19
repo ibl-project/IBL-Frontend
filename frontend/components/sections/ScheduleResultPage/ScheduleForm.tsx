@@ -2,24 +2,24 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import { ApiError } from "@/lib/apiClient";
-import { fromWibFields, toWibFields } from "@/lib/datetime";
-import {
-  type CreateScheduleInput,
-  type MatchListItem,
-  PLAYOFF_ROUNDS,
-  PLAYOFF_ROUND_LABEL,
-  PLAYOFF_SLOTS,
-  type PlayoffRound,
-  bracketSideLabel,
-  listMatches,
-} from "@/lib/matchesApi";
-import { errorMessage } from "@/lib/errors";
-import { type Team } from "@/lib/teamsApi";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { OutlinedField } from "@/components/ui/OutlinedField";
 import { TeamCombobox, type TeamOption } from "@/components/ui/TeamCombobox";
 import { TimePicker } from "@/components/ui/TimePicker";
+import { ApiError } from "@/lib/apiClient";
+import { fromWibFields, toWibFields } from "@/lib/datetime";
+import { errorMessage } from "@/lib/errors";
+import {
+  bracketSideLabel,
+  listMatches,
+  PLAYOFF_ROUND_LABEL,
+  PLAYOFF_ROUNDS,
+  PLAYOFF_SLOTS,
+  type CreateScheduleInput,
+  type MatchListItem,
+  type PlayoffRound,
+} from "@/lib/matchesApi";
+import { type Team } from "@/lib/teamsApi";
 
 type FieldErrors = Partial<
   Record<"team1" | "team2" | "stage" | "playoffRound" | "bracketPosition" | "date" | "time" | "venue", string>
@@ -72,10 +72,7 @@ export const ScheduleForm = ({
   const [saving, setSaving] = useState(false);
 
   const grouped = useMemo(() => teams.filter((team) => team.groupId), [teams]);
-  const groupOf = useCallback(
-    (id: string | null) => teams.find((team) => team.id === id)?.groupId ?? null,
-    [teams],
-  );
+  const groupOf = useCallback((id: string | null) => teams.find((team) => team.id === id)?.groupId ?? null, [teams]);
   const toOption = (team: Team): TeamOption => ({ id: team.id, name: team.name, group: team.group });
 
   const team1Options = useMemo(() => {
@@ -193,17 +190,13 @@ export const ScheduleForm = ({
       {/* Pilihan Jenis Pertandingan */}
       {!isEdit ? (
         <div className="flex flex-col gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-gray-700">
-            Jenis Pertandingan
-          </span>
+          <span className="text-xs font-bold tracking-wider text-gray-700 uppercase">Jenis Pertandingan</span>
           <div className="inline-flex w-full rounded-xl bg-gray-100 p-1 sm:w-auto sm:self-start">
             <button
               type="button"
               onClick={() => handleStageChange("GROUP")}
               className={`flex-1 rounded-lg px-5 py-2 text-xs font-semibold transition-all sm:flex-initial ${
-                stage === "GROUP"
-                  ? "bg-[#2f9b9a] text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
+                stage === "GROUP" ? "bg-[#2f9b9a] text-white shadow-sm" : "text-gray-600 hover:text-gray-900"
               }`}
             >
               Fase Grup
@@ -212,9 +205,7 @@ export const ScheduleForm = ({
               type="button"
               onClick={() => handleStageChange("PLAYOFF")}
               className={`flex-1 rounded-lg px-5 py-2 text-xs font-semibold transition-all sm:flex-initial ${
-                stage === "PLAYOFF"
-                  ? "bg-[#2f9b9a] text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
+                stage === "PLAYOFF" ? "bg-[#2f9b9a] text-white shadow-sm" : "text-gray-600 hover:text-gray-900"
               }`}
             >
               Playoff (Lintas Grup)
@@ -344,12 +335,7 @@ export const ScheduleForm = ({
           error={errors.time}
         />
 
-        <OutlinedField
-          label="Tempat"
-          htmlFor={`${idPrefix}-venue`}
-          error={errors.venue}
-          className="sm:col-span-3"
-        >
+        <OutlinedField label="Tempat" htmlFor={`${idPrefix}-venue`} error={errors.venue} className="sm:col-span-3">
           <input
             id={`${idPrefix}-venue`}
             type="text"
@@ -366,24 +352,31 @@ export const ScheduleForm = ({
       </div>
 
       {teamsLocked && (
-        <p className="-mt-3 text-xs text-gray-600">Tim tidak bisa diganti karena scoring pertandingan ini sudah dimulai.</p>
+        <p className="-mt-3 text-xs text-gray-600">
+          Tim tidak bisa diganti karena scoring pertandingan ini sudah dimulai.
+        </p>
       )}
       {!teamsLocked && stage === "GROUP" && ungrouped > 0 && (
         <p className="-mt-3 text-xs text-gray-600">
-          {ungrouped} tim belum masuk grup sehingga tidak muncul di pilihan fase grup. Atur grupnya di halaman Teams, atau pilih jenis Playoff.
+          {ungrouped} tim belum masuk grup sehingga tidak muncul di pilihan fase grup. Atur grupnya di halaman Teams,
+          atau pilih jenis Playoff.
         </p>
       )}
       {!teamsLocked && stage === "PLAYOFF" && (
         <p className="-mt-3 text-xs text-gray-600">
-          Pertandingan playoff mempertemukan tim dari grup mana saja. Setiap tim hanya dapat bertanding 1 kali di babak yang sama.
-          Pilih slot bracket supaya pertandingan tampil di sisi yang benar: slot Kiri untuk Conference 1, slot Kanan untuk Conference 2.
+          Pertandingan playoff mempertemukan tim dari grup mana saja. Setiap tim hanya dapat bertanding 1 kali di babak
+          yang sama. Pilih slot bracket supaya pertandingan tampil di sisi yang benar: slot Kiri untuk Conference 1,
+          slot Kanan untuk Conference 2.
         </p>
       )}
 
       {extra}
 
       {formError && (
-        <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+        <p
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+        >
           {formError}
         </p>
       )}

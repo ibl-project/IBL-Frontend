@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import type { Metadata } from "next";
+
 import { ScheduleResultMainDetailSection } from "@/components/sections/ScheduleResultMainPage/ScheduleResultMainDetailSection";
 
 export const metadata: Metadata = {

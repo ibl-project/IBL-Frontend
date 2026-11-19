@@ -2,9 +2,10 @@ import React from "react";
 
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 import type { Team } from "@/lib/teamsApi";
-import { ARTBOARD, TEAMS_COLORS, TEXT_FILLS, textShadow, type ArtboardVariant } from "./teamsMainTheme";
+
 import { OutlinedText } from "./OutlinedText";
 import { RibbonPlate } from "./RibbonPlate";
+import { ARTBOARD, TEAMS_COLORS, TEXT_FILLS, textShadow, type ArtboardVariant } from "./teamsMainTheme";
 
 interface TeamBannerProps {
   team: Pick<Team, "name" | "logo">;
@@ -47,7 +48,12 @@ export function TeamBanner({ team, variant }: TeamBannerProps) {
             shadow={textShadow(banner.shadow)}
             className="min-w-0 uppercase"
             textClassName="truncate"
-            style={{ fontFamily: "var(--font-hollywood)", fontSize: banner.font, lineHeight: `${banner.line}px`, letterSpacing: "-0.02em" }}
+            style={{
+              fontFamily: "var(--font-hollywood)",
+              fontSize: banner.font,
+              lineHeight: `${banner.line}px`,
+              letterSpacing: "-0.02em",
+            }}
           >
             {team.name}
           </OutlinedText>

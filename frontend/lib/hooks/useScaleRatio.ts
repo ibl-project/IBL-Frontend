@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function useScaleRatio(designWidth = 1440) {
   const [scale, setScale] = useState(1);
@@ -33,4 +33,3 @@ export function useScaleRatio(designWidth = 1440) {
 
   return scale;
 }
-

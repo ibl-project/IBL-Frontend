@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { TeamsLandingSection } from "@/components/sections/TeamsPage/TeamsLandingSection";
+
 import { TeamDetailSection } from "@/components/sections/TeamsPage/TeamDetailSection";
 import { TeamEditSection } from "@/components/sections/TeamsPage/TeamEditSection";
+import { TeamsLandingSection } from "@/components/sections/TeamsPage/TeamsLandingSection";
 
 export default function TeamsPage() {
   const [currentView, setCurrentView] = useState<"landing" | "detail" | "edit">("landing");
@@ -34,25 +35,23 @@ export default function TeamsPage() {
   };
 
   return (
-    <div className="bg-[#e1e7ea] min-h-screen w-full px-6 py-6 md:px-[46px]">
-      {currentView === "landing" && (
-        <TeamsLandingSection onTeamClick={handleTeamClick} />
-      )}
+    <div className="min-h-screen w-full bg-[#e1e7ea] px-6 py-6 md:px-[46px]">
+      {currentView === "landing" && <TeamsLandingSection onTeamClick={handleTeamClick} />}
 
       {currentView === "detail" && (selectedTeamId || selectedTeamName) && (
-        <TeamDetailSection 
+        <TeamDetailSection
           teamId={selectedTeamId || undefined}
-          teamName={selectedTeamName || undefined} 
-          onBack={handleBackToLanding} 
-          onEdit={handleGoToEdit} 
+          teamName={selectedTeamName || undefined}
+          onBack={handleBackToLanding}
+          onEdit={handleGoToEdit}
         />
       )}
 
       {currentView === "edit" && (selectedTeamId || selectedTeamName) && (
-        <TeamEditSection 
+        <TeamEditSection
           teamId={selectedTeamId || undefined}
-          teamName={selectedTeamName || undefined} 
-          onBack={handleBackToDetail} 
+          teamName={selectedTeamName || undefined}
+          onBack={handleBackToDetail}
           onCancel={handleBackToDetail}
           onSave={handleBackToDetail}
         />

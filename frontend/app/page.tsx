@@ -1,11 +1,12 @@
 import React from "react";
-import Image from "next/image";
 import type { Metadata } from "next";
+import Image from "next/image";
+
 import { AboutSection } from "@/components/sections/MainPage/AboutSection";
-import { ThemeSection } from "@/components/sections/MainPage/ThemeSection";
 import { CountdownSection } from "@/components/sections/MainPage/CountdownSection";
-import { TimelineSection } from "@/components/sections/MainPage/TimelineSection";
 import { LiveMatchModal } from "@/components/sections/MainPage/LiveMatchModal";
+import { ThemeSection } from "@/components/sections/MainPage/ThemeSection";
+import { TimelineSection } from "@/components/sections/MainPage/TimelineSection";
 
 export const metadata: Metadata = {
   title: "IBL 2K26 | ITS Basketball League",
@@ -21,8 +22,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "IBL 2K26 | ITS Basketball League",
-    description:
-      "Fastbreak Collector - Turnamen Basket Mahasiswa Terbesar Institut Teknologi Sepuluh Nopember 2026.",
+    description: "Fastbreak Collector - Turnamen Basket Mahasiswa Terbesar Institut Teknologi Sepuluh Nopember 2026.",
     url: "https://iblits.com",
     siteName: "IBL 2K26",
     locale: "id_ID",
@@ -34,7 +34,7 @@ export default function Home() {
   return (
     <main
       id="home-page"
-      className="relative isolate w-full max-w-[1440px] mx-auto aspect-[1440/4716] lg:aspect-[1440/4692] overflow-hidden max-lg:mt-[var(--about-bg-mt-mobile,24px)]"
+      className="relative isolate mx-auto aspect-[1440/4716] w-full max-w-[1440px] overflow-hidden max-lg:mt-[var(--about-bg-mt-mobile,24px)] lg:aspect-[1440/4692]"
     >
       {/* Pop-up Match Modal: Hanya muncul jika ada match berstatus LIVE */}
       <LiveMatchModal />
@@ -49,11 +49,11 @@ export default function Home() {
         fill
         priority
         sizes="(max-width: 1440px) 100vw, 1440px"
-        className="object-cover object-top z-0 pointer-events-none select-none lg:!-top-[calc(100vw*24/1440)] xl:!-top-[24px] lg:!h-[calc(100%+(100vw*24/1440))] xl:!h-[calc(100%+24px)]"
+        className="pointer-events-none z-0 object-cover object-top select-none lg:!-top-[calc(100vw*24/1440)] lg:!h-[calc(100%+(100vw*24/1440))] xl:!-top-[24px] xl:!h-[calc(100%+24px)]"
       />
 
       {/* Sections Flow - Layer 10 (above background) */}
-      <div className="relative z-10 w-full flex flex-col items-center">
+      <div className="relative z-10 flex w-full flex-col items-center">
         {/* 1. About Section */}
         <AboutSection />
 
@@ -62,7 +62,7 @@ export default function Home() {
 
         {/* 4. Countdown Section */}
         <div
-          className="w-full flex flex-col items-center"
+          className="flex w-full flex-col items-center"
           style={{
             marginTop: "calc(100% * 284 / 1440)",
           }}
@@ -72,7 +72,7 @@ export default function Home() {
 
         {/* 5. Timeline Section */}
         <div
-          className="w-full flex flex-col items-center"
+          className="flex w-full flex-col items-center"
           style={{
             marginTop: "calc(100% * 126 / 1440)",
           }}

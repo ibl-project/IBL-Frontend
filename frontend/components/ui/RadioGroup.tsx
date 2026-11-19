@@ -7,27 +7,19 @@ interface RadioGroupProps {
   onChange: (val: string) => void;
 }
 
-const RadioGroup: React.FC<RadioGroupProps> = ({
-  label,
-  options,
-  selected,
-  onChange,
-}) => {
+const RadioGroup: React.FC<RadioGroupProps> = ({ label, options, selected, onChange }) => {
   return (
-    <div className="flex flex-col w-full text-left">
-      <label 
-        className="font-bold text-[#2D2D2D] font-drowner tracking-widest"
-        style={{ 
+    <div className="flex w-full flex-col text-left">
+      <label
+        className="font-drowner font-bold tracking-widest text-[#2D2D2D]"
+        style={{
           fontSize: "var(--form-font-size)",
-          marginBottom: "var(--form-margin-bottom)"
+          marginBottom: "var(--form-margin-bottom)",
         }}
       >
         {label}
       </label>
-      <div 
-        className="flex flex-col"
-        style={{ gap: "calc(var(--form-field-gap) * 1.5)" }}
-      >
+      <div className="flex flex-col" style={{ gap: "calc(var(--form-field-gap) * 1.5)" }}>
         {options.map((option, idx) => {
           const isSelected = selected === option;
           return (
@@ -36,32 +28,29 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
               type="button"
               suppressHydrationWarning
               onClick={() => onChange(option)}
-              className="flex items-start cursor-pointer text-left focus:outline-none"
+              className="flex cursor-pointer items-start text-left focus:outline-none"
               style={{ gap: "var(--form-radio-gap)" }}
             >
               {/* Custom Radio Button */}
-              <div 
-                className="rounded-full border border-black flex items-center justify-center bg-white flex-shrink-0"
+              <div
+                className="flex flex-shrink-0 items-center justify-center rounded-full border border-black bg-white"
                 style={{
                   width: "var(--form-radio-size)",
                   height: "var(--form-radio-size)",
-                  marginTop: "calc(var(--form-font-size) * 0.05)"
+                  marginTop: "calc(var(--form-font-size) * 0.05)",
                 }}
               >
                 {isSelected && (
-                  <div 
+                  <div
                     className="rounded-full bg-black"
                     style={{
                       width: "var(--form-radio-dot-size)",
-                      height: "var(--form-radio-dot-size)"
+                      height: "var(--form-radio-dot-size)",
                     }}
                   />
                 )}
               </div>
-              <span 
-                className="font-body text-gray-800 leading-tight"
-                style={{ fontSize: "var(--form-font-size)" }}
-              >
+              <span className="font-body leading-tight text-gray-800" style={{ fontSize: "var(--form-font-size)" }}>
                 {option}
               </span>
             </button>

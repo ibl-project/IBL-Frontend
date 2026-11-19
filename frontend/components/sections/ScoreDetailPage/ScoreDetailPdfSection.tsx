@@ -4,10 +4,11 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+
+import { ScoringExportSheet } from "@/components/sections/ScoringPage/ScoringExportSheet";
 import { ApiError, assetUrl } from "@/lib/apiClient";
 import { generateBoxScorePdf, prewarmBoxScoreExport } from "@/lib/boxScoreExport";
-import { type MatchSnapshot, getMatch } from "@/lib/matchesApi";
-import { ScoringExportSheet } from "@/components/sections/ScoringPage/ScoringExportSheet";
+import { getMatch, type MatchSnapshot } from "@/lib/matchesApi";
 
 /**
  * Halaman PDF "Score Detail" (/schedule-result-main/score-detail?id=<matchId>).
@@ -179,7 +180,12 @@ export function ScoreDetailPdfSection() {
         )}
 
         {phase.kind === "error" && (
-          <StatusCard message={`${phase.message} Silakan coba lagi.`} backHref={backHref} backLabel="Kembali" onRetry={retry} />
+          <StatusCard
+            message={`${phase.message} Silakan coba lagi.`}
+            backHref={backHref}
+            backLabel="Kembali"
+            onRetry={retry}
+          />
         )}
       </div>
 

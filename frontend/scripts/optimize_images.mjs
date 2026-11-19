@@ -9,10 +9,11 @@
  *   --min-size N : Minimum file size in KB to consider for conversion (default: 50)
  */
 
-import sharp from "sharp";
 import { readdir, stat } from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+
+import sharp from "sharp";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,9 +51,7 @@ async function optimizeImages() {
   console.log(`Scanning: ${PUBLIC_DIR}\n`);
 
   const allFiles = await getAllFiles(PUBLIC_DIR);
-  const imageFiles = allFiles.filter((f) =>
-    SUPPORTED_EXTENSIONS.has(path.extname(f).toLowerCase())
-  );
+  const imageFiles = allFiles.filter((f) => SUPPORTED_EXTENSIONS.has(path.extname(f).toLowerCase()));
 
   console.log(`Found ${imageFiles.length} image(s) to evaluate.\n`);
 
@@ -83,17 +82,13 @@ async function optimizeImages() {
     if (webpExists) {
       const webpStat = await stat(webpPath);
       const webpSizeKB = Math.round(webpStat.size / 1024);
-      console.log(
-        `SKIP (webp exists): ${relativePath} (${fileSizeKB} KB -> existing webp: ${webpSizeKB} KB)`
-      );
+      console.log(`SKIP (webp exists): ${relativePath} (${fileSizeKB} KB -> existing webp: ${webpSizeKB} KB)`);
       skippedCount++;
       continue;
     }
 
     if (fileSizeKB < minSizeKB) {
-      console.log(
-        `SKIP (too small): ${relativePath} (${fileSizeKB} KB < ${minSizeKB} KB threshold)`
-      );
+      console.log(`SKIP (too small): ${relativePath} (${fileSizeKB} KB < ${minSizeKB} KB threshold)`);
       skippedCount++;
       continue;
     }
@@ -115,17 +110,13 @@ async function optimizeImages() {
       // Only save if the WebP is actually smaller
       if (newSizeKB < fileSizeKB) {
         await sharp(filePath).webp({ quality }).toFile(webpPath);
-        console.log(
-          `CONVERTED: ${relativePath} (${fileSizeKB} KB -> ${newSizeKB} KB, saved ${savingsPercent}%)`
-        );
+        console.log(`CONVERTED: ${relativePath} (${fileSizeKB} KB -> ${newSizeKB} KB, saved ${savingsPercent}%)`);
         totalOriginalSize += fileSizeKB;
         totalNewSize += newSizeKB;
         convertedCount++;
         results.push({ file: relativePath, from: fileSizeKB, to: newSizeKB, savings });
       } else {
-        console.log(
-          `SKIP (no savings): ${relativePath} (${fileSizeKB} KB -> webp would be ${newSizeKB} KB)`
-        );
+        console.log(`SKIP (no savings): ${relativePath} (${fileSizeKB} KB -> webp would be ${newSizeKB} KB)`);
         skippedCount++;
       }
     } catch (err) {
@@ -140,7 +131,7 @@ async function optimizeImages() {
     const totalSaved = totalOriginalSize - totalNewSize;
     const totalSavedMB = (totalSaved / 1024).toFixed(2);
     console.log(
-      `Total savings: ${totalSaved} KB (${totalSavedMB} MB), ${((totalSaved / totalOriginalSize) * 100).toFixed(1)}% reduction`
+      `Total savings: ${totalSaved} KB (${totalSavedMB} MB), ${((totalSaved / totalOriginalSize) * 100).toFixed(1)}% reduction`,
     );
   }
 
@@ -149,12 +140,7 @@ async function optimizeImages() {
     console.log("File".padEnd(50) + "Original".padEnd(12) + "WebP".padEnd(12) + "Saved");
     console.log("-".repeat(86));
     for (const r of results) {
-      console.log(
-        r.file.padEnd(50) +
-          `${r.from} KB`.padEnd(12) +
-          `${r.to} KB`.padEnd(12) +
-          `${r.savings} KB`
-      );
+      console.log(r.file.padEnd(50) + `${r.from} KB`.padEnd(12) + `${r.to} KB`.padEnd(12) + `${r.savings} KB`);
     }
   }
 }

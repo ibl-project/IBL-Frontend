@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
 import { Poppins } from "next/font/google";
+import localFont from "next/font/local";
+
 import "./globals.css";
+
 import { PublicLayoutWrapper } from "@/components/layout/PublicLayoutWrapper";
 
 const poppins = Poppins({
@@ -19,7 +21,7 @@ const hollywood = localFont({
       style: "normal",
     },
     {
-      path: "../public/fonts/HollyWoodFont/SF Hollywood Hills Bold.ttf", 
+      path: "../public/fonts/HollyWoodFont/SF Hollywood Hills Bold.ttf",
       weight: "700",
       style: "normal",
     },
@@ -59,7 +61,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "IBL 2K26 | Open Recruitment Staff UKM Basket ITS",
-  description: "Daftarkan diri kamu di IBL 2K26 — Open Recruitment Staff untuk ITS Basketball League tahun 2026. Acara tahunan UKM Basket Institut Teknologi Sepuluh Nopember.",
+  description:
+    "Daftarkan diri kamu di IBL 2K26 — Open Recruitment Staff untuk ITS Basketball League tahun 2026. Acara tahunan UKM Basket Institut Teknologi Sepuluh Nopember.",
   keywords: ["IBL", "ITS Basketball League", "Open Recruitment", "UKM Basket ITS", "2K26"],
   openGraph: {
     title: "IBL 2K26 | Open Recruitment Staff",
@@ -102,7 +105,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="relative min-h-full flex flex-col overflow-x-hidden">
+      <body className="relative flex min-h-full flex-col overflow-x-hidden">
         <PublicLayoutWrapper>{children}</PublicLayoutWrapper>
       </body>
     </html>

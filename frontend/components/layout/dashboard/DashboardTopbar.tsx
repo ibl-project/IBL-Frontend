@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+
 import { logout } from "@/lib/apiClient";
 import { ROLE_LABEL, useAuthStore } from "@/lib/store/useAuthStore";
 
@@ -17,10 +18,7 @@ interface DashboardTopbarProps {
  * 1. Tombol toggle menu (tampil ketika sidebar collapsed untuk membuka kembali)
  * 2. Profil akun yang sedang login (nama, role, email dari backend) dengan dropdown Logout
  */
-export const DashboardTopbar: React.FC<DashboardTopbarProps> = ({
-  isSidebarCollapsed = false,
-  onToggleSidebar,
-}) => {
+export const DashboardTopbar: React.FC<DashboardTopbarProps> = ({ isSidebarCollapsed = false, onToggleSidebar }) => {
   const user = useAuthStore((state) => state.user);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const displayName = user?.name ?? "";
@@ -30,7 +28,7 @@ export const DashboardTopbar: React.FC<DashboardTopbarProps> = ({
   return (
     <>
       <header
-        className={`fixed top-0 right-0 h-16 bg-white border-b border-gray-200 px-4 md:px-6 flex items-center justify-between font-poppins z-30 transition-[left] duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 z-30 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 font-poppins transition-[left] duration-300 ease-in-out md:px-6 ${
           isSidebarCollapsed ? "left-0" : "left-0 lg:left-64"
         }`}
       >
@@ -42,21 +40,17 @@ export const DashboardTopbar: React.FC<DashboardTopbarProps> = ({
               onClick={onToggleSidebar}
               aria-label="Buka menu sidebar"
               title="Buka menu sidebar"
-              className="p-2 -ml-1 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-hidden cursor-pointer"
+              className="-ml-1 cursor-pointer rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-hidden"
             >
               <svg
-                className="w-6 h-6"
+                className="h-6 w-6"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth="2"
                 aria-hidden="true"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
           )}
@@ -69,19 +63,15 @@ export const DashboardTopbar: React.FC<DashboardTopbarProps> = ({
           <button
             type="button"
             onClick={() => setIsProfileOpen((prev) => !prev)}
-            className="flex items-center gap-3 p-1.5 rounded-full hover:bg-gray-100 transition-colors focus:outline-hidden cursor-pointer select-none"
+            className="flex cursor-pointer items-center gap-3 rounded-full p-1.5 transition-colors select-none hover:bg-gray-100 focus:outline-hidden"
             aria-expanded={isProfileOpen}
             aria-label="Menu pengguna"
           >
-            <div className="hidden sm:flex flex-col text-right">
-              <span className="text-sm font-semibold text-gray-800 leading-tight">
-                {displayName}
-              </span>
-              <span className="text-xs text-gray-500 leading-tight">
-                {roleLabel} · IBL 2K26
-              </span>
+            <div className="hidden flex-col text-right sm:flex">
+              <span className="text-sm leading-tight font-semibold text-gray-800">{displayName}</span>
+              <span className="text-xs leading-tight text-gray-500">{roleLabel} · IBL 2K26</span>
             </div>
-            <div className="w-10 h-10 rounded-full bg-teal-600 text-white font-bold flex items-center justify-center text-sm shadow-xs select-none ring-2 ring-transparent hover:ring-teal-200 transition-all">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-600 text-sm font-bold text-white shadow-xs ring-2 ring-transparent transition-all select-none hover:ring-teal-200">
               {initial}
             </div>
           </button>
@@ -89,15 +79,12 @@ export const DashboardTopbar: React.FC<DashboardTopbarProps> = ({
           {/* Dropdown Menu */}
           {isProfileOpen && (
             <>
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setIsProfileOpen(false)}
-              />
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50 flex flex-col gap-1 font-poppins animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-3 py-2 border-b border-gray-100">
+              <div className="fixed inset-0 z-40" onClick={() => setIsProfileOpen(false)} />
+              <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 flex w-56 flex-col gap-1 rounded-2xl border border-gray-100 bg-white p-2 font-poppins shadow-xl duration-150">
+                <div className="border-b border-gray-100 px-3 py-2">
                   <p className="text-sm font-bold text-gray-800">{displayName}</p>
-                  <p className="text-xs text-gray-500 font-medium break-all">{user?.email}</p>
-                  <p className="text-xs text-teal-700 font-semibold mt-0.5">{roleLabel}</p>
+                  <p className="text-xs font-medium break-all text-gray-500">{user?.email}</p>
+                  <p className="mt-0.5 text-xs font-semibold text-teal-700">{roleLabel}</p>
                 </div>
 
                 <button
@@ -108,10 +95,10 @@ export const DashboardTopbar: React.FC<DashboardTopbarProps> = ({
                     // mengarahkan ke /login begitu status berubah.
                     void logout();
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer text-left"
+                  className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
                 >
                   <svg
-                    className="w-4 h-4 text-red-500"
+                    className="h-4 w-4 text-red-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"

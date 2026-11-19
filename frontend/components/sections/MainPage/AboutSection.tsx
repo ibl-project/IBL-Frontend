@@ -2,16 +2,18 @@
 
 import React from "react";
 import Image from "next/image";
+
 import { motion } from "framer-motion";
-import BasketImg from "@/public/images/about/fix/basket.png";
-import ShoesImg from "@/public/images/about/fix/shoes.png";
-import GreenCardImg from "@/public/images/about/fix/green-card.png";
-import YellowPolygonImg from "@/public/images/about/fix/yellow-polygon.png";
-import BasketRingImg from "@/public/images/about/fix/Basket ring.png";
+
+import { popPunchVariants, popSpringVariants } from "@/lib/animations";
 import AlertImg from "@/public/images/about/fix/alert.png";
+import BasketRingImg from "@/public/images/about/fix/Basket ring.png";
+import BasketImg from "@/public/images/about/fix/basket.png";
 import GetToKnowImg from "@/public/images/about/fix/get-to-know.png";
+import GreenCardImg from "@/public/images/about/fix/green-card.png";
 import IblImg from "@/public/images/about/fix/ibl.png";
-import { popSpringVariants, popPunchVariants } from "@/lib/animations";
+import ShoesImg from "@/public/images/about/fix/shoes.png";
+import YellowPolygonImg from "@/public/images/about/fix/yellow-polygon.png";
 
 const aboutText =
   "ITS Basketball League 2026 (IBL2K26) merupakan kompetisi bola basket antar Himpunan Mahasiswa Departemen (HMD) yang menjadi salah satu agenda olahraga tahunan terbesar di Institut Teknologi Sepuluh Nopember, yang diselenggarakan oleh UKM Basket ITS. IBL2K26 tidak hanya menjadi wadah pengembangan bakat basket, tetapi juga sarana membangun karakter, solidaritas, serta sportivitas dalam persaingan yang kompetitif dan berintegritas.";
@@ -19,7 +21,7 @@ const aboutText =
 export const AboutSection = () => {
   return (
     <section
-      className="relative w-full max-w-[1440px] mx-auto select-none"
+      className="relative mx-auto w-full max-w-[1440px] select-none"
       style={{
         aspectRatio: "1440 / 1280",
         marginTop: "var(--about-top-shift, 0px)",
@@ -44,7 +46,7 @@ export const AboutSection = () => {
           viewport={{ once: false, amount: 0.2 }}
           variants={popSpringVariants}
           custom={0.05}
-          className="absolute pointer-events-none z-10"
+          className="pointer-events-none absolute z-10"
           style={{
             width: "calc(100% * 1611 / 1440)",
             height: "calc(100% * 885 / 1280)",
@@ -76,7 +78,7 @@ export const AboutSection = () => {
           viewport={{ once: false, amount: 0.2 }}
           variants={popPunchVariants}
           custom={{ delay: 0.28, rotation: -4 }}
-          className="absolute pointer-events-none z-20 md:scale-[1.12] md:origin-center"
+          className="pointer-events-none absolute z-20 md:origin-center md:scale-[1.12]"
           style={{
             width: "calc(100% * 210.26 / 1440)",
             left: "calc(100% * 154 / 1440)",
@@ -86,13 +88,9 @@ export const AboutSection = () => {
           <motion.div
             animate={{ y: [-8, 6, -8], rotate: [-4, 4, -4] }}
             transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-            className="w-full h-auto"
+            className="h-auto w-full"
           >
-            <Image
-              src={YellowPolygonImg}
-              alt="Yellow Polygon"
-              className="w-full h-auto"
-            />
+            <Image src={YellowPolygonImg} alt="Yellow Polygon" className="h-auto w-full" />
           </motion.div>
         </motion.div>
 
@@ -107,7 +105,7 @@ export const AboutSection = () => {
           viewport={{ once: false, amount: 0.2 }}
           variants={popPunchVariants}
           custom={{ delay: 0.34, rotation: 3 }}
-          className="absolute pointer-events-none z-20 md:scale-[1.12] md:origin-center"
+          className="pointer-events-none absolute z-20 md:origin-center md:scale-[1.12]"
           style={{
             width: "calc(100% * 146.5 / 1440)",
             right: "calc(100% * 116.99 / 1440)",
@@ -117,13 +115,9 @@ export const AboutSection = () => {
           <motion.div
             animate={{ y: [-5, 5, -5], rotate: [-1.5, 1.5, -1.5] }}
             transition={{ duration: 5.0, repeat: Infinity, ease: "easeInOut" }}
-            className="w-full h-auto"
+            className="h-auto w-full"
           >
-            <Image
-              src={BasketRingImg}
-              alt="Basket Ring"
-              className="w-full h-auto"
-            />
+            <Image src={BasketRingImg} alt="Basket Ring" className="h-auto w-full" />
           </motion.div>
         </motion.div>
 
@@ -137,8 +131,8 @@ export const AboutSection = () => {
           whileInView="visible"
           viewport={{ once: false, amount: 0.2 }}
           variants={popPunchVariants}
-          custom={{ delay: 0.40, rotation: -3 }}
-          className="absolute pointer-events-none z-20 md:scale-[1.12] md:origin-center"
+          custom={{ delay: 0.4, rotation: -3 }}
+          className="pointer-events-none absolute z-20 md:origin-center md:scale-[1.12]"
           style={{
             width: "calc(100% * 152.5 / 1440)",
             right: "calc(100% * 251.21 / 1440)",
@@ -148,13 +142,9 @@ export const AboutSection = () => {
           <motion.div
             animate={{ y: [-6, 6, -6], rotate: [-3, 3, -3] }}
             transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-            className="w-full h-auto"
+            className="h-auto w-full"
           >
-            <Image
-              src={AlertImg}
-              alt="Alert"
-              className="w-full h-auto"
-            />
+            <Image src={AlertImg} alt="Alert" className="h-auto w-full" />
           </motion.div>
         </motion.div>
 
@@ -162,7 +152,7 @@ export const AboutSection = () => {
           CONTENT ISI: Kept at exact 0.75 scaling on desktop without pushing down.
           (Green Card, GET TO KNOW title, IBL letters, and description text)
         */}
-        <div className="absolute inset-0 z-20 md:scale-[0.75] md:origin-[center_280px]">
+        <div className="absolute inset-0 z-20 md:origin-[center_280px] md:scale-[0.75]">
           {/* 
             2. Green Card Banner (green-card.png)
             - top: 217px, left: 294px, width: 852px
@@ -174,19 +164,14 @@ export const AboutSection = () => {
             viewport={{ once: false, amount: 0.2 }}
             variants={popSpringVariants}
             custom={0.18}
-            className="absolute pointer-events-none z-15"
+            className="pointer-events-none absolute z-15"
             style={{
               width: "calc(100% * 855 / 1440)",
               left: "calc(100% * 294 / 1440)",
               top: "calc(100% * 217 / 1280)",
             }}
           >
-            <Image
-              src={GreenCardImg}
-              alt="Green Card Banner"
-              priority
-              className="w-full h-auto"
-            />
+            <Image src={GreenCardImg} alt="Green Card Banner" priority className="h-auto w-full" />
           </motion.div>
 
           {/* 
@@ -200,19 +185,14 @@ export const AboutSection = () => {
             viewport={{ once: false, amount: 0.2 }}
             variants={popSpringVariants}
             custom={0.46}
-            className="absolute pointer-events-none z-20"
+            className="pointer-events-none absolute z-20"
             style={{
               width: "calc(100% * 676 / 1440)",
               left: "calc(100% * 382 / 1440)",
               top: "calc(100% * 280 / 1280)",
             }}
           >
-            <Image
-              src={GetToKnowImg}
-              alt="GET TO KNOW"
-              priority
-              className="w-full h-auto"
-            />
+            <Image src={GetToKnowImg} alt="GET TO KNOW" priority className="h-auto w-full" />
           </motion.div>
 
           {/* 
@@ -226,19 +206,14 @@ export const AboutSection = () => {
             viewport={{ once: false, amount: 0.2 }}
             variants={popPunchVariants}
             custom={{ delay: 0.52, rotation: 2 }}
-            className="absolute pointer-events-none z-20"
+            className="pointer-events-none absolute z-20"
             style={{
               width: "calc(100% * 295 / 1440)",
               left: "calc(100% * 572.5 / 1440)",
               top: "calc(100% * 385 / 1280)",
             }}
           >
-            <Image
-              src={IblImg}
-              alt="IBL"
-              priority
-              className="w-full h-auto"
-            />
+            <Image src={IblImg} alt="IBL" priority className="h-auto w-full" />
           </motion.div>
 
           {/* 
@@ -253,7 +228,7 @@ export const AboutSection = () => {
             viewport={{ once: false, amount: 0.2 }}
             variants={popSpringVariants}
             custom={0.58}
-            className="absolute z-20 text-center md:text-justify flex items-center justify-center -translate-x-1/2 left-1/2"
+            className="absolute left-1/2 z-20 flex -translate-x-1/2 items-center justify-center text-center md:text-justify"
             style={{
               width: "calc(100% * 1044 / 1440)",
               height: "calc(100% * 579 / 1280)",
@@ -265,7 +240,7 @@ export const AboutSection = () => {
                 fontFamily: "var(--font-drowner)",
                 fontSize: "clamp(8px, calc(100vw * 32 / 1440), 32px)",
               }}
-              className="text-[#070503] font-bold leading-[1.6] tracking-[0.113em]"
+              className="leading-[1.6] font-bold tracking-[0.113em] text-[#070503]"
             >
               {aboutText}
             </p>
@@ -278,7 +253,7 @@ export const AboutSection = () => {
           - z-index: 30 (Highest tier - Pops in 9th + FLOATING ANIMATION)
         */}
         <div
-          className="absolute pointer-events-none z-30 md:scale-[1.12] md:origin-left"
+          className="pointer-events-none absolute z-30 md:origin-left md:scale-[1.12]"
           style={{
             width: "calc(100% * 290 / 1440)",
             height: "calc(100% * 289.29 / 1280)",
@@ -292,19 +267,14 @@ export const AboutSection = () => {
             viewport={{ once: false, amount: 0.2 }}
             variants={popPunchVariants}
             custom={{ delay: 0.66, rotation: -6 }}
-            className="w-full h-full"
+            className="h-full w-full"
           >
             <motion.div
               animate={{ y: [-8, 8, -8], rotate: [-4, 3, -4] }}
               transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
-              className="w-full h-full"
+              className="h-full w-full"
             >
-              <Image
-                src={BasketImg}
-                alt="Basketball"
-                priority
-                className="w-full h-full object-contain"
-              />
+              <Image src={BasketImg} alt="Basketball" priority className="h-full w-full object-contain" />
             </motion.div>
           </motion.div>
         </div>
@@ -315,7 +285,7 @@ export const AboutSection = () => {
           - z-index: 30 (Highest tier - Pops in 10th + FLOATING ANIMATION)
         */}
         <div
-          className="absolute pointer-events-none z-30 md:scale-[1.12] md:origin-right"
+          className="pointer-events-none absolute z-30 md:origin-right md:scale-[1.12]"
           style={{
             width: "calc(100% * 502 / 1440)",
             height: "calc(100% * 335.14 / 1280)",
@@ -329,19 +299,14 @@ export const AboutSection = () => {
             viewport={{ once: false, amount: 0.2 }}
             variants={popPunchVariants}
             custom={{ delay: 0.72, rotation: 4 }}
-            className="w-full h-full"
+            className="h-full w-full"
           >
             <motion.div
               animate={{ y: [-7, 7, -7], rotate: [-3, 3, -3] }}
               transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
-              className="w-full h-full"
+              className="h-full w-full"
             >
-              <Image
-                src={ShoesImg}
-                alt="Basketball Shoes"
-                priority
-                className="w-full h-full object-contain"
-              />
+              <Image src={ShoesImg} alt="Basketball Shoes" priority className="h-full w-full object-contain" />
             </motion.div>
           </motion.div>
         </div>

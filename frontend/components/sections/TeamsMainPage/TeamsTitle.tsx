@@ -2,11 +2,13 @@
 
 import React from "react";
 import Image from "next/image";
+
 import { motion } from "framer-motion";
 
 import { popSpringVariants } from "@/lib/animations";
-import { ARTBOARD, TEAMS_COLORS, type ArtboardVariant } from "./teamsMainTheme";
+
 import { RibbonPlate } from "./RibbonPlate";
+import { ARTBOARD, TEAMS_COLORS, type ArtboardVariant } from "./teamsMainTheme";
 
 /** Judul "TEAMS" (huruf Hollywood Capital, SVG) di atas plat pita slate. */
 export function TeamsTitle({ variant }: { variant: ArtboardVariant }) {

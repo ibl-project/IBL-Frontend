@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+
 import { Clock } from "lucide-react";
 
 import { OutlinedField } from "./OutlinedField";
@@ -124,7 +125,7 @@ export const TimePicker = ({ id, label, value, onChange, error }: TimePickerProp
           role="dialog"
           aria-label="Pilih jam"
           onKeyDown={handleKeys}
-          className="absolute right-0 top-full z-30 mt-2 w-[328px] rounded-[28px] bg-white px-6 pb-4 pt-5 shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
+          className="absolute top-full right-0 z-30 mt-2 w-[328px] rounded-[28px] bg-white px-6 pt-5 pb-4 shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
         >
           <p className="mb-4 text-xs font-medium text-[#1c1b1f]">Select time</p>
           <div className="flex items-start gap-2">
@@ -154,14 +155,18 @@ export const TimePicker = ({ id, label, value, onChange, error }: TimePickerProp
               />
               Minute
             </label>
-            <div role="group" aria-label="AM atau PM" className="ml-auto flex flex-col overflow-hidden rounded-[8px] border border-[#79747e]">
+            <div
+              role="group"
+              aria-label="AM atau PM"
+              className="ml-auto flex flex-col overflow-hidden rounded-[8px] border border-[#79747e]"
+            >
               {(["AM", "PM"] as const).map((option) => (
                 <button
                   key={option}
                   type="button"
                   aria-pressed={period === option}
                   onClick={() => setPeriod(option)}
-                  className={`h-9 w-[52px] text-sm font-medium outline-none first:border-b first:border-[#79747e] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#7d2a3a] ${
+                  className={`h-9 w-[52px] text-sm font-medium outline-none first:border-b first:border-[#79747e] focus-visible:ring-2 focus-visible:ring-[#7d2a3a] focus-visible:ring-inset ${
                     period === option ? "bg-[#ffdcc4] text-[#2e1500]" : "bg-white text-[#1c1b1f]"
                   }`}
                 >

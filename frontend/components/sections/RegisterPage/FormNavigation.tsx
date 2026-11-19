@@ -1,7 +1,9 @@
-  import React from "react";
+import React from "react";
 import Image from "next/image";
-import Button from "@/components/ui/Button";
+
 import { motion } from "framer-motion";
+
+import Button from "@/components/ui/Button";
 
 interface FormNavigationProps {
   step: number;
@@ -33,27 +35,23 @@ export const FormNavigation = ({
         paddingRight: "var(--nav-padding)",
       }}
     >
-      <div 
-        className="flex justify-start"
-        style={{ width: "var(--btn-width)" }}
-      >
+      <div className="flex justify-start" style={{ width: "var(--btn-width)" }}>
         {step > 1 ? (
-          <Button onClick={handleBack} disabled={isSubmitting}>BACK</Button>
+          <Button onClick={handleBack} disabled={isSubmitting}>
+            BACK
+          </Button>
         ) : (
-          <div 
+          <div
             style={{
               width: "var(--btn-width)",
               height: "var(--btn-height)",
-            }} 
+            }}
           />
         )}
       </div>
 
       {/* Basketball Indicators */}
-      <div 
-        className="flex items-center justify-center"
-        style={{ gap: "var(--nav-ball-gap)" }}
-      >
+      <div className="flex items-center justify-center" style={{ gap: "var(--nav-ball-gap)" }}>
         {[1, 2, 3, 4, 5].map((s) => {
           const isActive = s === step;
           // Bola saat ini, sebelumnya, atau tepat +1 berikutnya boleh diklik.
@@ -63,27 +61,19 @@ export const FormNavigation = ({
             <div
               key={s}
               onClick={isReachable && !isSubmitting ? () => goToStep(s) : undefined}
-              className={`relative transition-all duration-300 ease-out filter drop-shadow-[2px_2px_0px_rgba(0,0,0,1.00)] ${isReachable ? "cursor-pointer" : "cursor-not-allowed opacity-40"}`}
+              className={`relative drop-shadow-[2px_2px_0px_rgba(0,0,0,1.00)] filter transition-all duration-300 ease-out ${isReachable ? "cursor-pointer" : "cursor-not-allowed opacity-40"}`}
               style={{
                 width: isActive ? "var(--nav-ball-active-size)" : "var(--nav-ball-inactive-size)",
                 height: isActive ? "var(--nav-ball-active-size)" : "var(--nav-ball-inactive-size)",
               }}
             >
-              <Image
-                src="/images/Basketball.svg"
-                alt={`Step ${s}`}
-                fill
-                className="object-contain"
-              />
+              <Image src="/images/Basketball.svg" alt={`Step ${s}`} fill className="object-contain" />
             </div>
           );
         })}
       </div>
 
-      <div 
-        className="flex justify-end"
-        style={{ width: "var(--btn-width)" }}
-      >
+      <div className="flex justify-end" style={{ width: "var(--btn-width)" }}>
         <Button onClick={handleNext} disabled={isSubmitting}>
           {isSubmitting ? "SUBMITTING..." : step === 5 ? "SUBMIT" : "NEXT"}
         </Button>

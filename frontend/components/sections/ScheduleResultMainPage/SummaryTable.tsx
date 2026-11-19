@@ -71,7 +71,7 @@ export function SummaryTable({ teams }: { teams: { team1: MatchSide; team2: Matc
         src="/svg/figma/summary-table-frame.svg"
         alt=""
         fill
-        className="pointer-events-none select-none object-contain"
+        className="pointer-events-none object-contain select-none"
       />
 
       {teams && (

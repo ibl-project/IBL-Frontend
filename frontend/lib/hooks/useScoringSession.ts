@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ApiError } from "@/lib/apiClient";
-import { claimSession, releaseSession } from "@/lib/matchesApi";
 import { errorMessage, isConnectionError } from "@/lib/errors";
+import { claimSession, releaseSession } from "@/lib/matchesApi";
 import { hasOutbox } from "@/lib/scoringOutbox";
 
 export type SessionState =
@@ -121,8 +121,11 @@ export function useScoringSession(matchId: string | null, userId: string) {
     setAttempt((value) => value + 1);
   }, []);
 
-  const value: SessionState =
-    !matchId ? { status: "idle" } : state.matchId === matchId ? state.value : { status: "claiming" };
+  const value: SessionState = !matchId
+    ? { status: "idle" }
+    : state.matchId === matchId
+      ? state.value
+      : { status: "claiming" };
 
   return { session: value, recheck };
 }

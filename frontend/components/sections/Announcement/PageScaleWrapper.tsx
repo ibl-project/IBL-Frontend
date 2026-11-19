@@ -2,13 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 
-export default function PageScaleWrapper({ 
-  children, 
-  zIndex 
-}: { 
-  children: React.ReactNode;
-  zIndex?: number;
-}) {
+export default function PageScaleWrapper({ children, zIndex }: { children: React.ReactNode; zIndex?: number }) {
   const [scale, setScale] = useState(1);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
 

@@ -36,18 +36,24 @@ This repository contains the frontend web application for the **IBL 2K26** editi
 The registration page layout is designed to overlay key functional components onto a high-resolution background asset: [Full_Page_Desktop.png](file:///c:/Users/justi/Documents/IBL/frontend/public/images/Full_Page_Desktop.png) (dimensions: `2880px` wide by `6646px` tall, artboard-equivalent `1440px` by `3323px`).
 
 ### 1. Section Dividers
+
 In [page.tsx](file:///c:/Users/justi/Documents/IBL/frontend/app/register/page.tsx), the page is split vertically to align with background imagery coordinates:
+
 - **LandingSection**: `height: 22.57%` (y: 0 to 1500px on 6646px scale)
 - **MidSection**: `height: 45.14%` (y: 1500px to 4500px on 6646px scale)
 - **FormSection**: `height: 32.29%` (y: 4500px to 6646px on 6646px scale)
 
 ### 2. Sizing & Alignment Coordinates (Figma to Code)
+
 To ensure the form cards overlay correctly on the background court graphics across all browser viewport sizes, we map the Figma artboard design pixels (based on a `1440px` viewport width) into responsive `vw` and percentage styles:
+
 - **Horizontal offsets & widths**: `calc(100% * pixelValue / 1440)`
 - **Vertical offsets & heights**: `calc(100vw * pixelValue / 1440)`
 
 #### Step 4: Upload Berkas Box Coordinates
+
 The upload container (CV, KTM, Twibbon, Bukti Follow, Portofolio grid) follows the exact same sizing and position coordinates as the normal form steps for visual consistency:
+
 - **Width**: `54%` (derived from Figma dimensions `863px` / `1600px` canvas reference)
 - **Height**: `70%`
 - **Top**: `16.5%`
@@ -57,7 +63,9 @@ The upload container (CV, KTM, Twibbon, Bukti Follow, Portofolio grid) follows t
 - **Navigation Row**: Positioned at `top: 89%`, centered (`left-1/2 -translate-x-1/2`), with width `74%` (exactly matching the normal form steps navigation row to maintain uniformity).
 
 #### Steps 1-3: Form Section Styling
+
 The normal form steps (Informasi Umum, Subdivisi 1, Subdivisi 2) follow the second form reference composition:
+
 - `star bg.png` and `Sinar Atas.svg` are decorative absolute layers inside `FormSection`; they must not add layout height or push content.
 - Do not add a new solid background color in `FormSection`; preserve the page/background imagery already provided by `page.tsx`.
 - Header badge, form card, and navigation row use absolute percentage coordinates inside the fixed FormSection bounds to prevent white overflow below the section.
@@ -66,13 +74,17 @@ The normal form steps (Informasi Umum, Subdivisi 1, Subdivisi 2) follow the seco
 - The form card and bottom navigation must remain inside the FormSection height on desktop; avoid flow-based vertical stacking (`py-*` + natural content height) for the main form layout.
 
 ### 3. Responsive Scaling System (CSS Variables)
+
 To maintain the proportional design ratio on all desktop widths (resolving the vertical stretching and empty space issue inside the card container on widescreen/Samsung monitors), form elements are sized using dynamic CSS custom properties:
+
 - **Base variables**: Font-sizes (`--form-font-size`), paddings (`--form-padding-y`/`x`), textareas (`--form-textarea-min-height`), margins, and borders are defined globally in `globals.css`.
 - **Dynamic viewport scaling**: For viewports `>= 1024px`, these variables scale dynamically using the Figma-to-code viewport width formula `calc(100vw * pixelValue / 1440)`. This allows text, inputs, labels, active/inactive basketball indicators, buttons, and Navbar elements to resize at the same rate as the background graphics.
 - **Form Card Sizing**: The card container uses a fixed `height: "70%"` and `h-full`. Since the inputs and text inside scale proportionally with `vw`, the content fills the exact same ratio of the card on all monitor sizes without requiring vertical scrollbars.
 
 ### 4. iOS WKWebView & In-App Browser Compatibility
+
 To ensure the web app works inside restricted environments like the Google Search App on iOS (WKWebView), adhere to the following rules:
+
 - **Viewport Initialization (Race Conditions):** iOS WebViews often have delayed viewport initialization and may report `window.innerWidth` as `0` initially. Use `document.documentElement.clientWidth` as a fallback, and execute resize listeners with slight timeouts (e.g., 100ms, 500ms) during hydration to ensure the scale ratio is accurately captured.
 - **Hidden File Inputs (Programmatic Clicks):** iOS WebKit blocks programmatic `.click()` actions on file inputs that are removed from the render tree via `display: none` (Tailwind `hidden`). Always use `className="absolute pointer-events-none opacity-0 w-px h-px"` to visually hide file inputs while keeping them strictly accessible to WebKit's interaction policies.
 - **Strict Z-Index Values:** Do not use invalid Tailwind utility classes (e.g., `z-100` instead of `z-[100]`). WKWebView's strict GPU stacking context rules require exact z-indexes to prevent touch events from bleeding through modal overlays or loading screens.

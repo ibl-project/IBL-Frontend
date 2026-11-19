@@ -1,16 +1,16 @@
-import { type Dispatch, type SetStateAction, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 
 import { ApiError } from "@/lib/apiClient";
-import { type MatchSnapshot, type StatKey, lockQuarter, recordAction } from "@/lib/matchesApi";
 import { errorMessage, isConnectionError } from "@/lib/errors";
+import { lockQuarter, recordAction, type MatchSnapshot, type StatKey } from "@/lib/matchesApi";
 import { replayOutbox, withServerLine } from "@/lib/matchSnapshot";
 import {
-  type OutboxItem,
-  type OutboxTap,
   deleteOutboxItem,
   loadOutbox,
   nextSeq,
   saveOutboxItem,
+  type OutboxItem,
+  type OutboxTap,
 } from "@/lib/scoringOutbox";
 
 export interface PendingAction {

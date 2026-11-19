@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import type { PlayoffMatch, PlayoffSlot } from "@/lib/standingsApi";
-import { type PlayoffRound, isLiveNow } from "@/lib/matchesApi";
+
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
+import { isLiveNow, type PlayoffRound } from "@/lib/matchesApi";
+import type { PlayoffMatch, PlayoffSlot } from "@/lib/standingsApi";
 
 interface PlayoffMatchCardProps {
   round: PlayoffRound;
@@ -30,43 +31,34 @@ export const PlayoffMatchCard: React.FC<PlayoffMatchCardProps> = ({
     const score = hasStartedOrFinished && typeof team?.score === "number" ? team.score : null;
 
     return (
-      <div className="flex items-center justify-between gap-2 min-w-0 w-full py-1">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="relative size-5 shrink-0 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
+      <div className="flex w-full min-w-0 items-center justify-between gap-2 py-1">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="relative size-5 shrink-0 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
             <TeamLogo src={team?.logo} alt={name} sizes="20px" className="object-contain p-0.5" />
           </div>
-          <span
-            className="text-xs font-semibold text-slate-800 truncate"
-            title={name}
-          >
+          <span className="truncate text-xs font-semibold text-slate-800" title={name}>
             {name}
           </span>
         </div>
-        {score !== null && (
-          <span className="text-xs font-bold text-slate-900 tabular-nums shrink-0">
-            {score}
-          </span>
-        )}
+        {score !== null && <span className="shrink-0 text-xs font-bold text-slate-900 tabular-nums">{score}</span>}
       </div>
     );
   };
 
   return (
     <div
-      className={`w-[160px] bg-white rounded-xl p-2.5 shadow-[0_4px_12px_rgba(0,0,0,0.06)] border border-slate-100 flex flex-col justify-between transition-all hover:shadow-md ${className}`}
+      className={`flex w-[160px] flex-col justify-between rounded-xl border border-slate-100 bg-white p-2.5 shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-all hover:shadow-md ${className}`}
     >
-      <div className="flex flex-col items-center w-full">
+      <div className="flex w-full flex-col items-center">
         {renderTeamRow(team1, "Team 1")}
-        <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider my-0.5">
-          vs
-        </div>
+        <div className="my-0.5 text-[10px] font-bold tracking-wider text-slate-400 uppercase">vs</div>
         {renderTeamRow(team2, "Team 2")}
       </div>
 
       <button
         type="button"
         onClick={() => onEdit(round, position, match)}
-        className="mt-2 w-full h-7 rounded-lg bg-[#FF5A1F] hover:bg-[#E04D18] active:scale-[0.98] text-white text-xs font-medium tracking-wide transition-all flex items-center justify-center cursor-pointer shadow-sm"
+        className="mt-2 flex h-7 w-full cursor-pointer items-center justify-center rounded-lg bg-[#FF5A1F] text-xs font-medium tracking-wide text-white shadow-sm transition-all hover:bg-[#E04D18] active:scale-[0.98]"
       >
         Edit
       </button>

@@ -75,11 +75,7 @@ export const popPunchVariants: Variants = {
  * Organic Floating Animations:
  * Gives subtle, lively ambient floating motion.
  */
-export const createFloatingConfig = (
-  yRange: number = 6,
-  rotateRange: number = 2,
-  duration: number = 4
-) => ({
+export const createFloatingConfig = (yRange: number = 6, rotateRange: number = 2, duration: number = 4) => ({
   animate: {
     y: [-yRange, yRange, -yRange],
     rotate: [-rotateRange, rotateRange, -rotateRange],

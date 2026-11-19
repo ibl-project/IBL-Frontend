@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface DropdownProps {
   label: string;
@@ -10,13 +10,7 @@ interface DropdownProps {
   placeholder?: string;
 }
 
-const Dropdown: React.FC<DropdownProps> = ({
-  label,
-  options,
-  selected,
-  onSelect,
-  placeholder = "Pilih...",
-}) => {
+const Dropdown: React.FC<DropdownProps> = ({ label, options, selected, onSelect, placeholder = "Pilih..." }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -34,37 +28,35 @@ const Dropdown: React.FC<DropdownProps> = ({
   }, []);
 
   return (
-    <div className="flex flex-col w-full text-left relative" ref={dropdownRef}>
-      <label 
-        className="font-bold text-[#2D2D2D] font-drowner tracking-widest"
-        style={{ 
+    <div className="relative flex w-full flex-col text-left" ref={dropdownRef}>
+      <label
+        className="font-drowner font-bold tracking-widest text-[#2D2D2D]"
+        style={{
           fontSize: "var(--form-font-size)",
-          marginBottom: "var(--form-margin-bottom)"
+          marginBottom: "var(--form-margin-bottom)",
         }}
       >
         {label}
       </label>
-      
+
       {/* Selection Box */}
       <button
         type="button"
         suppressHydrationWarning
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-white border border-gray-300 text-gray-800 text-left outline-none flex justify-between items-center cursor-pointer shadow-sm"
+        className="flex w-full cursor-pointer items-center justify-between border border-gray-300 bg-white text-left text-gray-800 shadow-sm outline-none"
         style={{
           fontSize: "var(--form-font-size)",
           paddingTop: "var(--form-padding-y)",
           paddingBottom: "var(--form-padding-y)",
           paddingLeft: "var(--form-padding-x)",
           paddingRight: "var(--form-padding-x)",
-          borderRadius: "calc(var(--form-font-size) * 0.43)" // proportional to ~6px rounded-md
+          borderRadius: "calc(var(--form-font-size) * 0.43)", // proportional to ~6px rounded-md
         }}
       >
-        <span className={selected ? "text-gray-800" : "text-gray-400"}>
-          {selected || placeholder}
-        </span>
-        <span 
-          className="text-gray-400 transform transition-transform duration-200"
+        <span className={selected ? "text-gray-800" : "text-gray-400"}>{selected || placeholder}</span>
+        <span
+          className="transform text-gray-400 transition-transform duration-200"
           style={{ fontSize: "calc(var(--form-font-size) * 0.85)" }}
         >
           {isOpen ? "▲" : "▼"}
@@ -73,16 +65,16 @@ const Dropdown: React.FC<DropdownProps> = ({
 
       {/* Options Panel */}
       {isOpen && (
-        <div 
-          className="absolute left-0 w-full bg-white border border-gray-300 shadow-lg z-50 overflow-hidden"
+        <div
+          className="absolute left-0 z-50 w-full overflow-hidden border border-gray-300 bg-white shadow-lg"
           style={{
             top: "calc(100% + var(--form-margin-bottom))",
-            borderRadius: "calc(var(--form-font-size) * 0.43)"
+            borderRadius: "calc(var(--form-font-size) * 0.43)",
           }}
         >
-          <ul className="flex flex-col m-0 p-0 list-none">
+          <ul className="m-0 flex list-none flex-col p-0">
             {options.map((option, idx) => (
-              <li key={idx} className="m-0 p-0 border-b border-gray-100 last:border-b-0">
+              <li key={idx} className="m-0 border-b border-gray-100 p-0 last:border-b-0">
                 <button
                   type="button"
                   suppressHydrationWarning
@@ -90,13 +82,13 @@ const Dropdown: React.FC<DropdownProps> = ({
                     onSelect(option);
                     setIsOpen(false);
                   }}
-                  className="w-full font-body text-gray-700 hover:bg-gray-50 text-left transition-colors cursor-pointer"
+                  className="w-full cursor-pointer text-left font-body text-gray-700 transition-colors hover:bg-gray-50"
                   style={{
                     fontSize: "var(--form-font-size)",
                     paddingTop: "calc(var(--form-padding-y) * 1.2)",
                     paddingBottom: "calc(var(--form-padding-y) * 1.2)",
                     paddingLeft: "var(--form-padding-x)",
-                    paddingRight: "var(--form-padding-x)"
+                    paddingRight: "var(--form-padding-x)",
                   }}
                 >
                   {option}

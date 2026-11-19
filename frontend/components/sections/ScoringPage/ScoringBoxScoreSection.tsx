@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   buildBoxScoreCsv,
@@ -10,7 +10,8 @@ import {
   exportSections,
   linesForView,
 } from "@/lib/boxScoreExport";
-import { type MatchSnapshot, type PlayerLine, type StatKey, periodLabel } from "@/lib/matchesApi";
+import { periodLabel, type MatchSnapshot, type PlayerLine, type StatKey } from "@/lib/matchesApi";
+
 import { ScoringExportSheet } from "./ScoringExportSheet";
 import type { ScoringView } from "./ScoringQuarterTabs";
 
@@ -105,10 +106,8 @@ const CounterPill = ({
 }) => {
   return (
     <div
-      className={`mx-auto flex h-[28px] sm:h-[30px] w-[64px] sm:w-[68px] select-none items-center justify-between rounded-full border px-0.5 shadow-2xs ${
-        variant === "green"
-          ? "border-[#a5d6a7] bg-[#c8e6c9]"
-          : "border-[#ef9a9a] bg-[#ffcdd2]"
+      className={`mx-auto flex h-[28px] w-[64px] items-center justify-between rounded-full border px-0.5 shadow-2xs select-none sm:h-[30px] sm:w-[68px] ${
+        variant === "green" ? "border-[#a5d6a7] bg-[#c8e6c9]" : "border-[#ef9a9a] bg-[#ffcdd2]"
       }`}
     >
       <button
@@ -116,13 +115,13 @@ const CounterPill = ({
         onClick={onDecrement}
         aria-label={`Kurangi ${label}`}
         title="Kurang"
-        className="flex h-full w-[18px] sm:w-[20px] shrink-0 cursor-pointer items-center justify-center rounded-l-full transition-transform hover:scale-125 active:scale-90 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-black"
+        className="flex h-full w-[18px] shrink-0 cursor-pointer items-center justify-center rounded-l-full transition-transform hover:scale-125 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-black active:scale-90 sm:w-[20px]"
       >
-        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 sm:h-[18px] sm:w-[18px] fill-[#b71c1c] shrink-0">
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 shrink-0 fill-[#b71c1c] sm:h-[18px] sm:w-[18px]">
           <path d="M16 4L6 12l10 8z" />
         </svg>
       </button>
-      <span className="flex-1 text-center font-mono text-[12px] sm:text-[13px] font-black leading-none tracking-tight text-black select-none">
+      <span className="flex-1 text-center font-mono text-[12px] leading-none font-black tracking-tight text-black select-none sm:text-[13px]">
         {String(value).padStart(2, "0")}
       </span>
       <button
@@ -130,9 +129,9 @@ const CounterPill = ({
         onClick={onIncrement}
         aria-label={`Tambah ${label}`}
         title="Tambah"
-        className="flex h-full w-[18px] sm:w-[20px] shrink-0 cursor-pointer items-center justify-center rounded-r-full transition-transform hover:scale-125 active:scale-90 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-black"
+        className="flex h-full w-[18px] shrink-0 cursor-pointer items-center justify-center rounded-r-full transition-transform hover:scale-125 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-black active:scale-90 sm:w-[20px]"
       >
-        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 sm:h-[18px] sm:w-[18px] fill-[#1b5e20] shrink-0">
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 shrink-0 fill-[#1b5e20] sm:h-[18px] sm:w-[18px]">
           <path d="M8 4l10 8-10 8z" />
         </svg>
       </button>
@@ -143,11 +142,11 @@ const CounterPill = ({
 /** Angka statistik di tampilan baca saja (periode terkunci, Total). */
 const StaticCount = ({ value, variant = "green" }: { value: number; variant?: "green" | "red" }) => (
   <div
-    className={`mx-auto flex h-[28px] sm:h-[30px] w-[64px] sm:w-[68px] select-none items-center justify-center rounded-full border px-0.5 ${
+    className={`mx-auto flex h-[28px] w-[64px] items-center justify-center rounded-full border px-0.5 select-none sm:h-[30px] sm:w-[68px] ${
       variant === "green" ? "border-[#a5d6a7] bg-[#c8e6c9]" : "border-[#ef9a9a] bg-[#ffcdd2]"
     }`}
   >
-    <span className="font-mono text-[12px] sm:text-[13px] font-black tracking-tight text-black">
+    <span className="font-mono text-[12px] font-black tracking-tight text-black sm:text-[13px]">
       {String(value).padStart(2, "0")}
     </span>
   </div>
@@ -232,11 +231,7 @@ export const ScoringBoxScoreSection = ({
 
   // Calculate player total points
   const getPlayerPoints = (pStats: PlayerStats) => {
-    return (
-      (pStats.twoPointMade || 0) * 2 +
-      (pStats.threePointMade || 0) * 3 +
-      (pStats.freethrowMade || 0) * 1
-    );
+    return (pStats.twoPointMade || 0) * 2 + (pStats.threePointMade || 0) * 3 + (pStats.freethrowMade || 0) * 1;
   };
 
   // Calculate team total points
@@ -313,12 +308,7 @@ export const ScoringBoxScoreSection = ({
     );
   };
 
-  const renderScoringTable = (
-    teamIdx: 1 | 2,
-    currentTeam: string,
-    playersList: PlayerLine[],
-    themeColor: string
-  ) => {
+  const renderScoringTable = (teamIdx: 1 | 2, currentTeam: string, playersList: PlayerLine[], themeColor: string) => {
     const s = teamIdx === 1 ? stats1 : stats2;
 
     let totalPoints = 0;
@@ -342,8 +332,8 @@ export const ScoringBoxScoreSection = ({
     const headerText = isCustom ? (isDark ? "#ffffff" : "#000000") : "#000000";
 
     return (
-      <div className="w-full flex flex-col">
-        <table className="w-full border-collapse border border-black bg-white text-black font-poppins text-[11px] table-fixed">
+      <div className="flex w-full flex-col">
+        <table className="w-full table-fixed border-collapse border border-black bg-white font-poppins text-[11px] text-black">
           {/* Nama, NO, dan Total lebar tetap; 10 kolom statistik berbagi sisa lebar sama rata. */}
           <colgroup>
             <col style={{ width: 72 }} />
@@ -358,7 +348,7 @@ export const ScoringBoxScoreSection = ({
             <tr style={{ backgroundColor: headerBg, color: headerText }}>
               <th
                 colSpan={13}
-                className="border border-black py-2 px-3 text-center font-black text-[15px] uppercase tracking-wider font-poppins whitespace-nowrap"
+                className="border border-black px-3 py-2 text-center font-poppins text-[15px] font-black tracking-wider whitespace-nowrap uppercase"
                 style={{ color: headerText, backgroundColor: headerBg }}
               >
                 {currentTeam}
@@ -366,46 +356,101 @@ export const ScoringBoxScoreSection = ({
             </tr>
 
             {/* Header Row 1 */}
-            <tr className="text-center font-bold text-[11px]" style={{ backgroundColor: headerBg, color: headerText }}>
-              <th rowSpan={2} className="border border-black px-1 py-1 text-center font-bold truncate" style={{ color: headerText }}>
+            <tr className="text-center text-[11px] font-bold" style={{ backgroundColor: headerBg, color: headerText }}>
+              <th
+                rowSpan={2}
+                className="truncate border border-black px-1 py-1 text-center font-bold"
+                style={{ color: headerText }}
+              >
                 Nama
               </th>
-              <th rowSpan={2} className="border border-black px-0.5 py-1 text-center font-bold" style={{ color: headerText }}>
+              <th
+                rowSpan={2}
+                className="border border-black px-0.5 py-1 text-center font-bold"
+                style={{ color: headerText }}
+              >
                 NO
               </th>
-              <th rowSpan={2} className="border border-black px-0.5 py-1 text-center font-bold" style={{ color: headerText }}>
+              <th
+                rowSpan={2}
+                className="border border-black px-0.5 py-1 text-center font-bold"
+                style={{ color: headerText }}
+              >
                 Total
               </th>
-              <th colSpan={2} className="border border-black py-0.5 text-center font-bold" style={{ color: headerText }}>
+              <th
+                colSpan={2}
+                className="border border-black py-0.5 text-center font-bold"
+                style={{ color: headerText }}
+              >
                 2 Point
               </th>
-              <th colSpan={2} className="border border-black py-0.5 text-center font-bold" style={{ color: headerText }}>
+              <th
+                colSpan={2}
+                className="border border-black py-0.5 text-center font-bold"
+                style={{ color: headerText }}
+              >
                 3 Point
               </th>
-              <th rowSpan={2} className="border border-black px-0.5 py-1 text-center font-bold" style={{ color: headerText }}>
+              <th
+                rowSpan={2}
+                className="border border-black px-0.5 py-1 text-center font-bold"
+                style={{ color: headerText }}
+              >
                 Assist
               </th>
-              <th colSpan={2} className="border border-black py-0.5 text-center font-bold" style={{ color: headerText }}>
+              <th
+                colSpan={2}
+                className="border border-black py-0.5 text-center font-bold"
+                style={{ color: headerText }}
+              >
                 Freethrow
               </th>
-              <th colSpan={2} className="border border-black py-0.5 text-center font-bold" style={{ color: headerText }}>
+              <th
+                colSpan={2}
+                className="border border-black py-0.5 text-center font-bold"
+                style={{ color: headerText }}
+              >
                 Rebound
               </th>
-              <th rowSpan={2} className="border border-black px-0.5 py-1 text-center font-bold" style={{ color: headerText }}>
+              <th
+                rowSpan={2}
+                className="border border-black px-0.5 py-1 text-center font-bold"
+                style={{ color: headerText }}
+              >
                 Foul
               </th>
             </tr>
 
             {/* Header Row 2 */}
-            <tr className="text-center text-[10px] font-normal" style={{ backgroundColor: headerBg, color: headerText }}>
-              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>Made</th>
-              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>Miss</th>
-              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>Made</th>
-              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>Miss</th>
-              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>Made</th>
-              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>Miss</th>
-              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>Off</th>
-              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>Def</th>
+            <tr
+              className="text-center text-[10px] font-normal"
+              style={{ backgroundColor: headerBg, color: headerText }}
+            >
+              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>
+                Made
+              </th>
+              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>
+                Miss
+              </th>
+              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>
+                Made
+              </th>
+              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>
+                Miss
+              </th>
+              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>
+                Made
+              </th>
+              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>
+                Miss
+              </th>
+              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>
+                Off
+              </th>
+              <th className="border border-black py-0.5 text-center font-normal" style={{ color: headerText }}>
+                Def
+              </th>
             </tr>
           </thead>
 
@@ -418,71 +463,75 @@ export const ScoringBoxScoreSection = ({
               return (
                 <tr
                   key={p.id}
-                  className={`h-[44px] transition-colors ${isEvenRow ? "bg-[#e8ecef]" : "bg-white"
-                    } hover:brightness-95`}
+                  className={`h-[44px] transition-colors ${
+                    isEvenRow ? "bg-[#e8ecef]" : "bg-white"
+                  } hover:brightness-95`}
                 >
                   {/* Nama (Static Text) */}
-                  <td className="border border-black px-1.5 py-1 text-[11px] font-semibold text-gray-900 truncate" title={p.name}>
+                  <td
+                    className="truncate border border-black px-1.5 py-1 text-[11px] font-semibold text-gray-900"
+                    title={p.name}
+                  >
                     {p.name}
                   </td>
 
                   {/* NO */}
-                  <td className="border border-black px-0.5 py-1 text-center font-black text-[13px] text-black">
+                  <td className="border border-black px-0.5 py-1 text-center text-[13px] font-black text-black">
                     {p.nopung || "-"}
                   </td>
 
                   {/* Total Points */}
-                  <td className="border border-black px-0.5 py-1 text-center font-black text-[12px] text-black">
+                  <td className="border border-black px-0.5 py-1 text-center text-[12px] font-black text-black">
                     {points}
                   </td>
 
                   {/* 2 Point Made */}
-                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                  <td className="overflow-hidden border border-black px-0 py-0.5 text-center align-middle">
                     {statCell(teamIdx, p, "twoPointMade", "green", currentTeam)}
                   </td>
 
                   {/* 2 Point Miss */}
-                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                  <td className="overflow-hidden border border-black px-0 py-0.5 text-center align-middle">
                     {statCell(teamIdx, p, "twoPointMiss", "red", currentTeam)}
                   </td>
 
                   {/* 3 Point Made */}
-                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                  <td className="overflow-hidden border border-black px-0 py-0.5 text-center align-middle">
                     {statCell(teamIdx, p, "threePointMade", "green", currentTeam)}
                   </td>
 
                   {/* 3 Point Miss */}
-                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                  <td className="overflow-hidden border border-black px-0 py-0.5 text-center align-middle">
                     {statCell(teamIdx, p, "threePointMiss", "red", currentTeam)}
                   </td>
 
                   {/* Assist */}
-                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                  <td className="overflow-hidden border border-black px-0 py-0.5 text-center align-middle">
                     {statCell(teamIdx, p, "assist", "green", currentTeam)}
                   </td>
 
                   {/* Freethrow Made */}
-                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                  <td className="overflow-hidden border border-black px-0 py-0.5 text-center align-middle">
                     {statCell(teamIdx, p, "freethrowMade", "green", currentTeam)}
                   </td>
 
                   {/* Freethrow Miss */}
-                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                  <td className="overflow-hidden border border-black px-0 py-0.5 text-center align-middle">
                     {statCell(teamIdx, p, "freethrowMiss", "red", currentTeam)}
                   </td>
 
                   {/* Rebound Off */}
-                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                  <td className="overflow-hidden border border-black px-0 py-0.5 text-center align-middle">
                     {statCell(teamIdx, p, "reboundOff", "green", currentTeam)}
                   </td>
 
                   {/* Rebound Def */}
-                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                  <td className="overflow-hidden border border-black px-0 py-0.5 text-center align-middle">
                     {statCell(teamIdx, p, "reboundDef", "green", currentTeam)}
                   </td>
 
                   {/* Foul */}
-                  <td className="border border-black px-0 py-0.5 text-center align-middle overflow-hidden">
+                  <td className="overflow-hidden border border-black px-0 py-0.5 text-center align-middle">
                     {statCell(teamIdx, p, "foul", "red", currentTeam)}
                   </td>
                 </tr>
@@ -492,10 +541,8 @@ export const ScoringBoxScoreSection = ({
 
           {/* Footer TOTALS */}
           <tfoot>
-            <tr className="border-t-2 border-black font-extrabold text-[12px]">
-              <td className="border border-black py-1.5 text-center uppercase tracking-wider font-extrabold">
-                TOTALS
-              </td>
+            <tr className="border-t-2 border-black text-[12px] font-extrabold">
+              <td className="border border-black py-1.5 text-center font-extrabold tracking-wider uppercase">TOTALS</td>
               <td className="border border-black"></td>
               <td className="border border-black text-center font-extrabold">{totalPoints}</td>
               <td colSpan={4} className="border border-black"></td>
@@ -512,45 +559,44 @@ export const ScoringBoxScoreSection = ({
   };
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex w-full flex-col">
       {/* Main Box Score Card */}
-      <div className="relative bg-white rounded-[12px] shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)] w-full py-6 px-2 sm:px-4 flex flex-col items-center">
-        {quarterTabs && <div className="mb-6 w-full flex justify-center">{quarterTabs}</div>}
+      <div className="relative flex w-full flex-col items-center rounded-[12px] bg-white px-2 py-6 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)] sm:px-4">
+        {quarterTabs && <div className="mb-6 flex w-full justify-center">{quarterTabs}</div>}
 
         {/* Static Top Header (Teams & Score Banner with Color Pickers) */}
-        <div className="w-full max-w-full flex flex-row items-center justify-between gap-2 sm:gap-4 mb-6 px-1 sm:px-2">
-
+        <div className="mb-6 flex w-full max-w-full flex-row items-center justify-between gap-2 px-1 sm:gap-4 sm:px-2">
           {/* Team 1 Header with Custom Color Picker */}
-          <div className="flex items-center gap-2 sm:gap-4 relative flex-1 min-w-0 justify-start">
-            <div className="relative flex items-center gap-2 shrink-0">
+          <div className="relative flex min-w-0 flex-1 items-center justify-start gap-2 sm:gap-4">
+            <div className="relative flex shrink-0 items-center gap-2">
               <button
                 type="button"
                 onClick={() => setShowColorPicker1(!showColorPicker1)}
                 disabled={readOnly}
                 aria-label={`Warna jersey ${team1}`}
-                className="flex items-center gap-1.5 sm:gap-2 bg-gray-100 hover:bg-gray-200 px-2.5 sm:px-3 py-1.5 rounded-full border border-gray-300 transition-colors shadow-sm cursor-pointer shrink-0"
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-gray-300 bg-gray-100 px-2.5 py-1.5 shadow-sm transition-colors hover:bg-gray-200 sm:gap-2 sm:px-3"
               >
                 <div
-                  className="w-4 h-4 rounded-full border border-black/20 shadow-inner shrink-0"
+                  className="h-4 w-4 shrink-0 rounded-full border border-black/20 shadow-inner"
                   style={{ backgroundColor: color1 }}
                 ></div>
-                <span className="text-[12px] font-medium text-gray-800 font-poppins">Custom</span>
+                <span className="font-poppins text-[12px] font-medium text-gray-800">Custom</span>
               </button>
 
               {/* Color Picker Dropdown 1 */}
               {showColorPicker1 && (
-                <div className="absolute top-full left-0 mt-2 p-3 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 w-[220px]">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[11px] font-bold text-gray-700 font-poppins">Pilih Warna {team1}:</p>
+                <div className="absolute top-full left-0 z-50 mt-2 w-[220px] rounded-xl border border-gray-200 bg-white p-3 shadow-2xl">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="font-poppins text-[11px] font-bold text-gray-700">Pilih Warna {team1}:</p>
                     <button
                       type="button"
                       onClick={() => setShowColorPicker1(false)}
-                      className="text-gray-400 hover:text-gray-600 text-xs cursor-pointer p-0.5"
+                      className="cursor-pointer p-0.5 text-xs text-gray-400 hover:text-gray-600"
                     >
                       ✕
                     </button>
                   </div>
-                  <div className="grid grid-cols-5 gap-2 mb-3">
+                  <div className="mb-3 grid grid-cols-5 gap-2">
                     {HMD_COLOR_PRESETS.map((p, idx) => (
                       <button
                         key={idx}
@@ -559,25 +605,25 @@ export const ScoringBoxScoreSection = ({
                           handleColor1Change(p.hex);
                           setShowColorPicker1(false);
                         }}
-                        className="w-7 h-7 rounded-full border-2 border-white shadow hover:scale-110 transition-transform cursor-pointer"
+                        className="h-7 w-7 cursor-pointer rounded-full border-2 border-white shadow transition-transform hover:scale-110"
                         style={{ backgroundColor: p.hex }}
                         title={p.name}
                       />
                     ))}
                   </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                    <span className="text-[10px] text-gray-500 font-poppins">Hex:</span>
+                  <div className="flex items-center gap-2 border-t border-gray-100 pt-2">
+                    <span className="font-poppins text-[10px] text-gray-500">Hex:</span>
                     <input
                       type="color"
                       value={color1}
                       onChange={(e) => handleColor1Change(e.target.value)}
-                      className="w-7 h-7 rounded cursor-pointer border-0 p-0"
+                      className="h-7 w-7 cursor-pointer rounded border-0 p-0"
                     />
                     <input
                       type="text"
                       value={color1}
                       onChange={(e) => handleColor1Change(e.target.value)}
-                      className="w-20 text-[11px] font-mono border border-gray-200 rounded px-1.5 py-0.5 uppercase"
+                      className="w-20 rounded border border-gray-200 px-1.5 py-0.5 font-mono text-[11px] uppercase"
                     />
                   </div>
                 </div>
@@ -585,72 +631,68 @@ export const ScoringBoxScoreSection = ({
             </div>
 
             <h2
-              className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-black font-poppins uppercase tracking-tight truncate min-w-0"
+              className="min-w-0 truncate font-poppins text-base font-black tracking-tight uppercase sm:text-lg md:text-xl lg:text-2xl xl:text-3xl"
               style={{ color: color1 === "#ffffff" ? "#1c1b1f" : color1 }}
               title={team1}
             >
               {team1}
             </h2>
 
-            <div
-              className="font-black text-xl sm:text-2xl md:text-3xl px-4 sm:px-6 py-1.5 sm:py-2 rounded-[10px] bg-[#aeb6b8] text-[#1c1b1f] min-w-[65px] sm:min-w-[80px] text-center leading-tight shadow-xs shrink-0 select-none"
-            >
+            <div className="min-w-[65px] shrink-0 rounded-[10px] bg-[#aeb6b8] px-4 py-1.5 text-center text-xl leading-tight font-black text-[#1c1b1f] shadow-xs select-none sm:min-w-[80px] sm:px-6 sm:py-2 sm:text-2xl md:text-3xl">
               {view === "total" ? match1Score : team1Score}
             </div>
           </div>
 
           {/* Tengah: VS */}
-          <div className="flex shrink-0 items-center justify-center px-2 sm:px-4 font-poppins select-none">
-            <span className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-[#8b0000] leading-none tracking-wider">
+          <div className="flex shrink-0 items-center justify-center px-2 font-poppins select-none sm:px-4">
+            <span className="text-2xl leading-none font-black tracking-wider text-[#8b0000] sm:text-3xl md:text-4xl lg:text-5xl">
               VS
             </span>
           </div>
 
           {/* Team 2 Header with Custom Color Picker */}
-          <div className="flex items-center gap-2 sm:gap-4 relative flex-1 min-w-0 justify-end">
-            <div
-              className="font-black text-xl sm:text-2xl md:text-3xl px-4 sm:px-6 py-1.5 sm:py-2 rounded-[10px] bg-[#aeb6b8] text-[#1c1b1f] min-w-[65px] sm:min-w-[80px] text-center leading-tight shadow-xs shrink-0 select-none"
-            >
+          <div className="relative flex min-w-0 flex-1 items-center justify-end gap-2 sm:gap-4">
+            <div className="min-w-[65px] shrink-0 rounded-[10px] bg-[#aeb6b8] px-4 py-1.5 text-center text-xl leading-tight font-black text-[#1c1b1f] shadow-xs select-none sm:min-w-[80px] sm:px-6 sm:py-2 sm:text-2xl md:text-3xl">
               {view === "total" ? match2Score : team2Score}
             </div>
 
             <h2
-              className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-black font-poppins uppercase tracking-tight text-right truncate min-w-0"
+              className="min-w-0 truncate text-right font-poppins text-base font-black tracking-tight uppercase sm:text-lg md:text-xl lg:text-2xl xl:text-3xl"
               style={{ color: color2 === "#ffffff" ? "#1c1b1f" : color2 }}
               title={team2}
             >
               {team2}
             </h2>
 
-            <div className="relative flex items-center gap-2 shrink-0">
+            <div className="relative flex shrink-0 items-center gap-2">
               <button
                 type="button"
                 onClick={() => setShowColorPicker2(!showColorPicker2)}
                 disabled={readOnly}
                 aria-label={`Warna jersey ${team2}`}
-                className="flex items-center gap-1.5 sm:gap-2 bg-gray-100 hover:bg-gray-200 px-2.5 sm:px-3 py-1.5 rounded-full border border-gray-300 transition-colors shadow-sm cursor-pointer shrink-0"
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-gray-300 bg-gray-100 px-2.5 py-1.5 shadow-sm transition-colors hover:bg-gray-200 sm:gap-2 sm:px-3"
               >
                 <div
-                  className="w-4 h-4 rounded-full border border-black/20 shadow-inner"
+                  className="h-4 w-4 rounded-full border border-black/20 shadow-inner"
                   style={{ backgroundColor: color2 }}
                 ></div>
-                <span className="text-[12px] font-medium text-gray-800 font-poppins">Custom</span>
+                <span className="font-poppins text-[12px] font-medium text-gray-800">Custom</span>
               </button>
 
               {/* Color Picker Dropdown 2 */}
               {showColorPicker2 && (
-                <div className="absolute top-full right-0 mt-2 p-3 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 w-[220px]">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[11px] font-bold text-gray-700 font-poppins">Pilih Warna {team2}:</p>
+                <div className="absolute top-full right-0 z-50 mt-2 w-[220px] rounded-xl border border-gray-200 bg-white p-3 shadow-2xl">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="font-poppins text-[11px] font-bold text-gray-700">Pilih Warna {team2}:</p>
                     <button
                       type="button"
                       onClick={() => setShowColorPicker2(false)}
-                      className="text-gray-400 hover:text-gray-600 text-xs cursor-pointer p-0.5"
+                      className="cursor-pointer p-0.5 text-xs text-gray-400 hover:text-gray-600"
                     >
                       ✕
                     </button>
                   </div>
-                  <div className="grid grid-cols-5 gap-2 mb-3">
+                  <div className="mb-3 grid grid-cols-5 gap-2">
                     {HMD_COLOR_PRESETS.map((p, idx) => (
                       <button
                         key={idx}
@@ -659,114 +701,117 @@ export const ScoringBoxScoreSection = ({
                           handleColor2Change(p.hex);
                           setShowColorPicker2(false);
                         }}
-                        className="w-7 h-7 rounded-full border-2 border-white shadow hover:scale-110 transition-transform cursor-pointer"
+                        className="h-7 w-7 cursor-pointer rounded-full border-2 border-white shadow transition-transform hover:scale-110"
                         style={{ backgroundColor: p.hex }}
                         title={p.name}
                       />
                     ))}
                   </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                    <span className="text-[10px] text-gray-500 font-poppins">Hex:</span>
+                  <div className="flex items-center gap-2 border-t border-gray-100 pt-2">
+                    <span className="font-poppins text-[10px] text-gray-500">Hex:</span>
                     <input
                       type="color"
                       value={color2}
                       onChange={(e) => handleColor2Change(e.target.value)}
-                      className="w-7 h-7 rounded cursor-pointer border-0 p-0"
+                      className="h-7 w-7 cursor-pointer rounded border-0 p-0"
                     />
                     <input
                       type="text"
                       value={color2}
                       onChange={(e) => handleColor2Change(e.target.value)}
-                      className="w-20 text-[11px] font-mono border border-gray-200 rounded px-1.5 py-0.5 uppercase"
+                      className="w-20 rounded border border-gray-200 px-1.5 py-0.5 font-mono text-[11px] uppercase"
                     />
                   </div>
                 </div>
               )}
             </div>
           </div>
-
         </div>
 
         {/* Scrollable Container on Screen */}
         <div className="w-full overflow-x-auto pb-4">
           {/* min-w: kolom statistik tetap ≥ 49 px supaya tombol ◀ ▶ ≥ 24 px; di bawah 1366 px tabel digeser. */}
-          <div className="w-full min-w-[1280px] flex flex-col gap-3 bg-white p-1 rounded-xl">
+          <div className="flex w-full min-w-[1280px] flex-col gap-3 rounded-xl bg-white p-1">
             {/* Side-by-Side Dual Tables */}
             <div className="flex flex-row items-start gap-2">
               {/* Table Team 1 */}
-              <div className="min-w-0 flex-1">
-                {renderScoringTable(1, team1, players1List, color1)}
-              </div>
+              <div className="min-w-0 flex-1">{renderScoringTable(1, team1, players1List, color1)}</div>
 
               {/* Table Team 2 */}
-              <div className="min-w-0 flex-1">
-                {renderScoringTable(2, team2, players2List, color2)}
-              </div>
+              <div className="min-w-0 flex-1">{renderScoringTable(2, team2, players2List, color2)}</div>
             </div>
           </div>
         </div>
 
         {/* Bottom Actions Row: 1 Baris Memanjang (Horizontal) */}
-        <div className="w-full mt-8 border-t pt-6 flex flex-col-reverse items-stretch justify-between gap-4 lg:flex-row lg:items-center">
+        <div className="mt-8 flex w-full flex-col-reverse items-stretch justify-between gap-4 border-t pt-6 lg:flex-row lg:items-center">
           <div className="flex flex-wrap items-center gap-3">{footer}</div>
-          <div className="flex flex-row items-center justify-end gap-3 flex-nowrap overflow-x-auto pb-2">
-          {/* Export CSV / Excel */}
-          <button
-            type="button"
-            onClick={handleExportCSV}
-            disabled={isExporting}
-            className="shrink-0 group relative inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-white hover:bg-emerald-50 text-gray-800 hover:text-emerald-800 border border-gray-200 hover:border-emerald-300 font-poppins text-xs font-semibold shadow-xs hover:shadow-sm active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-            title="Satu file CSV berisi Quarter 1 sampai Total (bisa dibuka di Excel)"
-          >
-            <div className="w-7 h-7 rounded-full bg-emerald-100/90 text-emerald-700 flex items-center justify-center shrink-0">
-              {exportFormat === "csv" ? (
-                <svg className="w-3.5 h-3.5 animate-spin text-emerald-700" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4 fill-emerald-600" viewBox="0 0 24 24">
-                  <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
-                </svg>
-              )}
-            </div>
-            <div className="flex flex-col text-left">
-              <span className="font-bold text-[13px] leading-tight">Export CSV</span>
-              <span className="text-[10px] text-gray-400 group-hover:text-emerald-700 font-normal leading-none mt-0.5">.csv / Excel</span>
-            </div>
-          </button>
+          <div className="flex flex-row flex-nowrap items-center justify-end gap-3 overflow-x-auto pb-2">
+            {/* Export CSV / Excel */}
+            <button
+              type="button"
+              onClick={handleExportCSV}
+              disabled={isExporting}
+              className="group relative inline-flex shrink-0 cursor-pointer items-center gap-2.5 rounded-full border border-gray-200 bg-white px-6 py-2.5 font-poppins text-xs font-semibold whitespace-nowrap text-gray-800 shadow-xs transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 hover:shadow-sm active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              title="Satu file CSV berisi Quarter 1 sampai Total (bisa dibuka di Excel)"
+            >
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100/90 text-emerald-700">
+                {exportFormat === "csv" ? (
+                  <svg className="h-3.5 w-3.5 animate-spin text-emerald-700" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4 fill-emerald-600" viewBox="0 0 24 24">
+                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                  </svg>
+                )}
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-[13px] leading-tight font-bold">Export CSV</span>
+                <span className="mt-0.5 text-[10px] leading-none font-normal text-gray-400 group-hover:text-emerald-700">
+                  .csv / Excel
+                </span>
+              </div>
+            </button>
 
-          {/* Export PDF */}
-          <button
-            type="button"
-            onClick={handleExportPdf}
-            disabled={isExporting}
-            className="shrink-0 group relative inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-[#d92d20] hover:bg-[#b42318] text-white font-poppins text-xs font-semibold shadow-xs hover:shadow-md active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-            title="Satu file PDF A4 landscape: satu halaman per quarter, lalu Total"
-          >
-            <div className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0">
-              {exportFormat === "pdf" ? (
-                <svg className="w-3.5 h-3.5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H8v-2h4v2zm4-4H8v-2h8v2zm0-4H8V7h8v2z" />
-                </svg>
-              )}
-            </div>
-            <div className="flex flex-col text-left">
-              <span className="font-bold text-[13px] leading-tight">
-                {exportFormat === "pdf" ? "Exporting..." : "Export PDF"}
-              </span>
-              <span className="text-[10px] text-white/80 font-normal leading-none mt-0.5">.pdf / Print A4</span>
-            </div>
-          </button>
-
+            {/* Export PDF */}
+            <button
+              type="button"
+              onClick={handleExportPdf}
+              disabled={isExporting}
+              className="group relative inline-flex shrink-0 cursor-pointer items-center gap-2.5 rounded-full bg-[#d92d20] px-6 py-2.5 font-poppins text-xs font-semibold whitespace-nowrap text-white shadow-xs transition-all duration-200 hover:bg-[#b42318] hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              title="Satu file PDF A4 landscape: satu halaman per quarter, lalu Total"
+            >
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/20 text-white">
+                {exportFormat === "pdf" ? (
+                  <svg className="h-3.5 w-3.5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4 fill-white" viewBox="0 0 24 24">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H8v-2h4v2zm4-4H8v-2h8v2zm0-4H8V7h8v2z" />
+                  </svg>
+                )}
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-[13px] leading-tight font-bold">
+                  {exportFormat === "pdf" ? "Exporting..." : "Export PDF"}
+                </span>
+                <span className="mt-0.5 text-[10px] leading-none font-normal text-white/80">.pdf / Print A4</span>
+              </div>
+            </button>
           </div>
         </div>
-
       </div>
 
       {/* Lembar export PDF: dirender di luar layar hanya selama export berjalan. */}
@@ -774,7 +819,13 @@ export const ScoringBoxScoreSection = ({
         <div aria-hidden="true" className="pointer-events-none fixed top-0 left-[-20000px]">
           <div ref={sheetsRef} className="flex w-[1280px] flex-col gap-6 bg-white">
             {sections.map((section) => (
-              <ScoringExportSheet key={String(section)} snapshot={snapshot} section={section} color1={color1} color2={color2} />
+              <ScoringExportSheet
+                key={String(section)}
+                snapshot={snapshot}
+                section={section}
+                color1={color1}
+                color2={color2}
+              />
             ))}
           </div>
         </div>

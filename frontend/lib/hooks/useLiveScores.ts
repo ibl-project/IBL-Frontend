@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
 import type { MatchListItem, MatchSnapshot } from "@/lib/matchesApi";
+
 import { openMatchStream } from "./useMatchLive";
 
 type Scores = { team1Score: number; team2Score: number };
@@ -19,7 +20,9 @@ function patchItem(
     // Pemenang dihitung di sini supaya tim yang kalah langsung diredupkan tanpa menunggu refresh.
     const winnerTeamId =
       status === "FINISHED" && team1Score !== team2Score
-        ? (team1Score > team2Score ? match.team1.id : match.team2.id)
+        ? team1Score > team2Score
+          ? match.team1.id
+          : match.team2.id
         : match.winnerTeamId;
     return {
       ...match,
@@ -44,10 +47,15 @@ export function useLiveScores(matchIds: string[], update: ListUpdate) {
       const scores = (data: Scores) => update((items) => patchItem(items, id, data));
       const fromSnapshot = (data: MatchSnapshot) =>
         update((items) =>
-          patchItem(items, id, { team1Score: data.team1.score, team2Score: data.team2.score }, {
-            status: data.status,
-            locked: data.locked,
-          }),
+          patchItem(
+            items,
+            id,
+            { team1Score: data.team1.score, team2Score: data.team2.score },
+            {
+              status: data.status,
+              locked: data.locked,
+            },
+          ),
         );
       return openMatchStream(id, {
         snapshot: fromSnapshot,

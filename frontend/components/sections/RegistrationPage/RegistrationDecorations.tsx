@@ -2,7 +2,9 @@
 
 import React from "react";
 import Image from "next/image";
+
 import { motion } from "framer-motion";
+
 import { popSpringVariants } from "@/lib/animations";
 
 export const RegistrationDecorations = () => {
@@ -15,7 +17,7 @@ export const RegistrationDecorations = () => {
         viewport={{ once: false, amount: 0.2 }}
         variants={popSpringVariants}
         custom={0.1}
-        className="absolute pointer-events-none select-none z-10"
+        className="pointer-events-none absolute z-10 select-none"
         style={{
           top: "min(calc(100vw * 557.58 / 1440), 557.58px)",
           left: "min(calc(100% * 118.9 / 1440), 118.9px)",
@@ -25,14 +27,14 @@ export const RegistrationDecorations = () => {
         <motion.div
           animate={{ y: [-8, 8, -8], rotate: [-2, 2.5, -2] }}
           transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
-          className="w-full h-auto"
+          className="h-auto w-full"
         >
           <Image
             src="/images/registration/lightning-right.webp"
             alt="Lightning Left"
             width={315}
             height={809}
-            className="w-full h-auto"
+            className="h-auto w-full"
           />
         </motion.div>
       </motion.div>
@@ -44,7 +46,7 @@ export const RegistrationDecorations = () => {
         viewport={{ once: false, amount: 0.2 }}
         variants={popSpringVariants}
         custom={0.16}
-        className="absolute pointer-events-none select-none z-10"
+        className="pointer-events-none absolute z-10 select-none"
         style={{
           top: "min(calc(100vw * 742 / 1440), 742px)",
           right: "min(calc(100% * 96.32 / 1440), 96.32px)",
@@ -54,14 +56,14 @@ export const RegistrationDecorations = () => {
         <motion.div
           animate={{ y: [8, -8, 8], rotate: [2.5, -2, 2.5] }}
           transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          className="w-full h-auto"
+          className="h-auto w-full"
         >
           <Image
             src="/images/registration/lightning-left.webp"
             alt="Lightning Right"
             width={378}
             height={700}
-            className="w-full h-auto"
+            className="h-auto w-full"
           />
         </motion.div>
       </motion.div>
@@ -73,7 +75,7 @@ export const RegistrationDecorations = () => {
         viewport={{ once: false, amount: 0.05 }}
         variants={popSpringVariants}
         custom={0.22}
-        className="absolute pointer-events-none select-none z-0 max-md:opacity-30 md:opacity-100 md:z-10"
+        className="pointer-events-none absolute z-0 select-none max-md:opacity-30 md:z-10 md:opacity-100"
         style={{
           top: "min(calc(100vw * 805 / 1440), 805px)",
           left: "max(calc(100% * -219 / 1440), -219px)",
@@ -83,14 +85,14 @@ export const RegistrationDecorations = () => {
         <motion.div
           animate={{ y: [-12, 10, -12], rotate: [-2.5, 2.5, -2.5] }}
           transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
-          className="w-full h-auto"
+          className="h-auto w-full"
         >
           <Image
             src="/images/registration/ball-left.webp"
             alt="Basketball Left"
             width={870}
             height={1160}
-            className="w-full h-auto"
+            className="h-auto w-full"
           />
         </motion.div>
       </motion.div>

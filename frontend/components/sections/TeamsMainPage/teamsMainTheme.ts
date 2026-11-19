@@ -77,7 +77,18 @@ export const ARTBOARD = {
       // basketapi.svg (370 x 489, dipakai juga di Leaderboard): bola menggantung di sudut kanan bawah bar.
       fireball: { left: 1054, top: -78, width: 209 },
     },
-    grid: { offset: 38, columns: 8, pitch: 125.3, logo: 67, logoGap: 11.6, name: 14.46, nameLine: 16, nameStroke: 1, rowGap: 4, scroll: null },
+    grid: {
+      offset: 38,
+      columns: 8,
+      pitch: 125.3,
+      logo: 67,
+      logoGap: 11.6,
+      name: 14.46,
+      nameLine: 16,
+      nameStroke: 1,
+      rowGap: 4,
+      scroll: null,
+    },
     // Halaman Figma: plat di (145, 97.86), logo di (178.71, 74); logo berdiri di atas plat.
     banner: {
       top: 14,

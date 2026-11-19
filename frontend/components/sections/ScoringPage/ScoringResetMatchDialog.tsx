@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 
-import { type ScoringBoardItem, resetMatch } from "@/lib/matchesApi";
-import { errorMessage } from "@/lib/errors";
 import { Modal } from "@/components/ui/Modal";
+import { errorMessage } from "@/lib/errors";
+import { resetMatch, type ScoringBoardItem } from "@/lib/matchesApi";
 
 interface ScoringResetMatchDialogProps {
   /** Match yang skornya akan dihapus; null = modal tertutup. */
@@ -56,7 +56,7 @@ const DialogBody = ({
 
   return (
     <div className="rounded-3xl bg-white p-6 text-center font-poppins">
-      <p className="text-xs font-semibold uppercase tracking-wide text-red-700">Konfirmasi {step} dari 2</p>
+      <p className="text-xs font-semibold tracking-wide text-red-700 uppercase">Konfirmasi {step} dari 2</p>
       {step === 1 ? (
         <>
           <h3 id="reset-match-title" className="mt-1 text-lg font-bold text-gray-900">
@@ -95,7 +95,10 @@ const DialogBody = ({
             className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-900 focus-visible:outline-2 focus-visible:outline-red-700"
           />
           {error && (
-            <p role="alert" className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-left text-xs font-medium text-red-700">
+            <p
+              role="alert"
+              className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-left text-xs font-medium text-red-700"
+            >
               {error}
             </p>
           )}

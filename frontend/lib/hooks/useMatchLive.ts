@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { API_URL } from "@/lib/apiClient";
-import { type MatchSnapshot, type QuarterState, getMatch } from "@/lib/matchesApi";
 import { errorMessage } from "@/lib/errors";
-import { type ServerLine, withServerLine } from "@/lib/matchSnapshot";
+import { getMatch, type MatchSnapshot, type QuarterState } from "@/lib/matchesApi";
+import { withServerLine, type ServerLine } from "@/lib/matchSnapshot";
 
 const RETRY_MIN_MS = 3_000;
 const RETRY_MAX_MS = 30_000;

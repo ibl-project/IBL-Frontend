@@ -1,5 +1,7 @@
 import React from "react";
+
 import ThankYouDesktop from "@/public/images/announcement/THANKYOU DESKTOP.svg";
+
 import ResultTicket from "./ResultTicket";
 import WhatsAppContact from "./WhatsAppContact";
 
@@ -9,11 +11,7 @@ interface TidakTerdaftarSectionProps {
   cpPhone?: string;
 }
 
-export default function TidakTerdaftarSection({
-  nrp,
-  cpName,
-  cpPhone,
-}: TidakTerdaftarSectionProps) {
+export default function TidakTerdaftarSection({ nrp, cpName, cpPhone }: TidakTerdaftarSectionProps) {
   return (
     <>
       <ResultTicket
@@ -39,12 +37,10 @@ export default function TidakTerdaftarSection({
         }
       >
         <p className="my-0.5 tracking-widest">
-          Mohon maaf, untuk {nrp} tidak terdaftar di database Open Recruitment
-          Staff IBL2K26.
+          Mohon maaf, untuk {nrp} tidak terdaftar di database Open Recruitment Staff IBL2K26.
         </p>
         <p className="my-0.5 tracking-widest">
-          Bila kamu merasa mendaftar, bisa menghubungi Contact Person di bawah
-          ini.
+          Bila kamu merasa mendaftar, bisa menghubungi Contact Person di bawah ini.
         </p>
       </ResultTicket>
     </>

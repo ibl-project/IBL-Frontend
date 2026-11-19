@@ -1,5 +1,6 @@
 import React from "react";
 import { type Metadata } from "next";
+
 import { GroupsStandingsSection } from "@/components/sections/GroupsStandingsPage/GroupsStandingsSection";
 
 export const metadata: Metadata = {
