@@ -24,6 +24,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run format:check
+      # next-env.d.ts (image import types) is gitignored; generate it before type checking.
+      - run: npx next typegen
       - run: npx tsc --noEmit
       - run: npm run lint
       - run: npm test
