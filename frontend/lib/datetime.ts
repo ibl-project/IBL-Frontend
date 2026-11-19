@@ -18,9 +18,7 @@ const partsFormatter = new Intl.DateTimeFormat("en-GB", {
 const monthFormatter = new Intl.DateTimeFormat("en-GB", { timeZone: TIME_ZONE, month: "short" });
 
 function wibParts(iso: string) {
-  const parts = Object.fromEntries(
-    partsFormatter.formatToParts(new Date(iso)).map((part) => [part.type, part.value]),
-  );
+  const parts = Object.fromEntries(partsFormatter.formatToParts(new Date(iso)).map((part) => [part.type, part.value]));
   return {
     year: parts.year,
     month: parts.month,

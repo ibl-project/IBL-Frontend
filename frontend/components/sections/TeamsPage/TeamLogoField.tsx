@@ -3,6 +3,7 @@
 import React, { useRef, useState } from "react";
 
 import { LOGO_ACCEPT, validateLogoFile } from "@/lib/teamsApi";
+
 import { TeamLogo } from "./TeamLogo";
 
 interface TeamLogoFieldProps {
@@ -53,22 +54,22 @@ export const TeamLogoField = ({
 
   return (
     <div>
-      <span className="block text-xs font-bold text-gray-700 uppercase mb-1.5">Logo Tim</span>
+      <span className="mb-1.5 block text-xs font-bold text-gray-700 uppercase">Logo Tim</span>
       <div className="flex items-center gap-4">
-        <div className="relative w-16 h-16 shrink-0 rounded-xl border border-gray-200 bg-gray-50 p-1.5">
-          <div className="relative w-full h-full">
+        <div className="relative h-16 w-16 shrink-0 rounded-xl border border-gray-200 bg-gray-50 p-1.5">
+          <div className="relative h-full w-full">
             <TeamLogo src={previewSrc} alt="Pratinjau logo tim" sizes="64px" />
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               disabled={busy}
               onClick={() => inputRef.current?.click()}
               aria-describedby={hintId}
-              className="px-4 py-2 rounded-full border border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="cursor-pointer rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {canRemove ? "Ganti Logo" : "Pilih Gambar"}
             </button>
@@ -80,7 +81,7 @@ export const TeamLogoField = ({
                   setValidationError(null);
                   onRemove();
                 }}
-                className="px-3 py-2 rounded-full text-sm font-semibold text-red-700 hover:bg-red-50 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="cursor-pointer rounded-full px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Hapus Logo
               </button>
@@ -99,7 +100,7 @@ export const TeamLogoField = ({
           onChange={handleChange}
           tabIndex={-1}
           aria-hidden="true"
-          className="absolute pointer-events-none opacity-0 w-px h-px"
+          className="pointer-events-none absolute h-px w-px opacity-0"
         />
       </div>
 

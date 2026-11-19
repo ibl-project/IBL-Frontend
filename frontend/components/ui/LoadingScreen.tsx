@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+
 import { motion } from "framer-motion";
 
 export const LoadingScreen: React.FC = () => {
@@ -25,12 +26,12 @@ export const LoadingScreen: React.FC = () => {
             width={120}
             height={126}
             priority
-            className="w-[120px] h-auto drop-shadow-[0_0_15px_rgba(244,99,30,0.3)]"
+            className="h-auto w-[120px] drop-shadow-[0_0_15px_rgba(244,99,30,0.3)]"
           />
         </motion.div>
 
         {/* Loading Bar Track */}
-        <div className="w-[240px] h-[6px] bg-[#2A2725] rounded-full overflow-hidden relative">
+        <div className="relative h-[6px] w-[240px] overflow-hidden rounded-full bg-[#2A2725]">
           {/* Loading Bar Progress */}
           <motion.div
             initial={{ width: "0%" }}

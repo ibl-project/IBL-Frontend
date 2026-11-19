@@ -33,6 +33,7 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
 import sharp from "sharp";
 
 const FRONTEND = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -172,19 +173,31 @@ await mkdir(OUT_DIR, { recursive: true });
 
 // "image 4": 1009 x 1622 portrait, transpose -> 1622 x 1009 landscape.
 const HALFTONE = { width: 1622, height: 1009, sourceW: 1009, sourceH: 1622, scale: 1 };
-const halftoneDots = screen(density, HALFTONE.width, HALFTONE.height, (X, Y) => {
-  const lx = Y; // transpose: lokal x = kanvas Y
-  const ly = X; // lokal y = kanvas X
-  return [(lx * SW) / HALFTONE.sourceW, (ly * SH) / HALFTONE.sourceH];
-}, SEED);
+const halftoneDots = screen(
+  density,
+  HALFTONE.width,
+  HALFTONE.height,
+  (X, Y) => {
+    const lx = Y; // transpose: lokal x = kanvas Y
+    const ly = X; // lokal y = kanvas X
+    return [(lx * SW) / HALFTONE.sourceW, (ly * SH) / HALFTONE.sourceH];
+  },
+  SEED,
+);
 
 // "image 2": 1013.92 x 1816.06 portrait, anti-transpose -> 1816 x 1014 landscape, dirender setengah resolusi.
 const GRAIN = { width: 1816, height: 1014, sourceW: 1013.92, sourceH: 1816.06, scale: 0.5 };
-const grainDots = screen(density, GRAIN.width, GRAIN.height, (X, Y) => {
-  const lx = GRAIN.sourceW - Y; // anti-transpose: lokal x = W - kanvas Y
-  const ly = GRAIN.sourceH - X; // lokal y = H - kanvas X
-  return [(lx * SW) / GRAIN.sourceW, (ly * SH) / GRAIN.sourceH];
-}, SEED + 1);
+const grainDots = screen(
+  density,
+  GRAIN.width,
+  GRAIN.height,
+  (X, Y) => {
+    const lx = GRAIN.sourceW - Y; // anti-transpose: lokal x = W - kanvas Y
+    const ly = GRAIN.sourceH - X; // lokal y = H - kanvas X
+    return [(lx * SW) / GRAIN.sourceW, (ly * SH) / GRAIN.sourceH];
+  },
+  SEED + 1,
+);
 
 const outputs = [
   ["halftone.png", HALFTONE, halftoneDots],

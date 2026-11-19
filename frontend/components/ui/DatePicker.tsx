@@ -1,14 +1,26 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { formatDateField } from "@/lib/datetime";
+
 import { OutlinedField } from "./OutlinedField";
 
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
@@ -156,7 +168,7 @@ export const DatePicker = ({ id, label, value, onChange, error, ariaLabel }: Dat
         <div
           role="dialog"
           aria-label={`Pilih tanggal, ${MONTHS[month - 1]} ${year}`}
-          className="absolute left-0 top-full z-30 mt-2 w-[320px] rounded-[12px] bg-white p-4 shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
+          className="absolute top-full left-0 z-30 mt-2 w-[320px] rounded-[12px] bg-white p-4 shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
         >
           <div className="mb-3 flex items-center justify-between">
             <span className="flex items-center gap-1 text-[15px] font-semibold text-[#1c1b1f]">

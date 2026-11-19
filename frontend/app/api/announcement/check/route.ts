@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import lolosStaff from "@/constants/lolos_staff.json";
 import tidakLolosStaff from "@/constants/tidak_lolos_staff.json";
 
@@ -26,20 +27,14 @@ export async function GET(request: NextRequest) {
     const rawNrp = searchParams.get("nrp");
 
     if (!rawNrp) {
-      return NextResponse.json(
-        { error: "NRP is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "NRP is required" }, { status: 400 });
     }
 
     // Normalize input NRP (remove non-digits)
     const normalizedNrp = rawNrp.trim().replace(/\D/g, "");
 
     if (!normalizedNrp) {
-      return NextResponse.json(
-        { error: "Invalid NRP format" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid NRP format" }, { status: 400 });
     }
 
     // 1. Check if staff passed (lolos)
@@ -76,7 +71,7 @@ export async function GET(request: NextRequest) {
     console.error("Error in announcement check API:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

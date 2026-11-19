@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import type { CountdownTime } from "@/types/register";
 
 const ZERO: CountdownTime = { days: 0, hours: 0, minutes: 0, seconds: 0 };
@@ -27,9 +28,7 @@ export const useCountdown = (target: Date) => {
     const tick = () => {
       const remaining = calculateRemaining(target);
       setTime(remaining);
-      setIsFinished(
-        remaining.days + remaining.hours + remaining.minutes + remaining.seconds === 0,
-      );
+      setIsFinished(remaining.days + remaining.hours + remaining.minutes + remaining.seconds === 0);
     };
 
     tick(); // set nilai sebenarnya segera setelah mount

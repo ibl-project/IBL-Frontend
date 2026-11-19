@@ -2,7 +2,9 @@
 
 import React from "react";
 import Image from "next/image";
+
 import { motion } from "framer-motion";
+
 import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
 import type { PlayoffMatchTeam, PlayoffTournamentData } from "@/lib/standingsApi";
 
@@ -22,7 +24,7 @@ function TeamEmblem({ logo }: { logo?: string }) {
 
   return (
     <div
-      className="size-[23px] shrink-0 rounded-[3px] bg-[#7E0202] flex items-center justify-center shadow-sm"
+      className="flex size-[23px] shrink-0 items-center justify-center rounded-[3px] bg-[#7E0202] shadow-sm"
       aria-hidden
     >
       <svg
@@ -91,22 +93,22 @@ function TeamCard({
         ...staggerStyle,
         ...style,
       }}
-      className={`absolute flex items-center px-1.5 sm:px-2 select-none transition-transform hover:scale-[1.02] cursor-default z-10 ${
+      className={`absolute z-10 flex cursor-default items-center px-1.5 transition-transform select-none hover:scale-[1.02] sm:px-2 ${
         team.winner ? "ring-1 ring-[#E7AE30]/60" : ""
       } ${className}`}
     >
       {isLeft ? (
         // Left Wing Card: [Rank] [Team Name] [Score] [Emblem]
-        <div className="flex items-center justify-between w-full gap-1">
-          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1">
+        <div className="flex w-full items-center justify-between gap-1">
+          <div className="flex min-w-0 flex-1 items-center gap-1 sm:gap-1.5">
             <span
-              className={`${large ? "text-[15px] sm:text-[16px]" : compact ? "text-[13px]" : "text-[15px]"} font-bold shrink-0 text-[#E7AE30] leading-none`}
+              className={`${large ? "text-[15px] sm:text-[16px]" : compact ? "text-[13px]" : "text-[15px]"} shrink-0 leading-none font-bold text-[#E7AE30]`}
               style={{ fontFamily: "var(--font-hollywood), var(--font-drowner)" }}
             >
               {team.seed}
             </span>
             <span
-              className={`${large ? "text-[11px] sm:text-[12px]" : compact ? "text-[9px]" : "text-[10px]"} font-bold uppercase truncate text-[#650202] leading-tight`}
+              className={`${large ? "text-[11px] sm:text-[12px]" : compact ? "text-[9px]" : "text-[10px]"} truncate leading-tight font-bold text-[#650202] uppercase`}
               style={{ fontFamily: "var(--font-poppins), sans-serif" }}
               title={team.name}
             >
@@ -114,9 +116,11 @@ function TeamCard({
             </span>
           </div>
 
-          <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
             {team.score !== undefined && (
-              <span className={`${large ? "text-[12px] sm:text-[13px]" : compact ? "text-[10px]" : "text-[11px]"} font-extrabold text-[#7E0202] px-0.5`}>
+              <span
+                className={`${large ? "text-[12px] sm:text-[13px]" : compact ? "text-[10px]" : "text-[11px]"} px-0.5 font-extrabold text-[#7E0202]`}
+              >
                 {team.score}
               </span>
             )}
@@ -125,25 +129,27 @@ function TeamCard({
         </div>
       ) : (
         // Right Wing Card: [Emblem] [Score] [Rank] [Team Name] (mirrored)
-        <div className="flex items-center justify-between w-full gap-1">
-          <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+        <div className="flex w-full items-center justify-between gap-1">
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
             <TeamEmblem logo={team.logo} />
             {team.score !== undefined && (
-              <span className={`${large ? "text-[12px] sm:text-[13px]" : compact ? "text-[10px]" : "text-[11px]"} font-extrabold text-[#7E0202] px-0.5`}>
+              <span
+                className={`${large ? "text-[12px] sm:text-[13px]" : compact ? "text-[10px]" : "text-[11px]"} px-0.5 font-extrabold text-[#7E0202]`}
+              >
                 {team.score}
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1 justify-end">
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-1.5">
             <span
-              className={`${large ? "text-[15px] sm:text-[16px]" : compact ? "text-[13px]" : "text-[15px]"} font-bold shrink-0 text-[#E7AE30] leading-none`}
+              className={`${large ? "text-[15px] sm:text-[16px]" : compact ? "text-[13px]" : "text-[15px]"} shrink-0 leading-none font-bold text-[#E7AE30]`}
               style={{ fontFamily: "var(--font-hollywood), var(--font-drowner)" }}
             >
               {team.seed}
             </span>
             <span
-              className={`${large ? "text-[11px] sm:text-[12px]" : compact ? "text-[9px]" : "text-[10px]"} font-bold uppercase truncate text-[#650202] leading-tight text-right`}
+              className={`${large ? "text-[11px] sm:text-[12px]" : compact ? "text-[9px]" : "text-[10px]"} truncate text-right leading-tight font-bold text-[#650202] uppercase`}
               style={{ fontFamily: "var(--font-poppins), sans-serif" }}
               title={team.name}
             >
@@ -191,10 +197,10 @@ function StagePill({
           : "2px 2px 2px 0px rgba(0,0,0,0.35)",
         ...style,
       }}
-      className="flex items-center justify-center select-none cursor-pointer transition-all hover:brightness-105 active:scale-95 shrink-0"
+      className="flex shrink-0 cursor-pointer items-center justify-center transition-all select-none hover:brightness-105 active:scale-95"
     >
       <span
-        className="text-[12px] sm:text-[13px] uppercase tracking-tight text-center leading-none select-none inline-block pt-0.5"
+        className="inline-block pt-0.5 text-center text-[12px] leading-none tracking-tight uppercase select-none sm:text-[13px]"
         style={{
           fontFamily: "var(--font-hollywood)",
           color: active ? "#FFFFFF" : "#CB0404",
@@ -244,15 +250,12 @@ function DuelBox({
   const innerCardWidth = boxWidth - 16;
   const titleEl = (
     <h3
-      className={`text-[17px] tracking-wide uppercase text-center select-none ${
+      className={`text-center text-[17px] tracking-wide uppercase select-none ${
         titlePosition === "top" ? "mb-1.5" : "mt-1.5"
       }`}
       style={{
         fontFamily: "var(--font-hollywood)",
-        backgroundImage:
-          titleColor === "gold"
-            ? "linear-gradient(180deg, #FDB813 0%, #976E0B 100%)"
-            : undefined,
+        backgroundImage: titleColor === "gold" ? "linear-gradient(180deg, #FDB813 0%, #976E0B 100%)" : undefined,
         WebkitBackgroundClip: titleColor === "gold" ? "text" : undefined,
         WebkitTextFillColor: titleColor === "gold" ? "transparent" : undefined,
         color: titleColor === "red" ? "#811F1F" : undefined,
@@ -273,7 +276,7 @@ function DuelBox({
   return (
     <div
       style={{ ...staggerStyle, ...style }}
-      className={`flex flex-col items-center select-none z-10 shrink-0 ${className}`}
+      className={`z-10 flex shrink-0 flex-col items-center select-none ${className}`}
     >
       {titlePosition === "top" && titleEl}
       <div
@@ -291,11 +294,21 @@ function DuelBox({
           gap: "5px",
         }}
       >
-        <div className="relative h-[41px] mx-auto" style={{ width: `${innerCardWidth}px` }}>
-          <TeamCard team={teamA} compact={!large} large={large} style={{ left: 0, top: 0, width: `${innerCardWidth}px` }} />
+        <div className="relative mx-auto h-[41px]" style={{ width: `${innerCardWidth}px` }}>
+          <TeamCard
+            team={teamA}
+            compact={!large}
+            large={large}
+            style={{ left: 0, top: 0, width: `${innerCardWidth}px` }}
+          />
         </div>
-        <div className="relative h-[41px] mx-auto" style={{ width: `${innerCardWidth}px` }}>
-          <TeamCard team={teamB} compact={!large} large={large} style={{ left: 0, top: 0, width: `${innerCardWidth}px` }} />
+        <div className="relative mx-auto h-[41px]" style={{ width: `${innerCardWidth}px` }}>
+          <TeamCard
+            team={teamB}
+            compact={!large}
+            large={large}
+            style={{ left: 0, top: 0, width: `${innerCardWidth}px` }}
+          />
         </div>
       </div>
       {titlePosition === "bottom" && titleEl}
@@ -367,10 +380,7 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
 
     if (isHorizontalSwipe.current) {
       // Elastic resistance at boundary stages
-      if (
-        (activeStageIndex === 0 && deltaX > 0) ||
-        (activeStageIndex === STAGES.length - 1 && deltaX < 0)
-      ) {
+      if ((activeStageIndex === 0 && deltaX > 0) || (activeStageIndex === STAGES.length - 1 && deltaX < 0)) {
         setDragOffset(deltaX * 0.25);
       } else {
         setDragOffset(deltaX);
@@ -389,7 +399,7 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
     const deltaY = clientY - touchStartY.current;
     const deltaTime = Date.now() - touchStartTime.current;
 
-    const isHorizontal = isHorizontalSwipe.current ?? (Math.abs(deltaX) > Math.abs(deltaY));
+    const isHorizontal = isHorizontalSwipe.current ?? Math.abs(deltaX) > Math.abs(deltaY);
     const isQuickFlick = deltaTime < 320 && Math.abs(deltaX) > 28;
     const isPassThreshold = Math.abs(deltaX) > 48;
 
@@ -424,10 +434,7 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
 
   // Final stage layout coordinates (Panel 3)
   const finalBoxWidth = Math.min(230, Math.max(175, containerWidth - 110));
-  const finalBoxLeft = Math.min(
-    containerWidth - finalBoxWidth - 14,
-    Math.max(105, Math.round(containerWidth * 0.38))
-  );
+  const finalBoxLeft = Math.min(containerWidth - finalBoxWidth - 14, Math.max(105, Math.round(containerWidth * 0.38)));
   const xMatchFork = finalBoxLeft - 18;
   const xFinalFork = Math.max(46, Math.round(finalBoxLeft * 0.56));
   const xSF = Math.max(24, Math.round(xFinalFork * 0.5));
@@ -448,7 +455,7 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
   return (
     <>
       {/* ── MOBILE BRACKET (< 768px, Continuous Sliding Rail FIFA-Style, No Scrollbars) ── */}
-      <div className="block md:hidden w-full pb-4 pt-1">
+      <div className="block w-full pt-1 pb-4 md:hidden">
         <style>{`
           @keyframes bracketCardEnter {
             0% {
@@ -463,7 +470,7 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
         `}</style>
 
         {/* Stage Navigation Pills (Grid of 4, 100% width, No horizontal scrollbar with Shared Layout Pill) */}
-        <div className="grid grid-cols-4 gap-1 min-[360px]:gap-1.5 w-full mb-3 px-0.5 select-none relative">
+        <div className="relative mb-3 grid w-full grid-cols-4 gap-1 px-0.5 select-none min-[360px]:gap-1.5">
           {STAGES.map((s) => {
             const active = activeStage === s.id;
             return (
@@ -471,7 +478,7 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                 key={s.id}
                 type="button"
                 onClick={() => setActiveStage(s.id)}
-                className="relative h-[38px] sm:h-[42px] w-full flex items-center justify-center transition-transform active:scale-95 cursor-pointer px-1 rounded-[5px] select-none"
+                className="relative flex h-[38px] w-full cursor-pointer items-center justify-center rounded-[5px] px-1 transition-transform select-none active:scale-95 sm:h-[42px]"
                 style={{
                   backgroundColor: "#FAF5E8",
                   borderColor: "#3E1212",
@@ -483,7 +490,7 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                 {active && (
                   <motion.div
                     layoutId="mobileActiveStagePill"
-                    className="absolute inset-[-1.8px] rounded-[5px] pointer-events-none"
+                    className="pointer-events-none absolute inset-[-1.8px] rounded-[5px]"
                     style={{
                       backgroundColor: "#CB0404",
                       borderColor: "#7E0202",
@@ -495,16 +502,14 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                   />
                 )}
                 <span
-                  className="relative z-10 text-[11px] min-[360px]:text-[12px] min-[390px]:text-[13px] min-[420px]:text-[14px] uppercase tracking-tight text-center leading-none inline-block pt-0.5 truncate font-bold"
+                  className="relative z-10 inline-block truncate pt-0.5 text-center text-[11px] leading-none font-bold tracking-tight uppercase min-[360px]:text-[12px] min-[390px]:text-[13px] min-[420px]:text-[14px]"
                   style={{
                     fontFamily: "var(--font-hollywood)",
                     color: active ? "#FFFFFF" : "#CB0404",
                     filter: active
                       ? "drop-shadow(0px 1.5px 2px rgba(0,0,0,0.7))"
                       : "drop-shadow(0px 1px 1px rgba(0,0,0,0.25))",
-                    textShadow: active
-                      ? "0 1px 2px rgba(0,0,0,0.8)"
-                      : "0 1px 0 rgba(255,255,255,0.8)",
+                    textShadow: active ? "0 1px 2px rgba(0,0,0,0.8)" : "0 1px 0 rgba(255,255,255,0.8)",
                     transition: "color 200ms ease",
                   }}
                 >
@@ -523,10 +528,16 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
           onTouchEnd={(e) => handleTouchEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY)}
           onTouchCancel={handleTouchCancel}
           onMouseDown={(e) => handleTouchStart(e.clientX, e.clientY)}
-          onMouseMove={(e) => { if (isDragging) handleTouchMove(e.clientX, e.clientY); }}
-          onMouseUp={(e) => { if (isDragging) handleTouchEnd(e.clientX, e.clientY); }}
-          onMouseLeave={() => { if (isDragging) handleTouchCancel(); }}
-          className="relative w-full overflow-hidden touch-pan-y cursor-grab active:cursor-grabbing select-none"
+          onMouseMove={(e) => {
+            if (isDragging) handleTouchMove(e.clientX, e.clientY);
+          }}
+          onMouseUp={(e) => {
+            if (isDragging) handleTouchEnd(e.clientX, e.clientY);
+          }}
+          onMouseLeave={() => {
+            if (isDragging) handleTouchCancel();
+          }}
+          className="relative w-full cursor-grab touch-pan-y overflow-hidden select-none active:cursor-grabbing"
           style={{
             height: `${STAGE_CONTAINER_HEIGHT}px`,
             touchAction: "pan-y",
@@ -536,9 +547,10 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
           <div
             className="flex w-full items-start"
             style={{
-              transform: isDragging && dragOffset !== 0
-                ? `translateX(calc(-${activeStageIndex * 100}% + ${dragOffset}px))`
-                : `translateX(-${activeStageIndex * 100}%)`,
+              transform:
+                isDragging && dragOffset !== 0
+                  ? `translateX(calc(-${activeStageIndex * 100}% + ${dragOffset}px))`
+                  : `translateX(-${activeStageIndex * 100}%)`,
               transition: isDragging ? "none" : "transform 500ms cubic-bezier(0.22, 1, 0.36, 1)",
             }}
           >
@@ -546,18 +558,19 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                 STAGE 1: ROUND OF 16 (Panel 0)
             ══════════════════════════════════════════════════════════ */}
             <div
-              className="w-full shrink-0 relative h-[735px] overflow-hidden select-none"
+              className="relative h-[735px] w-full shrink-0 overflow-hidden select-none"
               style={{
                 opacity: activeStageIndex === 0 ? 1 : 0.35,
                 transform: activeStageIndex === 0 ? "scale(1)" : "scale(0.97)",
                 filter: activeStageIndex === 0 ? "blur(0px)" : "blur(0.8px)",
-                transition: "opacity 380ms cubic-bezier(0.22, 1, 0.36, 1), transform 380ms cubic-bezier(0.22, 1, 0.36, 1), filter 380ms cubic-bezier(0.22, 1, 0.36, 1)",
+                transition:
+                  "opacity 380ms cubic-bezier(0.22, 1, 0.36, 1), transform 380ms cubic-bezier(0.22, 1, 0.36, 1), filter 380ms cubic-bezier(0.22, 1, 0.36, 1)",
                 transformOrigin: "center left",
               }}
             >
               {/* Connectors from R16 to QF (Animated SVG stroke flow) */}
               <svg
-                className="absolute inset-0 pointer-events-none z-0"
+                className="pointer-events-none absolute inset-0 z-0"
                 width="100%"
                 height="100%"
                 fill="none"
@@ -586,43 +599,179 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
               </svg>
 
               {/* ACTIVE COLUMN: ROUND OF 16 (Full view & Gede, left: 4px) */}
-              <TeamCard team={left.r16[0]?.teamA || { name: "TBD", seed: 1 }} large isFocused={activeStageIndex === 0} staggerIndex={0} style={{ left: "4px", top: "0px", width: `${activeCardWidth}px`, height: "38px" }} />
-              <TeamCard team={left.r16[0]?.teamB || { name: "TBD", seed: 16 }} large isFocused={activeStageIndex === 0} staggerIndex={0} style={{ left: "4px", top: "42px", width: `${activeCardWidth}px`, height: "38px" }} />
+              <TeamCard
+                team={left.r16[0]?.teamA || { name: "TBD", seed: 1 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={0}
+                style={{ left: "4px", top: "0px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
+              <TeamCard
+                team={left.r16[0]?.teamB || { name: "TBD", seed: 16 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={0}
+                style={{ left: "4px", top: "42px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
 
-              <TeamCard team={left.r16[1]?.teamA || { name: "TBD", seed: 8 }} large isFocused={activeStageIndex === 0} staggerIndex={1} style={{ left: "4px", top: "90px", width: `${activeCardWidth}px`, height: "38px" }} />
-              <TeamCard team={left.r16[1]?.teamB || { name: "TBD", seed: 9 }} large isFocused={activeStageIndex === 0} staggerIndex={1} style={{ left: "4px", top: "132px", width: `${activeCardWidth}px`, height: "38px" }} />
+              <TeamCard
+                team={left.r16[1]?.teamA || { name: "TBD", seed: 8 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={1}
+                style={{ left: "4px", top: "90px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
+              <TeamCard
+                team={left.r16[1]?.teamB || { name: "TBD", seed: 9 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={1}
+                style={{ left: "4px", top: "132px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
 
-              <TeamCard team={left.r16[2]?.teamA || { name: "TBD", seed: 4 }} large isFocused={activeStageIndex === 0} staggerIndex={2} style={{ left: "4px", top: "180px", width: `${activeCardWidth}px`, height: "38px" }} />
-              <TeamCard team={left.r16[2]?.teamB || { name: "TBD", seed: 13 }} large isFocused={activeStageIndex === 0} staggerIndex={2} style={{ left: "4px", top: "222px", width: `${activeCardWidth}px`, height: "38px" }} />
+              <TeamCard
+                team={left.r16[2]?.teamA || { name: "TBD", seed: 4 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={2}
+                style={{ left: "4px", top: "180px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
+              <TeamCard
+                team={left.r16[2]?.teamB || { name: "TBD", seed: 13 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={2}
+                style={{ left: "4px", top: "222px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
 
-              <TeamCard team={left.r16[3]?.teamA || { name: "TBD", seed: 5 }} large isFocused={activeStageIndex === 0} staggerIndex={3} style={{ left: "4px", top: "270px", width: `${activeCardWidth}px`, height: "38px" }} />
-              <TeamCard team={left.r16[3]?.teamB || { name: "TBD", seed: 12 }} large isFocused={activeStageIndex === 0} staggerIndex={3} style={{ left: "4px", top: "312px", width: `${activeCardWidth}px`, height: "38px" }} />
+              <TeamCard
+                team={left.r16[3]?.teamA || { name: "TBD", seed: 5 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={3}
+                style={{ left: "4px", top: "270px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
+              <TeamCard
+                team={left.r16[3]?.teamB || { name: "TBD", seed: 12 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={3}
+                style={{ left: "4px", top: "312px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
 
-              <TeamCard team={right.r16[0]?.teamA || { name: "TBD", seed: 2 }} large isFocused={activeStageIndex === 0} staggerIndex={4} style={{ left: "4px", top: "360px", width: `${activeCardWidth}px`, height: "38px" }} />
-              <TeamCard team={right.r16[0]?.teamB || { name: "TBD", seed: 15 }} large isFocused={activeStageIndex === 0} staggerIndex={4} style={{ left: "4px", top: "402px", width: `${activeCardWidth}px`, height: "38px" }} />
+              <TeamCard
+                team={right.r16[0]?.teamA || { name: "TBD", seed: 2 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={4}
+                style={{ left: "4px", top: "360px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
+              <TeamCard
+                team={right.r16[0]?.teamB || { name: "TBD", seed: 15 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={4}
+                style={{ left: "4px", top: "402px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
 
-              <TeamCard team={right.r16[1]?.teamA || { name: "TBD", seed: 7 }} large isFocused={activeStageIndex === 0} staggerIndex={5} style={{ left: "4px", top: "450px", width: `${activeCardWidth}px`, height: "38px" }} />
-              <TeamCard team={right.r16[1]?.teamB || { name: "TBD", seed: 10 }} large isFocused={activeStageIndex === 0} staggerIndex={5} style={{ left: "4px", top: "492px", width: `${activeCardWidth}px`, height: "38px" }} />
+              <TeamCard
+                team={right.r16[1]?.teamA || { name: "TBD", seed: 7 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={5}
+                style={{ left: "4px", top: "450px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
+              <TeamCard
+                team={right.r16[1]?.teamB || { name: "TBD", seed: 10 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={5}
+                style={{ left: "4px", top: "492px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
 
-              <TeamCard team={right.r16[2]?.teamA || { name: "TBD", seed: 3 }} large isFocused={activeStageIndex === 0} staggerIndex={6} style={{ left: "4px", top: "540px", width: `${activeCardWidth}px`, height: "38px" }} />
-              <TeamCard team={right.r16[2]?.teamB || { name: "TBD", seed: 14 }} large isFocused={activeStageIndex === 0} staggerIndex={6} style={{ left: "4px", top: "582px", width: `${activeCardWidth}px`, height: "38px" }} />
+              <TeamCard
+                team={right.r16[2]?.teamA || { name: "TBD", seed: 3 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={6}
+                style={{ left: "4px", top: "540px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
+              <TeamCard
+                team={right.r16[2]?.teamB || { name: "TBD", seed: 14 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={6}
+                style={{ left: "4px", top: "582px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
 
-              <TeamCard team={right.r16[3]?.teamA || { name: "TBD", seed: 6 }} large isFocused={activeStageIndex === 0} staggerIndex={7} style={{ left: "4px", top: "630px", width: `${activeCardWidth}px`, height: "38px" }} />
-              <TeamCard team={right.r16[3]?.teamB || { name: "TBD", seed: 11 }} large isFocused={activeStageIndex === 0} staggerIndex={7} style={{ left: "4px", top: "672px", width: `${activeCardWidth}px`, height: "38px" }} />
+              <TeamCard
+                team={right.r16[3]?.teamA || { name: "TBD", seed: 6 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={7}
+                style={{ left: "4px", top: "630px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
+              <TeamCard
+                team={right.r16[3]?.teamB || { name: "TBD", seed: 11 }}
+                large
+                isFocused={activeStageIndex === 0}
+                staggerIndex={7}
+                style={{ left: "4px", top: "672px", width: `${activeCardWidth}px`, height: "38px" }}
+              />
 
               {/* PEEKING COLUMN: QUARTER FINAL (Clickable to advance) */}
-              <div onClick={() => setActiveStage("qf")} className="cursor-pointer group select-none">
-                <TeamCard team={left.qf[0]?.teamA || { name: "TBD", seed: 1 }} compact style={{ left: `${peekLeft}px`, top: "45px", width: "150px", height: "38px" }} className="opacity-80 group-hover:opacity-100 transition-opacity" />
-                <TeamCard team={left.qf[0]?.teamB || { name: "TBD", seed: 8 }} compact style={{ left: `${peekLeft}px`, top: "87px", width: "150px", height: "38px" }} className="opacity-80 group-hover:opacity-100 transition-opacity" />
+              <div onClick={() => setActiveStage("qf")} className="group cursor-pointer select-none">
+                <TeamCard
+                  team={left.qf[0]?.teamA || { name: "TBD", seed: 1 }}
+                  compact
+                  style={{ left: `${peekLeft}px`, top: "45px", width: "150px", height: "38px" }}
+                  className="opacity-80 transition-opacity group-hover:opacity-100"
+                />
+                <TeamCard
+                  team={left.qf[0]?.teamB || { name: "TBD", seed: 8 }}
+                  compact
+                  style={{ left: `${peekLeft}px`, top: "87px", width: "150px", height: "38px" }}
+                  className="opacity-80 transition-opacity group-hover:opacity-100"
+                />
 
-                <TeamCard team={left.qf[1]?.teamA || { name: "TBD", seed: 4 }} compact style={{ left: `${peekLeft}px`, top: "225px", width: "150px", height: "38px" }} className="opacity-80 group-hover:opacity-100 transition-opacity" />
-                <TeamCard team={left.qf[1]?.teamB || { name: "TBD", seed: 5 }} compact style={{ left: `${peekLeft}px`, top: "267px", width: "150px", height: "38px" }} className="opacity-80 group-hover:opacity-100 transition-opacity" />
+                <TeamCard
+                  team={left.qf[1]?.teamA || { name: "TBD", seed: 4 }}
+                  compact
+                  style={{ left: `${peekLeft}px`, top: "225px", width: "150px", height: "38px" }}
+                  className="opacity-80 transition-opacity group-hover:opacity-100"
+                />
+                <TeamCard
+                  team={left.qf[1]?.teamB || { name: "TBD", seed: 5 }}
+                  compact
+                  style={{ left: `${peekLeft}px`, top: "267px", width: "150px", height: "38px" }}
+                  className="opacity-80 transition-opacity group-hover:opacity-100"
+                />
 
-                <TeamCard team={right.qf[0]?.teamA || { name: "TBD", seed: 2 }} compact style={{ left: `${peekLeft}px`, top: "405px", width: "150px", height: "38px" }} className="opacity-80 group-hover:opacity-100 transition-opacity" />
-                <TeamCard team={right.qf[0]?.teamB || { name: "TBD", seed: 7 }} compact style={{ left: `${peekLeft}px`, top: "447px", width: "150px", height: "38px" }} className="opacity-80 group-hover:opacity-100 transition-opacity" />
+                <TeamCard
+                  team={right.qf[0]?.teamA || { name: "TBD", seed: 2 }}
+                  compact
+                  style={{ left: `${peekLeft}px`, top: "405px", width: "150px", height: "38px" }}
+                  className="opacity-80 transition-opacity group-hover:opacity-100"
+                />
+                <TeamCard
+                  team={right.qf[0]?.teamB || { name: "TBD", seed: 7 }}
+                  compact
+                  style={{ left: `${peekLeft}px`, top: "447px", width: "150px", height: "38px" }}
+                  className="opacity-80 transition-opacity group-hover:opacity-100"
+                />
 
-                <TeamCard team={right.qf[1]?.teamA || { name: "TBD", seed: 3 }} compact style={{ left: `${peekLeft}px`, top: "585px", width: "150px", height: "38px" }} className="opacity-80 group-hover:opacity-100 transition-opacity" />
-                <TeamCard team={right.qf[1]?.teamB || { name: "TBD", seed: 6 }} compact style={{ left: `${peekLeft}px`, top: "627px", width: "150px", height: "38px" }} className="opacity-80 group-hover:opacity-100 transition-opacity" />
+                <TeamCard
+                  team={right.qf[1]?.teamA || { name: "TBD", seed: 3 }}
+                  compact
+                  style={{ left: `${peekLeft}px`, top: "585px", width: "150px", height: "38px" }}
+                  className="opacity-80 transition-opacity group-hover:opacity-100"
+                />
+                <TeamCard
+                  team={right.qf[1]?.teamB || { name: "TBD", seed: 6 }}
+                  compact
+                  style={{ left: `${peekLeft}px`, top: "627px", width: "150px", height: "38px" }}
+                  className="opacity-80 transition-opacity group-hover:opacity-100"
+                />
               </div>
             </div>
 
@@ -630,19 +779,20 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                 STAGE 2: QUARTER FINAL (Panel 1, Centered vertically in static 735px)
             ══════════════════════════════════════════════════════════ */}
             <div
-              className="w-full shrink-0 relative h-[735px] overflow-hidden select-none"
+              className="relative h-[735px] w-full shrink-0 overflow-hidden select-none"
               style={{
                 opacity: activeStageIndex === 1 ? 1 : 0.35,
                 transform: activeStageIndex === 1 ? "scale(1)" : "scale(0.97)",
                 filter: activeStageIndex === 1 ? "blur(0px)" : "blur(0.8px)",
-                transition: "opacity 380ms cubic-bezier(0.22, 1, 0.36, 1), transform 380ms cubic-bezier(0.22, 1, 0.36, 1), filter 380ms cubic-bezier(0.22, 1, 0.36, 1)",
+                transition:
+                  "opacity 380ms cubic-bezier(0.22, 1, 0.36, 1), transform 380ms cubic-bezier(0.22, 1, 0.36, 1), filter 380ms cubic-bezier(0.22, 1, 0.36, 1)",
                 transformOrigin: "center left",
               }}
             >
-              <div className="relative w-full h-[385px] top-1/2 -translate-y-1/2">
+              <div className="relative top-1/2 h-[385px] w-full -translate-y-1/2">
                 {/* Connectors from QF to SF (Animated SVG stroke flow) */}
                 <svg
-                  className="absolute inset-0 pointer-events-none z-0"
+                  className="pointer-events-none absolute inset-0 z-0"
                   width="100%"
                   height="100%"
                   fill="none"
@@ -663,25 +813,93 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                 </svg>
 
                 {/* ACTIVE COLUMN: QUARTER FINAL (Full view & Gede, left: 4px) */}
-                <TeamCard team={left.qf[0]?.teamA || { name: "TBD", seed: 1 }} large isFocused={activeStageIndex === 1} staggerIndex={0} style={{ left: "4px", top: "0px", width: `${activeCardWidth}px`, height: "38px" }} />
-                <TeamCard team={left.qf[0]?.teamB || { name: "TBD", seed: 8 }} large isFocused={activeStageIndex === 1} staggerIndex={0} style={{ left: "4px", top: "42px", width: `${activeCardWidth}px`, height: "38px" }} />
+                <TeamCard
+                  team={left.qf[0]?.teamA || { name: "TBD", seed: 1 }}
+                  large
+                  isFocused={activeStageIndex === 1}
+                  staggerIndex={0}
+                  style={{ left: "4px", top: "0px", width: `${activeCardWidth}px`, height: "38px" }}
+                />
+                <TeamCard
+                  team={left.qf[0]?.teamB || { name: "TBD", seed: 8 }}
+                  large
+                  isFocused={activeStageIndex === 1}
+                  staggerIndex={0}
+                  style={{ left: "4px", top: "42px", width: `${activeCardWidth}px`, height: "38px" }}
+                />
 
-                <TeamCard team={left.qf[1]?.teamA || { name: "TBD", seed: 4 }} large isFocused={activeStageIndex === 1} staggerIndex={1} style={{ left: "4px", top: "90px", width: `${activeCardWidth}px`, height: "38px" }} />
-                <TeamCard team={left.qf[1]?.teamB || { name: "TBD", seed: 5 }} large isFocused={activeStageIndex === 1} staggerIndex={1} style={{ left: "4px", top: "132px", width: `${activeCardWidth}px`, height: "38px" }} />
+                <TeamCard
+                  team={left.qf[1]?.teamA || { name: "TBD", seed: 4 }}
+                  large
+                  isFocused={activeStageIndex === 1}
+                  staggerIndex={1}
+                  style={{ left: "4px", top: "90px", width: `${activeCardWidth}px`, height: "38px" }}
+                />
+                <TeamCard
+                  team={left.qf[1]?.teamB || { name: "TBD", seed: 5 }}
+                  large
+                  isFocused={activeStageIndex === 1}
+                  staggerIndex={1}
+                  style={{ left: "4px", top: "132px", width: `${activeCardWidth}px`, height: "38px" }}
+                />
 
-                <TeamCard team={right.qf[0]?.teamA || { name: "TBD", seed: 2 }} large isFocused={activeStageIndex === 1} staggerIndex={2} style={{ left: "4px", top: "180px", width: `${activeCardWidth}px`, height: "38px" }} />
-                <TeamCard team={right.qf[0]?.teamB || { name: "TBD", seed: 7 }} large isFocused={activeStageIndex === 1} staggerIndex={2} style={{ left: "4px", top: "222px", width: `${activeCardWidth}px`, height: "38px" }} />
+                <TeamCard
+                  team={right.qf[0]?.teamA || { name: "TBD", seed: 2 }}
+                  large
+                  isFocused={activeStageIndex === 1}
+                  staggerIndex={2}
+                  style={{ left: "4px", top: "180px", width: `${activeCardWidth}px`, height: "38px" }}
+                />
+                <TeamCard
+                  team={right.qf[0]?.teamB || { name: "TBD", seed: 7 }}
+                  large
+                  isFocused={activeStageIndex === 1}
+                  staggerIndex={2}
+                  style={{ left: "4px", top: "222px", width: `${activeCardWidth}px`, height: "38px" }}
+                />
 
-                <TeamCard team={right.qf[1]?.teamA || { name: "TBD", seed: 3 }} large isFocused={activeStageIndex === 1} staggerIndex={3} style={{ left: "4px", top: "270px", width: `${activeCardWidth}px`, height: "38px" }} />
-                <TeamCard team={right.qf[1]?.teamB || { name: "TBD", seed: 6 }} large isFocused={activeStageIndex === 1} staggerIndex={3} style={{ left: "4px", top: "312px", width: `${activeCardWidth}px`, height: "38px" }} />
+                <TeamCard
+                  team={right.qf[1]?.teamA || { name: "TBD", seed: 3 }}
+                  large
+                  isFocused={activeStageIndex === 1}
+                  staggerIndex={3}
+                  style={{ left: "4px", top: "270px", width: `${activeCardWidth}px`, height: "38px" }}
+                />
+                <TeamCard
+                  team={right.qf[1]?.teamB || { name: "TBD", seed: 6 }}
+                  large
+                  isFocused={activeStageIndex === 1}
+                  staggerIndex={3}
+                  style={{ left: "4px", top: "312px", width: `${activeCardWidth}px`, height: "38px" }}
+                />
 
                 {/* PEEKING COLUMN: SEMI FINAL (Clickable to advance) */}
-                <div onClick={() => setActiveStage("sf")} className="cursor-pointer group select-none">
-                  <TeamCard team={left.sf.teamA} compact style={{ left: `${peekLeft}px`, top: "45px", width: "150px", height: "38px" }} className="opacity-80 group-hover:opacity-100 transition-opacity" />
-                  <TeamCard team={left.sf.teamB} compact style={{ left: `${peekLeft}px`, top: "87px", width: "150px", height: "38px" }} className="opacity-80 group-hover:opacity-100 transition-opacity" />
+                <div onClick={() => setActiveStage("sf")} className="group cursor-pointer select-none">
+                  <TeamCard
+                    team={left.sf.teamA}
+                    compact
+                    style={{ left: `${peekLeft}px`, top: "45px", width: "150px", height: "38px" }}
+                    className="opacity-80 transition-opacity group-hover:opacity-100"
+                  />
+                  <TeamCard
+                    team={left.sf.teamB}
+                    compact
+                    style={{ left: `${peekLeft}px`, top: "87px", width: "150px", height: "38px" }}
+                    className="opacity-80 transition-opacity group-hover:opacity-100"
+                  />
 
-                  <TeamCard team={right.sf.teamA} compact style={{ left: `${peekLeft}px`, top: "225px", width: "150px", height: "38px" }} className="opacity-80 group-hover:opacity-100 transition-opacity" />
-                  <TeamCard team={right.sf.teamB} compact style={{ left: `${peekLeft}px`, top: "267px", width: "150px", height: "38px" }} className="opacity-80 group-hover:opacity-100 transition-opacity" />
+                  <TeamCard
+                    team={right.sf.teamA}
+                    compact
+                    style={{ left: `${peekLeft}px`, top: "225px", width: "150px", height: "38px" }}
+                    className="opacity-80 transition-opacity group-hover:opacity-100"
+                  />
+                  <TeamCard
+                    team={right.sf.teamB}
+                    compact
+                    style={{ left: `${peekLeft}px`, top: "267px", width: "150px", height: "38px" }}
+                    className="opacity-80 transition-opacity group-hover:opacity-100"
+                  />
                 </div>
               </div>
             </div>
@@ -690,19 +908,20 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                 STAGE 3: SEMI FINAL (Panel 2, Centered vertically in static 735px)
             ══════════════════════════════════════════════════════════ */}
             <div
-              className="w-full shrink-0 relative h-[735px] overflow-hidden select-none"
+              className="relative h-[735px] w-full shrink-0 overflow-hidden select-none"
               style={{
                 opacity: activeStageIndex === 2 ? 1 : 0.35,
                 transform: activeStageIndex === 2 ? "scale(1)" : "scale(0.97)",
                 filter: activeStageIndex === 2 ? "blur(0px)" : "blur(0.8px)",
-                transition: "opacity 380ms cubic-bezier(0.22, 1, 0.36, 1), transform 380ms cubic-bezier(0.22, 1, 0.36, 1), filter 380ms cubic-bezier(0.22, 1, 0.36, 1)",
+                transition:
+                  "opacity 380ms cubic-bezier(0.22, 1, 0.36, 1), transform 380ms cubic-bezier(0.22, 1, 0.36, 1), filter 380ms cubic-bezier(0.22, 1, 0.36, 1)",
                 transformOrigin: "center left",
               }}
             >
-              <div className="relative w-full h-[240px] top-1/2 -translate-y-1/2">
+              <div className="relative top-1/2 h-[240px] w-full -translate-y-1/2">
                 {/* Connectors from SF to Finals (Animated SVG stroke flow) */}
                 <svg
-                  className="absolute inset-0 pointer-events-none z-0"
+                  className="pointer-events-none absolute inset-0 z-0"
                   width="100%"
                   height="100%"
                   fill="none"
@@ -723,20 +942,44 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                 </svg>
 
                 {/* ACTIVE COLUMN: SEMI FINAL (Full view & Gede, left: 4px) */}
-                <TeamCard team={left.sf.teamA} large isFocused={activeStageIndex === 2} staggerIndex={0} style={{ left: "4px", top: "15px", width: `${activeCardWidth}px`, height: "38px" }} />
-                <TeamCard team={left.sf.teamB} large isFocused={activeStageIndex === 2} staggerIndex={0} style={{ left: "4px", top: "57px", width: `${activeCardWidth}px`, height: "38px" }} />
+                <TeamCard
+                  team={left.sf.teamA}
+                  large
+                  isFocused={activeStageIndex === 2}
+                  staggerIndex={0}
+                  style={{ left: "4px", top: "15px", width: `${activeCardWidth}px`, height: "38px" }}
+                />
+                <TeamCard
+                  team={left.sf.teamB}
+                  large
+                  isFocused={activeStageIndex === 2}
+                  staggerIndex={0}
+                  style={{ left: "4px", top: "57px", width: `${activeCardWidth}px`, height: "38px" }}
+                />
 
-                <TeamCard team={right.sf.teamA} large isFocused={activeStageIndex === 2} staggerIndex={1} style={{ left: "4px", top: "125px", width: `${activeCardWidth}px`, height: "38px" }} />
-                <TeamCard team={right.sf.teamB} large isFocused={activeStageIndex === 2} staggerIndex={1} style={{ left: "4px", top: "167px", width: `${activeCardWidth}px`, height: "38px" }} />
+                <TeamCard
+                  team={right.sf.teamA}
+                  large
+                  isFocused={activeStageIndex === 2}
+                  staggerIndex={1}
+                  style={{ left: "4px", top: "125px", width: `${activeCardWidth}px`, height: "38px" }}
+                />
+                <TeamCard
+                  team={right.sf.teamB}
+                  large
+                  isFocused={activeStageIndex === 2}
+                  staggerIndex={1}
+                  style={{ left: "4px", top: "167px", width: `${activeCardWidth}px`, height: "38px" }}
+                />
 
                 {/* PEEKING COLUMN: FINAL MATCH (Centered between SFs, Clickable to advance) */}
-                <div onClick={() => setActiveStage("final")} className="cursor-pointer group select-none">
+                <div onClick={() => setActiveStage("final")} className="group cursor-pointer select-none">
                   <div
                     style={{ left: `${peekLeft}px`, top: "46px" }}
-                    className="absolute select-none pointer-events-none"
+                    className="pointer-events-none absolute select-none"
                   >
                     <span
-                      className="text-[11px] font-bold uppercase text-[#7E0202] tracking-wider"
+                      className="text-[11px] font-bold tracking-wider text-[#7E0202] uppercase"
                       style={{ fontFamily: "var(--font-hollywood)" }}
                     >
                       FINAL
@@ -746,13 +989,13 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                     team={final.teamA}
                     compact
                     style={{ left: `${peekLeft}px`, top: "68px", width: "150px", height: "38px" }}
-                    className="opacity-80 group-hover:opacity-100 transition-opacity"
+                    className="opacity-80 transition-opacity group-hover:opacity-100"
                   />
                   <TeamCard
                     team={final.teamB}
                     compact
                     style={{ left: `${peekLeft}px`, top: "110px", width: "150px", height: "38px" }}
-                    className="opacity-80 group-hover:opacity-100 transition-opacity"
+                    className="opacity-80 transition-opacity group-hover:opacity-100"
                   />
                 </div>
               </div>
@@ -762,19 +1005,20 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                 STAGE 4: FINAL (Panel 3, Centered vertically in static 735px)
             ══════════════════════════════════════════════════════════ */}
             <div
-              className="w-full shrink-0 relative h-[735px] overflow-hidden select-none"
+              className="relative h-[735px] w-full shrink-0 overflow-hidden select-none"
               style={{
                 opacity: activeStageIndex === 3 ? 1 : 0.35,
                 transform: activeStageIndex === 3 ? "scale(1)" : "scale(0.97)",
                 filter: activeStageIndex === 3 ? "blur(0px)" : "blur(0.8px)",
-                transition: "opacity 380ms cubic-bezier(0.22, 1, 0.36, 1), transform 380ms cubic-bezier(0.22, 1, 0.36, 1), filter 380ms cubic-bezier(0.22, 1, 0.36, 1)",
+                transition:
+                  "opacity 380ms cubic-bezier(0.22, 1, 0.36, 1), transform 380ms cubic-bezier(0.22, 1, 0.36, 1), filter 380ms cubic-bezier(0.22, 1, 0.36, 1)",
                 transformOrigin: "center left",
               }}
             >
-              <div className="relative w-full h-[325px] top-1/2 -translate-y-1/2">
+              <div className="relative top-1/2 h-[325px] w-full -translate-y-1/2">
                 {/* Connectors from Semi-Final to Final & 3rd Place (Animated SVG stroke flow) */}
                 <svg
-                  className="absolute inset-0 pointer-events-none z-0"
+                  className="pointer-events-none absolute inset-0 z-0"
                   width="100%"
                   height="100%"
                   fill="none"
@@ -798,16 +1042,20 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                   <path d={`M ${xFinalFork} ${champY_Mid} V ${thirdY_Mid}`} />
 
                   {/* Champion fork and lines entering Champion Card A & B */}
-                  <path d={`M ${xFinalFork} ${champY_Mid} H ${xMatchFork} M ${xCardIn} ${champY_A} H ${xMatchFork} V ${champY_B} H ${xCardIn}`} />
+                  <path
+                    d={`M ${xFinalFork} ${champY_Mid} H ${xMatchFork} M ${xCardIn} ${champY_A} H ${xMatchFork} V ${champY_B} H ${xCardIn}`}
+                  />
 
                   {/* 3rd Place fork and lines entering 3rd Place Card A & B */}
-                  <path d={`M ${xFinalFork} ${thirdY_Mid} H ${xMatchFork} M ${xCardIn} ${thirdY_A} H ${xMatchFork} V ${thirdY_B} H ${xCardIn}`} />
+                  <path
+                    d={`M ${xFinalFork} ${thirdY_Mid} H ${xMatchFork} M ${xCardIn} ${thirdY_A} H ${xMatchFork} V ${thirdY_B} H ${xCardIn}`}
+                  />
                 </svg>
 
                 {/* PEEKING COLUMN (LEFT): SEMI FINALISTS (Clickable to go back to SF) */}
                 <div
                   onClick={() => setActiveStage("sf")}
-                  className="cursor-pointer group select-none"
+                  className="group cursor-pointer select-none"
                   title="Kembali ke Semi Final"
                 >
                   {/* SF1 Duel Peeking */}
@@ -815,13 +1063,13 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                     team={left.sf.teamA}
                     compact
                     style={{ left: "-82px", top: "24.5px", width: "110px", height: "38px" }}
-                    className="opacity-70 group-hover:opacity-100 transition-opacity"
+                    className="opacity-70 transition-opacity group-hover:opacity-100"
                   />
                   <TeamCard
                     team={left.sf.teamB}
                     compact
                     style={{ left: "-82px", top: "64.5px", width: "110px", height: "38px" }}
-                    className="opacity-70 group-hover:opacity-100 transition-opacity"
+                    className="opacity-70 transition-opacity group-hover:opacity-100"
                   />
 
                   {/* SF2 Duel Peeking */}
@@ -829,13 +1077,13 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                     team={right.sf.teamA}
                     compact
                     style={{ left: "-82px", top: "189.5px", width: "110px", height: "38px" }}
-                    className="opacity-70 group-hover:opacity-100 transition-opacity"
+                    className="opacity-70 transition-opacity group-hover:opacity-100"
                   />
                   <TeamCard
                     team={right.sf.teamB}
                     compact
                     style={{ left: "-82px", top: "229.5px", width: "110px", height: "38px" }}
-                    className="opacity-70 group-hover:opacity-100 transition-opacity"
+                    className="opacity-70 transition-opacity group-hover:opacity-100"
                   />
                 </div>
 
@@ -883,13 +1131,10 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
       </div>
 
       {/* ── DESKTOP BRACKET (>= 768px, Wide Symmetric Layout) ──────────────── */}
-      <div className="hidden md:block w-full overflow-x-auto pb-6 pt-2">
-        <div className="relative mx-auto w-[1140px] min-w-[1140px] h-[540px]">
+      <div className="hidden w-full overflow-x-auto pt-2 pb-6 md:block">
+        <div className="relative mx-auto h-[540px] w-[1140px] min-w-[1140px]">
           {/* ── STAGE BUTTONS RAIL (TOP) ───────────────────────────────── */}
-          <div
-            className="absolute top-0 left-0 w-full z-20"
-            style={{ height: "32px" }}
-          >
+          <div className="absolute top-0 left-0 z-20 w-full" style={{ height: "32px" }}>
             <StagePill label="Round Of 16" width={84} style={{ position: "absolute", left: "33.3px", top: 0 }} />
             <StagePill label="Quarter Final" width={100} style={{ position: "absolute", left: "199.6px", top: 0 }} />
             <StagePill label="Semi Final" width={84} style={{ position: "absolute", left: "369.7px", top: 0 }} />
@@ -900,7 +1145,7 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
           </div>
 
           {/* ── MAIN BRACKET BOARD AREA (below stage pills) ───────────── */}
-          <div className="absolute top-[52px] left-0 w-full h-[470px]">
+          <div className="absolute top-[52px] left-0 h-[470px] w-full">
             {/* ============================================================
                 LEFT WING
             ============================================================ */}
@@ -911,23 +1156,15 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
               const topB = topA + 57.67;
               return (
                 <React.Fragment key={duel.id}>
-                  <TeamCard
-                    team={duel.teamA}
-                    align="left"
-                    style={{ left: "11px", top: `${topA}px` }}
-                  />
-                  <TeamCard
-                    team={duel.teamB}
-                    align="left"
-                    style={{ left: "11px", top: `${topB}px` }}
-                  />
+                  <TeamCard team={duel.teamA} align="left" style={{ left: "11px", top: `${topA}px` }} />
+                  <TeamCard team={duel.teamB} align="left" style={{ left: "11px", top: `${topB}px` }} />
                 </React.Fragment>
               );
             })}
 
             {/* Left R16 Connector Track */}
             <div
-              className="absolute pointer-events-none z-0"
+              className="pointer-events-none absolute z-0"
               style={{
                 left: "124.11px",
                 top: "22.74px",
@@ -967,7 +1204,7 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
 
             {/* Left QF Connector Track */}
             <div
-              className="absolute pointer-events-none z-0"
+              className="pointer-events-none absolute z-0"
               style={{
                 left: "292.2px",
                 top: "82.33px",
@@ -984,20 +1221,12 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
             </div>
 
             {/* Left Semi Final Cards (2 cards, 1 duel) */}
-            <TeamCard
-              team={left.sf.teamA}
-              align="left"
-              style={{ left: "347.42px", top: "186.3px" }}
-            />
-            <TeamCard
-              team={left.sf.teamB}
-              align="left"
-              style={{ left: "347.42px", top: "229.37px" }}
-            />
+            <TeamCard team={left.sf.teamA} align="left" style={{ left: "347.42px", top: "186.3px" }} />
+            <TeamCard team={left.sf.teamB} align="left" style={{ left: "347.42px", top: "229.37px" }} />
 
             {/* Left SF Connector Track */}
             <div
-              className="absolute pointer-events-none z-0"
+              className="pointer-events-none absolute z-0"
               style={{
                 left: "456.2px",
                 top: "201.07px",
@@ -1028,7 +1257,7 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
             >
               {/* Champion Title */}
               <h3
-                className="text-[26px] tracking-wide uppercase select-none leading-tight mb-0.5 text-center"
+                className="mb-0.5 text-center text-[26px] leading-tight tracking-wide uppercase select-none"
                 style={{
                   fontFamily: "var(--font-hollywood)",
                   backgroundImage: "linear-gradient(180deg, #FDB813 0%, #976E0B 100%)",
@@ -1054,22 +1283,14 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                 }}
                 className="relative flex flex-col items-center justify-center gap-1.5 p-2"
               >
-                <TeamCard
-                  team={final.teamA}
-                  align="left"
-                  style={{ position: "relative", left: "0", top: "0" }}
-                />
-                <TeamCard
-                  team={final.teamB}
-                  align="left"
-                  style={{ position: "relative", left: "0", top: "0" }}
-                />
+                <TeamCard team={final.teamA} align="left" style={{ position: "relative", left: "0", top: "0" }} />
+                <TeamCard team={final.teamB} align="left" style={{ position: "relative", left: "0", top: "0" }} />
               </div>
             </div>
 
             {/* Final Connection Track */}
             <div
-              className="absolute pointer-events-none z-0"
+              className="pointer-events-none absolute z-0"
               style={{
                 left: "487.28px",
                 top: "155.81px",
@@ -1108,21 +1329,13 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
                 }}
                 className="relative flex flex-col items-center justify-center gap-1.5 p-2"
               >
-                <TeamCard
-                  team={thirdPlace.teamA}
-                  align="left"
-                  style={{ position: "relative", left: "0", top: "0" }}
-                />
-                <TeamCard
-                  team={thirdPlace.teamB}
-                  align="left"
-                  style={{ position: "relative", left: "0", top: "0" }}
-                />
+                <TeamCard team={thirdPlace.teamA} align="left" style={{ position: "relative", left: "0", top: "0" }} />
+                <TeamCard team={thirdPlace.teamB} align="left" style={{ position: "relative", left: "0", top: "0" }} />
               </div>
 
               {/* 3rd Place Title */}
               <h3
-                className="text-[24px] tracking-wide uppercase select-none leading-tight mt-1 text-center"
+                className="mt-1 text-center text-[24px] leading-tight tracking-wide uppercase select-none"
                 style={{
                   fontFamily: "var(--font-hollywood)",
                   color: "#811F1F",
@@ -1139,7 +1352,7 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
 
             {/* Right SF Connector Track */}
             <div
-              className="absolute pointer-events-none z-0"
+              className="pointer-events-none absolute z-0"
               style={{
                 left: "638.75px",
                 top: "200.01px",
@@ -1156,20 +1369,12 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
             </div>
 
             {/* Right Semi Final Cards (2 cards, 1 duel) */}
-            <TeamCard
-              team={right.sf.teamA}
-              align="right"
-              style={{ left: "658.51px", top: "186.3px" }}
-            />
-            <TeamCard
-              team={right.sf.teamB}
-              align="right"
-              style={{ left: "658.51px", top: "229.37px" }}
-            />
+            <TeamCard team={right.sf.teamA} align="right" style={{ left: "658.51px", top: "186.3px" }} />
+            <TeamCard team={right.sf.teamB} align="right" style={{ left: "658.51px", top: "229.37px" }} />
 
             {/* Right QF Connector Track */}
             <div
-              className="absolute pointer-events-none z-0"
+              className="pointer-events-none absolute z-0"
               style={{
                 left: "782.13px",
                 top: "88.76px",
@@ -1209,7 +1414,7 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
 
             {/* Right R16 Connector Track */}
             <div
-              className="absolute pointer-events-none z-0"
+              className="pointer-events-none absolute z-0"
               style={{
                 left: "947.44px",
                 top: "29.16px",
@@ -1231,16 +1436,8 @@ export function PlayoffBracket({ data }: PlayoffBracketProps) {
               const topB = topA + 57.67;
               return (
                 <React.Fragment key={duel.id}>
-                  <TeamCard
-                    team={duel.teamA}
-                    align="right"
-                    style={{ left: "999.65px", top: `${topA}px` }}
-                  />
-                  <TeamCard
-                    team={duel.teamB}
-                    align="right"
-                    style={{ left: "999.65px", top: `${topB}px` }}
-                  />
+                  <TeamCard team={duel.teamA} align="right" style={{ left: "999.65px", top: `${topA}px` }} />
+                  <TeamCard team={duel.teamB} align="right" style={{ left: "999.65px", top: `${topB}px` }} />
                 </React.Fragment>
               );
             })}

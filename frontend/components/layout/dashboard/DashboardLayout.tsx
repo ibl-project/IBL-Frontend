@@ -2,10 +2,12 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { DashboardSidebar } from "./DashboardSidebar";
-import { DashboardTopbar } from "./DashboardTopbar";
+
 import { restoreSession } from "@/lib/apiClient";
 import { useAuthStore } from "@/lib/store/useAuthStore";
+
+import { DashboardSidebar } from "./DashboardSidebar";
+import { DashboardTopbar } from "./DashboardTopbar";
 
 /** Sidebar langsung tertutup di layar < 1024px (mobile/tablet). */
 function isNarrowViewport(): boolean {
@@ -41,11 +43,7 @@ export function useCollapseSidebar() {
  * sesi login masih sah (lib/apiClient.ts). Tidak ada lagi cookie/localStorage
  * yang bisa dipalsukan dari DevTools untuk membuka dashboard.
  */
-export const DashboardLayout = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
   const authStatus = useAuthStore((state) => state.status);
@@ -68,27 +66,21 @@ export const DashboardLayout = ({
   // dashboard tidak sempat terlihat oleh yang belum login.
   if (authStatus !== "authenticated") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 font-poppins">
-        <div className="w-8 h-8 border-3 border-teal-600 border-t-transparent rounded-full animate-spin" />
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 font-poppins">
+        <div className="h-8 w-8 animate-spin rounded-full border-3 border-teal-600 border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div
-      id="dashboard-layout"
-      className="min-h-screen flex bg-slate-50 font-poppins relative overflow-x-hidden"
-    >
+    <div id="dashboard-layout" className="relative flex min-h-screen overflow-x-hidden bg-slate-50 font-poppins">
       {/* 1. Sidebar Navigasi Fixed Full-Height */}
-      <DashboardSidebar
-        isCollapsed={isSidebarCollapsed}
-        onToggle={() => setIsSidebarCollapsed((prev) => !prev)}
-      />
+      <DashboardSidebar isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed((prev) => !prev)} />
 
       {/* 2. Konten Utama (Topbar + Halaman) - Transisi margin-left smooth mengikuti sidebar */}
       <div
         id="dashboard-main-area"
-        className={`flex-1 flex flex-col min-w-0 min-h-screen transition-[margin] duration-300 ease-in-out ${
+        className={`flex min-h-screen min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-in-out ${
           isSidebarCollapsed ? "ml-0" : "ml-0 lg:ml-64"
         }`}
       >
@@ -96,11 +88,10 @@ export const DashboardLayout = ({
           isSidebarCollapsed={isSidebarCollapsed}
           onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
         />
-        <main className="flex-1 min-w-0">
+        <main className="min-w-0 flex-1">
           <SidebarCollapseContext value={setIsSidebarCollapsed}>{children}</SidebarCollapseContext>
         </main>
       </div>
     </div>
   );
 };
-

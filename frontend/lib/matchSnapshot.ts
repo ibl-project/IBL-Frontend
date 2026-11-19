@@ -1,11 +1,11 @@
 import {
+  STAT_KEYS,
   type MatchSnapshot,
   type PlayerLine,
   type PlayerQuarterLine,
   type QuarterScore,
   type StatCounts,
   type StatKey,
-  STAT_KEYS,
 } from "@/lib/matchesApi";
 import type { OutboxItem } from "@/lib/scoringOutbox";
 

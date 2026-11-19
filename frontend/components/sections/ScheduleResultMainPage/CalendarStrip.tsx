@@ -1,17 +1,18 @@
 "use client";
 
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import Image from "next/image";
+
 import { motion, useReducedMotion } from "framer-motion";
-import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import {
+  formatMatchDay,
   MONTHS_ID,
   MONTHS_ID_SHORT,
   WEEKDAYS_ID,
   WEEKDAYS_ID_SHORT,
   type MatchDay,
-  formatMatchDay,
 } from "@/lib/scheduleDays";
 
 /**
@@ -90,13 +91,7 @@ function ArrowButton({
       className={`absolute top-1/2 z-20 aspect-square w-[2.66cqw] -translate-y-1/2 cursor-pointer rounded-full bg-[#44D1D1] before:absolute before:top-1/2 before:h-11 before:w-11 before:-translate-y-1/2 before:content-[''] disabled:cursor-not-allowed disabled:opacity-30 motion-safe:transition-transform motion-safe:hover:not-disabled:scale-110 motion-safe:active:not-disabled:scale-95 @max-[480px]/strip:w-[3.17cqw] ${position} ${hitArea} ${FOCUS_RING}`}
     >
       <svg viewBox={CHEVRON[direction].viewBox} className="block h-full w-full" fill="none" aria-hidden="true">
-        <path
-          d={CHEVRON[direction].d}
-          stroke="#09090B"
-          strokeWidth={4}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        <path d={CHEVRON[direction].d} stroke="#09090B" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </button>
   );
@@ -142,13 +137,13 @@ function DayCard({
       aria-label={`${formatMatchDay(day)}, ${count} laga`}
       whileHover={canHover && !selected && !reduceMotion ? { y: -2 } : undefined}
       whileTap={reduceMotion ? undefined : { scale: 0.97 }}
-      className={`${CARD_SHELL} cursor-pointer pointer-events-auto ${FOCUS_RING}`}
+      className={`${CARD_SHELL} pointer-events-auto cursor-pointer ${FOCUS_RING}`}
     >
       <span aria-hidden="true" className={CARD_WINDOW} />
 
       <span
         aria-hidden="true"
-        className={`${CARD_LINE} top-[16.17%] pl-[0.15em] font-drowner text-[max(13.97cqw,0.625rem)] tracking-[0.15em] motion-safe:transition-[top,color] motion-safe:duration-200 group-aria-pressed:top-[13%] group-aria-pressed:text-[#7E0202]`}
+        className={`${CARD_LINE} top-[16.17%] pl-[0.15em] font-drowner text-[max(13.97cqw,0.625rem)] tracking-[0.15em] group-aria-pressed:top-[13%] group-aria-pressed:text-[#7E0202] motion-safe:transition-[top,color] motion-safe:duration-200`}
       >
         <span className="@max-[346px]/strip:hidden">{WEEKDAYS_ID[day.weekday]}</span>
         <span className="hidden @max-[346px]/strip:inline">{WEEKDAYS_ID_SHORT[day.weekday]}</span>
@@ -166,9 +161,7 @@ function DayCard({
         className={`${CARD_LINE} top-[70.88%] pl-[0.26em] font-drowner text-[max(10.47cqw,0.5625rem)] tracking-[0.26em]`}
       >
         <span className="hidden @min-[717px]/strip:inline">{MONTHS_ID[day.month - 1]}</span>
-        <span className="hidden @min-[432px]/strip:@max-[717px]/strip:inline">
-          {MONTHS_ID_SHORT[day.month - 1]}
-        </span>
+        <span className="hidden @min-[432px]/strip:@max-[717px]/strip:inline">{MONTHS_ID_SHORT[day.month - 1]}</span>
       </span>
 
       <span
@@ -197,7 +190,11 @@ function SkeletonCard() {
 }
 
 /** Untuk browser tanpa container query (iOS < 16): deretan tombol biasa, tetap bisa dipilih. */
-function FallbackDayList({ days, selectedKey, onSelect }: Pick<CalendarStripProps, "days" | "selectedKey" | "onSelect">) {
+function FallbackDayList({
+  days,
+  selectedKey,
+  onSelect,
+}: Pick<CalendarStripProps, "days" | "selectedKey" | "onSelect">) {
   return (
     <div role="group" aria-label="Pilih hari pertandingan" className="flex flex-wrap justify-center gap-2 py-2">
       {days.map((day) => (
@@ -252,7 +249,11 @@ export function CalendarStrip({ days, selectedKey, onSelect, status, onRetry }: 
 
   const ready = status === "ready" && days.length > 0;
   const message =
-    status === "error" ? "Jadwal gagal dimuat" : status === "ready" && days.length === 0 ? "Jadwal belum tersedia" : null;
+    status === "error"
+      ? "Jadwal gagal dimuat"
+      : status === "ready" && days.length === 0
+        ? "Jadwal belum tersedia"
+        : null;
 
   return (
     <div className="@container/strip w-full">
@@ -271,19 +272,9 @@ export function CalendarStrip({ days, selectedKey, onSelect, status, onRetry }: 
         )}
 
         <div className="relative aspect-[978/243] w-full">
-          <Image
-            src="/svg/figma/calendar-frame.svg"
-            alt=""
-            fill
-            priority
-            className="pointer-events-none select-none"
-          />
+          <Image src="/svg/figma/calendar-frame.svg" alt="" fill priority className="pointer-events-none select-none" />
 
-          <ArrowButton
-            direction="prev"
-            disabled={!ready || page === 0}
-            onClick={() => setPagedTo(page - 1)}
-          />
+          <ArrowButton direction="prev" disabled={!ready || page === 0} onClick={() => setPagedTo(page - 1)} />
           <ArrowButton
             direction="next"
             disabled={!ready || page >= pageCount - 1}
@@ -319,7 +310,7 @@ export function CalendarStrip({ days, selectedKey, onSelect, status, onRetry }: 
               role="group"
               aria-label="Pilih hari pertandingan"
               onKeyDown={onRowKeyDown}
-              className="absolute inset-0 flex items-center justify-center gap-[1.15cqw] pointer-events-none @max-[480px]/strip:gap-[0.7cqw]"
+              className="pointer-events-none absolute inset-0 flex items-center justify-center gap-[1.15cqw] @max-[480px]/strip:gap-[0.7cqw]"
             >
               {visible.map((day) => (
                 <DayCard

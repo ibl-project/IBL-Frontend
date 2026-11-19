@@ -1,9 +1,10 @@
 import React from "react";
-import InputField from "@/components/ui/InputField";
+
 import Dropdown from "@/components/ui/Dropdown";
-import { FORM_LABELS, DROPDOWN_OPTIONS, DROPDOWN_OPTIONS_2 } from "@/constants/registerForm";
+import InputField from "@/components/ui/InputField";
 import { DIVISION_QUESTIONS, GENERAL_QUESTIONS } from "@/constants/questions";
-import { StepData, RegisterFormData } from "@/types/register";
+import { DROPDOWN_OPTIONS, DROPDOWN_OPTIONS_2, FORM_LABELS } from "@/constants/registerForm";
+import { RegisterFormData, StepData } from "@/types/register";
 
 interface FormStepFieldsProps {
   step: number;
@@ -12,12 +13,7 @@ interface FormStepFieldsProps {
   updateField: (field: string, value: string) => void;
 }
 
-export const FormStepFields = ({
-  step,
-  formData,
-  currentData,
-  updateField,
-}: FormStepFieldsProps) => {
+export const FormStepFields = ({ step, formData, currentData, updateField }: FormStepFieldsProps) => {
   // STEP 1: INFORMASI UMUM
   if (step === 1) {
     return (
@@ -27,11 +23,7 @@ export const FormStepFields = ({
           value={currentData.nama || ""}
           onChange={(val: string) => updateField("nama", val)}
         />
-        <InputField
-          label="NRP *"
-          value={currentData.nrp || ""}
-          onChange={(val: string) => updateField("nrp", val)}
-        />
+        <InputField label="NRP *" value={currentData.nrp || ""} onChange={(val: string) => updateField("nrp", val)} />
         <InputField
           label="No. WhatsApp *"
           value={currentData.whatsapp || ""}
@@ -52,7 +44,7 @@ export const FormStepFields = ({
           value={currentData.angkatan || ""}
           onChange={(val: string) => updateField("angkatan", val)}
         />
-        
+
         <Dropdown
           label={FORM_LABELS.dropdown + " *"}
           options={DROPDOWN_OPTIONS}
@@ -68,12 +60,12 @@ export const FormStepFields = ({
         />
 
         {/* Pertanyaan Essay Informasi Umum */}
-        <div className="flex flex-col w-full text-left mt-2">
-          <label 
-            className="font-bold text-[#2D2D2D] font-drowner tracking-widest leading-relaxed"
-            style={{ 
+        <div className="mt-2 flex w-full flex-col text-left">
+          <label
+            className="font-drowner leading-relaxed font-bold tracking-widest text-[#2D2D2D]"
+            style={{
               fontSize: "var(--form-font-size)",
-              marginBottom: "var(--form-margin-bottom)"
+              marginBottom: "var(--form-margin-bottom)",
             }}
           >
             Sebutkan kelebihan dan kekuranganmu! *
@@ -82,7 +74,7 @@ export const FormStepFields = ({
             value={currentData.kelebihanKekurangan || ""}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateField("kelebihanKekurangan", e.target.value)}
             placeholder="Tulis jawabanmu di sini..."
-            className="w-full bg-white border border-gray-300 font-body text-gray-800 placeholder-gray-400 outline-none focus:border-[#2B918E] focus:ring-1 focus:ring-[#2B918E] transition-colors shadow-inner resize-y"
+            className="w-full resize-y border border-gray-300 bg-white font-body text-gray-800 placeholder-gray-400 shadow-inner transition-colors outline-none focus:border-[#2B918E] focus:ring-1 focus:ring-[#2B918E]"
             style={{
               fontSize: "var(--form-font-size)",
               paddingTop: "var(--form-padding-y)",
@@ -90,26 +82,27 @@ export const FormStepFields = ({
               paddingLeft: "var(--form-padding-x)",
               paddingRight: "var(--form-padding-x)",
               minHeight: "120px",
-              borderRadius: "calc(var(--form-font-size) * 0.43)"
+              borderRadius: "calc(var(--form-font-size) * 0.43)",
             }}
           />
         </div>
 
-        <div className="flex flex-col w-full text-left mt-3">
-          <label 
-            className="font-bold text-[#2D2D2D] font-drowner tracking-widest leading-relaxed"
-            style={{ 
+        <div className="mt-3 flex w-full flex-col text-left">
+          <label
+            className="font-drowner leading-relaxed font-bold tracking-widest text-[#2D2D2D]"
+            style={{
               fontSize: "var(--form-font-size)",
-              marginBottom: "var(--form-margin-bottom)"
+              marginBottom: "var(--form-margin-bottom)",
             }}
           >
-            Apa satu hal yang kalian inginkan kami ketahui tentang diri Anda yang tidak dapat terlihat dari dokumen tertulis (CV atau portofolio) Anda? *
+            Apa satu hal yang kalian inginkan kami ketahui tentang diri Anda yang tidak dapat terlihat dari dokumen
+            tertulis (CV atau portofolio) Anda? *
           </label>
           <textarea
             value={currentData.halUnik || ""}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateField("halUnik", e.target.value)}
             placeholder="Tulis jawabanmu di sini..."
-            className="w-full bg-white border border-gray-300 font-body text-gray-800 placeholder-gray-400 outline-none focus:border-[#2B918E] focus:ring-1 focus:ring-[#2B918E] transition-colors shadow-inner resize-y"
+            className="w-full resize-y border border-gray-300 bg-white font-body text-gray-800 placeholder-gray-400 shadow-inner transition-colors outline-none focus:border-[#2B918E] focus:ring-1 focus:ring-[#2B918E]"
             style={{
               fontSize: "var(--form-font-size)",
               paddingTop: "var(--form-padding-y)",
@@ -117,7 +110,7 @@ export const FormStepFields = ({
               paddingLeft: "var(--form-padding-x)",
               paddingRight: "var(--form-padding-x)",
               minHeight: "120px",
-              borderRadius: "calc(var(--form-font-size) * 0.43)"
+              borderRadius: "calc(var(--form-font-size) * 0.43)",
             }}
           />
         </div>
@@ -129,16 +122,16 @@ export const FormStepFields = ({
   if (step === 2) {
     return (
       <div className="flex flex-col gap-5">
-        <h4 className="font-crosner text-sm font-bold text-gray-700 tracking-widest uppercase border-l-4 border-[#2B918E] pl-2 mb-1">
+        <h4 className="mb-1 border-l-4 border-[#2B918E] pl-2 font-crosner text-sm font-bold tracking-widest text-gray-700 uppercase">
           Pertanyaan General
         </h4>
         {GENERAL_QUESTIONS.map((q: string, idx: number) => (
-          <div key={`gen-q-${idx}`} className="flex flex-col w-full text-left">
-            <label 
-              className="font-bold text-[#2D2D2D] font-drowner tracking-widest leading-relaxed"
-              style={{ 
+          <div key={`gen-q-${idx}`} className="flex w-full flex-col text-left">
+            <label
+              className="font-drowner leading-relaxed font-bold tracking-widest text-[#2D2D2D]"
+              style={{
                 fontSize: "var(--form-font-size)",
-                marginBottom: "var(--form-margin-bottom)"
+                marginBottom: "var(--form-margin-bottom)",
               }}
             >
               {idx + 1}. {q} *
@@ -147,7 +140,7 @@ export const FormStepFields = ({
               value={currentData[q] || ""}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateField(q, e.target.value)}
               placeholder="Tulis jawabanmu di sini..."
-              className="w-full bg-white border border-gray-300 font-body text-gray-800 placeholder-gray-400 outline-none focus:border-[#2B918E] focus:ring-1 focus:ring-[#2B918E] transition-colors shadow-inner resize-y"
+              className="w-full resize-y border border-gray-300 bg-white font-body text-gray-800 placeholder-gray-400 shadow-inner transition-colors outline-none focus:border-[#2B918E] focus:ring-1 focus:ring-[#2B918E]"
               style={{
                 fontSize: "var(--form-font-size)",
                 paddingTop: "var(--form-padding-y)",
@@ -155,7 +148,7 @@ export const FormStepFields = ({
                 paddingLeft: "var(--form-padding-x)",
                 paddingRight: "var(--form-padding-x)",
                 minHeight: "120px",
-                borderRadius: "calc(var(--form-font-size) * 0.43)"
+                borderRadius: "calc(var(--form-font-size) * 0.43)",
               }}
             />
           </div>
@@ -166,24 +159,33 @@ export const FormStepFields = ({
 
   // Determine which division choice this step is for
   const isChoice1 = step === 3;
-  const divisionChoice = isChoice1 
-    ? formData.informasiUmum.subdivisi1 
-    : formData.informasiUmum.subdivisi2;
+  const divisionChoice = isChoice1 ? formData.informasiUmum.subdivisi1 : formData.informasiUmum.subdivisi2;
 
   // Handle case where no division is selected
   if (!divisionChoice || divisionChoice === "Tidak Memilih") {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center p-6 gap-4">
-        <div className="w-16 h-16 rounded-full bg-[#D1EAE5]/40 flex items-center justify-center border border-[#864B4D]">
-          <svg className="w-8 h-8 text-[#864B4D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      <div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-4 p-6 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#864B4D] bg-[#D1EAE5]/40">
+          <svg
+            className="h-8 w-8 text-[#864B4D]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
           </svg>
         </div>
-        <h3 className="font-crosner text-xl font-semibold text-black uppercase tracking-widest">
+        <h3 className="font-crosner text-xl font-semibold tracking-widest text-black uppercase">
           {isChoice1 ? "Subdivisi Pilihan 1 Kosong" : "Subdivisi Pilihan 2 Kosong / Tidak Dipilih"}
         </h3>
-        <p className="font-body text-sm text-gray-600 max-w-md">
-          {isChoice1 
+        <p className="max-w-md font-body text-sm text-gray-600">
+          {isChoice1
             ? "Silakan kembali ke Halaman Informasi Umum untuk memilih Subdivisi Pilihan 1 terlebih dahulu."
             : "Kamu memilih untuk tidak mengambil pilihan subdivisi kedua. Silakan klik NEXT di navigasi bawah untuk melompat ke bagian Upload Berkas."}
         </p>
@@ -195,7 +197,7 @@ export const FormStepFields = ({
   const divisionData = DIVISION_QUESTIONS[divisionChoice];
   if (!divisionData) {
     return (
-      <div className="text-center p-6 text-red-500 font-body">
+      <div className="p-6 text-center font-body text-red-500">
         Error: Pertanyaan divisi &ldquo;{divisionChoice}&rdquo; tidak ditemukan.
       </div>
     );
@@ -206,11 +208,11 @@ export const FormStepFields = ({
   return (
     <div className="flex flex-col" style={{ gap: "28px" }}>
       {/* Title indicating which division we are answering for */}
-      <div className="border-b border-[#864B4D]/30 pb-3 mb-2">
-        <h3 className="font-crosner text-xl text-[#864B4D] font-bold uppercase tracking-widest">
+      <div className="mb-2 border-b border-[#864B4D]/30 pb-3">
+        <h3 className="font-crosner text-xl font-bold tracking-widest text-[#864B4D] uppercase">
           DIVISI: {divisionChoice}
         </h3>
-        <p className="font-body text-[11px] text-gray-500 mt-1">
+        <p className="mt-1 font-body text-[11px] text-gray-500">
           Jawablah pertanyaan di bawah ini dengan lengkap. (Semua pertanyaan wajib diisi *)
         </p>
       </div>
@@ -218,16 +220,16 @@ export const FormStepFields = ({
       {/* Part 1: Pertanyaan Divisi */}
       {divisionQuestions.length > 0 && (
         <div className="flex flex-col gap-5">
-          <h4 className="font-crosner text-sm font-bold text-gray-700 tracking-widest uppercase border-l-4 border-[#2B918E] pl-2 mb-1">
+          <h4 className="mb-1 border-l-4 border-[#2B918E] pl-2 font-crosner text-sm font-bold tracking-widest text-gray-700 uppercase">
             Pertanyaan Divisi
           </h4>
           {divisionQuestions.map((q, idx) => (
-            <div key={`div-q-${idx}`} className="flex flex-col w-full text-left">
-              <label 
-                className="font-bold text-[#2D2D2D] font-drowner tracking-widest leading-relaxed"
-                style={{ 
+            <div key={`div-q-${idx}`} className="flex w-full flex-col text-left">
+              <label
+                className="font-drowner leading-relaxed font-bold tracking-widest text-[#2D2D2D]"
+                style={{
                   fontSize: "var(--form-font-size)",
-                  marginBottom: "var(--form-margin-bottom)"
+                  marginBottom: "var(--form-margin-bottom)",
                 }}
               >
                 {idx + 1}. {q} *
@@ -236,7 +238,7 @@ export const FormStepFields = ({
                 value={currentData[q] || ""}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateField(q, e.target.value)}
                 placeholder="Tulis jawabanmu di sini..."
-                className="w-full bg-white border border-gray-300 font-body text-gray-800 placeholder-gray-400 outline-none focus:border-[#2B918E] focus:ring-1 focus:ring-[#2B918E] transition-colors shadow-inner resize-y"
+                className="w-full resize-y border border-gray-300 bg-white font-body text-gray-800 placeholder-gray-400 shadow-inner transition-colors outline-none focus:border-[#2B918E] focus:ring-1 focus:ring-[#2B918E]"
                 style={{
                   fontSize: "var(--form-font-size)",
                   paddingTop: "var(--form-padding-y)",
@@ -244,7 +246,7 @@ export const FormStepFields = ({
                   paddingLeft: "var(--form-padding-x)",
                   paddingRight: "var(--form-padding-x)",
                   minHeight: "120px",
-                  borderRadius: "calc(var(--form-font-size) * 0.43)"
+                  borderRadius: "calc(var(--form-font-size) * 0.43)",
                 }}
               />
             </div>
@@ -254,17 +256,17 @@ export const FormStepFields = ({
 
       {/* Part 2: Pertanyaan Study Case */}
       {studyCases.length > 0 && (
-        <div className="flex flex-col gap-5 mt-4">
-          <h4 className="font-crosner text-sm font-bold text-gray-700 tracking-widest uppercase border-l-4 border-[#F4631E] pl-2 mb-1">
+        <div className="mt-4 flex flex-col gap-5">
+          <h4 className="mb-1 border-l-4 border-[#F4631E] pl-2 font-crosner text-sm font-bold tracking-widest text-gray-700 uppercase">
             Studi Kasus (Study Case)
           </h4>
           {studyCases.map((q, idx) => (
-            <div key={`case-q-${idx}`} className="flex flex-col w-full text-left">
-              <label 
-                className="font-bold text-[#2D2D2D] font-drowner tracking-widest leading-relaxed"
-                style={{ 
+            <div key={`case-q-${idx}`} className="flex w-full flex-col text-left">
+              <label
+                className="font-drowner leading-relaxed font-bold tracking-widest text-[#2D2D2D]"
+                style={{
                   fontSize: "var(--form-font-size)",
-                  marginBottom: "var(--form-margin-bottom)"
+                  marginBottom: "var(--form-margin-bottom)",
                 }}
               >
                 {idx + 1}. {q} *
@@ -273,7 +275,7 @@ export const FormStepFields = ({
                 value={currentData[q] || ""}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateField(q, e.target.value)}
                 placeholder="Tulis analisis dan jawaban studi kasusmu di sini..."
-                className="w-full bg-white border border-gray-300 font-body text-gray-800 placeholder-gray-400 outline-none focus:border-[#F4631E] focus:ring-1 focus:ring-[#F4631E] transition-colors shadow-inner resize-y"
+                className="w-full resize-y border border-gray-300 bg-white font-body text-gray-800 placeholder-gray-400 shadow-inner transition-colors outline-none focus:border-[#F4631E] focus:ring-1 focus:ring-[#F4631E]"
                 style={{
                   fontSize: "var(--form-font-size)",
                   paddingTop: "var(--form-padding-y)",
@@ -281,7 +283,7 @@ export const FormStepFields = ({
                   paddingLeft: "var(--form-padding-x)",
                   paddingRight: "var(--form-padding-x)",
                   minHeight: "150px",
-                  borderRadius: "calc(var(--form-font-size) * 0.43)"
+                  borderRadius: "calc(var(--form-font-size) * 0.43)",
                 }}
               />
             </div>

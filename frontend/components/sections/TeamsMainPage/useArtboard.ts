@@ -12,7 +12,10 @@ export interface ArtboardMetrics {
 function metricsFor(width: number): ArtboardMetrics {
   const variant: ArtboardVariant = width < MOBILE_MAX_WIDTH ? "mobile" : "desktop";
   const ratio = width / ARTBOARD[variant].width;
-  return { variant, scale: variant === "desktop" ? Math.min(ratio, DESKTOP_MAX_WIDTH / ARTBOARD.desktop.width) : ratio };
+  return {
+    variant,
+    scale: variant === "desktop" ? Math.min(ratio, DESKTOP_MAX_WIDTH / ARTBOARD.desktop.width) : ratio,
+  };
 }
 
 /**

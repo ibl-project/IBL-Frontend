@@ -88,14 +88,21 @@ export function PaperCard({ left, width, top, bottom, shadowScale }: PaperCardPr
     >
       <div className="absolute inset-0" style={{ clipPath: paper.clip, background: PAPER_FILL }} />
       <svg
-        className="absolute bottom-0 right-0"
+        className="absolute right-0 bottom-0"
         width={CURL_BOX.width}
         height={CURL_BOX.height}
         viewBox={`${CURL_BOX.x} ${CURL_BOX.y} ${CURL_BOX.width} ${CURL_BOX.height}`}
         style={{ filter: `drop-shadow(${-6.5 * s}px ${3.25 * s}px ${4 * s}px rgba(0, 0, 0, 0.25))` }}
       >
         <defs>
-          <linearGradient id="teams-paper-curl" x1="1647.25" y1="562.037" x2="1532.84" y2="509.706" gradientUnits="userSpaceOnUse">
+          <linearGradient
+            id="teams-paper-curl"
+            x1="1647.25"
+            y1="562.037"
+            x2="1532.84"
+            y2="509.706"
+            gradientUnits="userSpaceOnUse"
+          >
             <stop offset="0.0961538" stopColor="#80807F" />
             <stop offset="0.961538" stopColor="#9F9F9F" />
           </linearGradient>

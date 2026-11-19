@@ -2,16 +2,10 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
+import { errorMessage } from "@/lib/errors";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
 import type { SessionState } from "@/lib/hooks/useScoringSession";
-import {
-  type MatchSnapshot,
-  type ScoringBoardItem,
-  getMatch,
-  saveLineup,
-  startMatch,
-} from "@/lib/matchesApi";
-import { errorMessage } from "@/lib/errors";
+import { getMatch, saveLineup, startMatch, type MatchSnapshot, type ScoringBoardItem } from "@/lib/matchesApi";
 import { JERSEY_PATTERN } from "@/lib/teamsApi";
 
 interface ScoringLineupSectionProps {
@@ -62,7 +56,7 @@ const LineupTable = ({
   onChange: (rows: Row[]) => void;
 }) => (
   <div className="z-10 flex w-full max-w-[380px] flex-col">
-    <div className="rounded-t-lg border-b border-teal-200 bg-teal-50 py-1.5 text-center text-sm font-bold uppercase tracking-wide text-teal-800">
+    <div className="rounded-t-lg border-b border-teal-200 bg-teal-50 py-1.5 text-center text-sm font-bold tracking-wide text-teal-800 uppercase">
       {teamName}
     </div>
     <table className="w-full border-collapse text-[12px] text-[#313131]">
@@ -118,8 +112,10 @@ const LineupTable = ({
                       document.getElementById(`nopung-${side}-${next}`)?.focus();
                     }
                   }}
-                  className={`h-[26px] w-full rounded text-center outline-none transition-colors focus:ring-2 focus:ring-teal-600 ${
-                    bad ? "border border-red-600 bg-red-50 font-bold text-red-700" : "bg-transparent text-[#313131] hover:bg-black/5"
+                  className={`h-[26px] w-full rounded text-center transition-colors outline-none focus:ring-2 focus:ring-teal-600 ${
+                    bad
+                      ? "border border-red-600 bg-red-50 font-bold text-red-700"
+                      : "bg-transparent text-[#313131] hover:bg-black/5"
                   }`}
                 />
               </td>
@@ -205,14 +201,31 @@ const LineupForm = ({
   return (
     <div className="mt-12 w-full">
       <div className="flex w-full flex-col items-start justify-center gap-10 lg:flex-row lg:gap-20">
-        <LineupTable side={1} teamName={team1} rows={rows1} invalid={invalid1} disabled={!editable || saving} onChange={change(setRows1)} />
-        <LineupTable side={2} teamName={team2} rows={rows2} invalid={invalid2} disabled={!editable || saving} onChange={change(setRows2)} />
+        <LineupTable
+          side={1}
+          teamName={team1}
+          rows={rows1}
+          invalid={invalid1}
+          disabled={!editable || saving}
+          onChange={change(setRows1)}
+        />
+        <LineupTable
+          side={2}
+          teamName={team2}
+          rows={rows2}
+          invalid={invalid2}
+          disabled={!editable || saving}
+          onChange={change(setRows2)}
+        />
       </div>
 
       <p className="mt-6 text-center text-xs text-gray-600">
         Nomor punggung di sini hanya berlaku untuk pertandingan ini. Nama pemain diubah di halaman Teams.
       </p>
-      <p aria-live="polite" className={`mt-1 text-center text-xs font-medium ${draft === "failed" ? "text-red-700" : "text-teal-800"}`}>
+      <p
+        aria-live="polite"
+        className={`mt-1 text-center text-xs font-medium ${draft === "failed" ? "text-red-700" : "text-teal-800"}`}
+      >
         {draft === "saving"
           ? "Menyimpan draf..."
           : draft === "saved"
@@ -227,7 +240,10 @@ const LineupForm = ({
         </p>
       )}
       {error && (
-        <p role="alert" className="mx-auto mt-4 max-w-xl rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-medium text-red-700">
+        <p
+          role="alert"
+          className="mx-auto mt-4 max-w-xl rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-medium text-red-700"
+        >
           {error}
         </p>
       )}
@@ -267,7 +283,9 @@ export const ScoringLineupSection = ({ match, session, onBack, onStarted }: Scor
       <div className="flex w-full flex-col items-center justify-center gap-4 lg:flex-row lg:gap-8">
         {[match.team1, match.team2].map((team, index) => (
           <React.Fragment key={index}>
-            {index === 1 && <span className="my-2 select-none text-[22px] font-extrabold text-[#202224] lg:my-0">VS</span>}
+            {index === 1 && (
+              <span className="my-2 text-[22px] font-extrabold text-[#202224] select-none lg:my-0">VS</span>
+            )}
             <div className="relative flex h-[56px] w-full max-w-[380px] items-center rounded-[4px] border border-[#79747e] bg-white px-4">
               <span className="absolute -top-3 left-3 bg-white px-1 text-[14px] text-[#313131]">Team {index + 1}</span>
               <span className="truncate text-[16px] font-medium text-[#1c1b1f]">{team.name}</span>
@@ -278,9 +296,15 @@ export const ScoringLineupSection = ({ match, session, onBack, onStarted }: Scor
 
       {session.status === "busy" ? (
         <div role="alert" className="mt-12 flex flex-col items-center gap-4 text-center">
-          <p className="text-base font-semibold text-[#202224]">Jadwal ini sedang disiapkan oleh {session.holderName}.</p>
+          <p className="text-base font-semibold text-[#202224]">
+            Jadwal ini sedang disiapkan oleh {session.holderName}.
+          </p>
           <p className="text-sm text-gray-600">Pilih jadwal lain, atau tunggu sampai akun tersebut keluar.</p>
-          <button type="button" onClick={onBack} className="rounded-full bg-[#f26722] px-6 py-2 text-sm font-bold text-white hover:bg-[#d8581a]">
+          <button
+            type="button"
+            onClick={onBack}
+            className="rounded-full bg-[#f26722] px-6 py-2 text-sm font-bold text-white hover:bg-[#d8581a]"
+          >
             Back
           </button>
         </div>
@@ -291,7 +315,11 @@ export const ScoringLineupSection = ({ match, session, onBack, onStarted }: Scor
       ) : state.status === "error" ? (
         <div role="alert" className="mt-12 flex flex-col items-center gap-3 text-center">
           <p className="text-sm font-medium text-red-700">Daftar pemain gagal dimuat: {state.message}</p>
-          <button type="button" onClick={reload} className="rounded-full bg-[#7a9ba8] px-5 py-2 text-xs font-semibold text-white">
+          <button
+            type="button"
+            onClick={reload}
+            className="rounded-full bg-[#7a9ba8] px-5 py-2 text-xs font-semibold text-white"
+          >
             Coba Lagi
           </button>
         </div>

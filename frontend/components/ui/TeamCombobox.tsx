@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useId, useMemo, useState } from "react";
+
 import { Search } from "lucide-react";
 
 import { OutlinedField } from "./OutlinedField";
@@ -128,7 +129,7 @@ export const TeamCombobox = ({
           id={listId}
           role="listbox"
           aria-label={label}
-          className="absolute left-0 top-full z-20 mt-3 -ml-4 max-h-64 w-[calc(100%+2rem)] overflow-y-auto bg-white shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+          className="absolute top-full left-0 z-20 mt-3 -ml-4 max-h-64 w-[calc(100%+2rem)] overflow-y-auto bg-white shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
         >
           {filtered.length === 0 ? (
             <li className="px-4 py-3 text-sm text-gray-600">{emptyText}</li>

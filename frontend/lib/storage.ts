@@ -95,7 +95,9 @@ const openDB = (): Promise<IDBDatabase> =>
         clearTimeout(timeout);
         if (active) resolve(req.result);
         else {
-          try { req.result.close(); } catch {}
+          try {
+            req.result.close();
+          } catch {}
         }
       };
       req.onerror = () => {

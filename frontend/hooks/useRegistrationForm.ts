@@ -1,20 +1,22 @@
-import { useState, useCallback, useEffect, useRef } from "react";
-import { RegisterFormData, StepData, UploadData, FileData } from "@/types/register";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { submitRegistration } from "@/lib/api";
-import { DIVISION_QUESTIONS, GENERAL_QUESTIONS } from "../constants/questions";
-import { PORTFOLIO_REQUIRED_DIVISIONS } from "../constants/registerForm";
 import {
+  clearAllFiles,
+  clearFormState,
+  deleteFile,
+  getAllFiles,
+  isSessionActive,
   isStorageAvailable,
   loadFormState,
-  saveFormState,
-  clearFormState,
-  isSessionActive,
   markSessionActive,
-  getAllFiles,
   saveFile,
-  deleteFile,
-  clearAllFiles,
+  saveFormState,
 } from "@/lib/storage";
+import { FileData, RegisterFormData, StepData, UploadData } from "@/types/register";
+
+import { DIVISION_QUESTIONS, GENERAL_QUESTIONS } from "../constants/questions";
+import { PORTFOLIO_REQUIRED_DIVISIONS } from "../constants/registerForm";
 
 export const initialStepData = (): StepData => ({
   nama: "",
@@ -128,10 +130,7 @@ export const useRegistrationForm = () => {
   const isPortfolioRequired = useCallback(() => {
     const p1 = formData.informasiUmum.subdivisi1;
     const p2 = formData.informasiUmum.subdivisi2;
-    return (
-      PORTFOLIO_REQUIRED_DIVISIONS.includes(p1) ||
-      PORTFOLIO_REQUIRED_DIVISIONS.includes(p2)
-    );
+    return PORTFOLIO_REQUIRED_DIVISIONS.includes(p1) || PORTFOLIO_REQUIRED_DIVISIONS.includes(p2);
   }, [formData.informasiUmum.subdivisi1, formData.informasiUmum.subdivisi2]);
 
   const dismissPortfolioModal = useCallback(() => setShowPortfolioModal(false), []);
@@ -375,12 +374,12 @@ export const useRegistrationForm = () => {
             subdivisi1: formData.informasiUmum.subdivisi1 || "",
             subdivisi2: formData.informasiUmum.subdivisi2 || "",
             kelebihanKekurangan: formData.informasiUmum.kelebihanKekurangan || "",
-            halUnik: formData.informasiUmum.halUnik || ""
+            halUnik: formData.informasiUmum.halUnik || "",
           },
           pertanyaanGeneral: formData.pertanyaanGeneral,
           subdivisi1: formData.subdivisi1,
           subdivisi2: formData.subdivisi2,
-          uploadBerkas: formData.uploadBerkas
+          uploadBerkas: formData.uploadBerkas,
         };
 
         await submitRegistration(gasUrl, compiledData, rawFiles);
@@ -448,4 +447,3 @@ export const useRegistrationForm = () => {
     clearError,
   };
 };
-

@@ -2,21 +2,22 @@
 
 import React, { useCallback, useState } from "react";
 
+import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
+import { Modal } from "@/components/ui/Modal";
 import { formatWib } from "@/lib/datetime";
+import { errorMessage } from "@/lib/errors";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
+import { SUMMARY_ROWS } from "@/lib/matchDisplay";
 import {
-  type MatchSide,
-  type MatchSnapshot,
-  REGULATION_QUARTERS,
   deleteSchedule,
   getMatch,
   periodColumnLabel,
+  REGULATION_QUARTERS,
   stageLabel,
+  type MatchSide,
+  type MatchSnapshot,
 } from "@/lib/matchesApi";
-import { errorMessage } from "@/lib/errors";
-import { SUMMARY_ROWS } from "@/lib/matchDisplay";
-import { Modal } from "@/components/ui/Modal";
-import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
+
 import { ResultFileCard } from "./ResultFileCard";
 
 interface ScheduleResultDetailSectionProps {
@@ -232,7 +233,10 @@ const DetailContent = ({
       {match && <DetailBody match={match} />}
 
       {deleteError && (
-        <p role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-medium text-red-700">
+        <p
+          role="alert"
+          className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-medium text-red-700"
+        >
           {deleteError}
         </p>
       )}
@@ -245,7 +249,9 @@ const DetailContent = ({
               onClick={() => setConfirming(true)}
               disabled={!deletable}
               title={
-                deletable ? undefined : "Match yang sudah dimulai dikosongkan dulu lewat Hapus match di halaman Scoring (admin)"
+                deletable
+                  ? undefined
+                  : "Match yang sudah dimulai dikosongkan dulu lewat Hapus match di halaman Scoring (admin)"
               }
               className="h-9 min-w-[76px] rounded-full bg-[#7a0000] px-5 text-xs font-semibold text-white transition-colors hover:bg-[#5c0000] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a0000] disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -271,7 +277,12 @@ const DetailContent = ({
         )}
       </div>
 
-      <Modal open={confirming} onClose={() => setConfirming(false)} labelledBy="schedule-delete-title" className="max-w-sm">
+      <Modal
+        open={confirming}
+        onClose={() => setConfirming(false)}
+        labelledBy="schedule-delete-title"
+        className="max-w-sm"
+      >
         <div className="rounded-3xl bg-white p-6 text-center">
           <h3 id="schedule-delete-title" className="text-lg font-bold text-gray-900">
             Hapus jadwal ini?

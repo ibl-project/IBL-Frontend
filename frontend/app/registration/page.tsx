@@ -1,11 +1,12 @@
 import React from "react";
-import Image from "next/image";
 import type { Metadata } from "next";
-import registrationBg from "@/public/images/registration/Registration-Bg.webp";
-import { RegistrationDecorations } from "@/components/sections/RegistrationPage/RegistrationDecorations";
-import { RegistHeroSection } from "@/components/sections/RegistrationPage/RegistHeroSection";
+import Image from "next/image";
+
 import { GuidebookSection } from "@/components/sections/RegistrationPage/GuidebookSection";
 import { RegisterNowSection } from "@/components/sections/RegistrationPage/RegisterNowSection";
+import { RegistHeroSection } from "@/components/sections/RegistrationPage/RegistHeroSection";
+import { RegistrationDecorations } from "@/components/sections/RegistrationPage/RegistrationDecorations";
+import registrationBg from "@/public/images/registration/Registration-Bg.webp";
 
 export const metadata: Metadata = {
   title: "Registration | IBL 2K26 - Open Team Registration",
@@ -22,8 +23,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Registration | IBL 2K26 - Open Team Registration",
-    description:
-      "Daftarkan tim basketmu di IBL 2K26: Fastbreak Collector sekarang!",
+    description: "Daftarkan tim basketmu di IBL 2K26: Fastbreak Collector sekarang!",
     url: "https://iblits.com/registration",
     siteName: "IBL 2K26",
     locale: "id_ID",
@@ -35,7 +35,7 @@ export default function RegistrationPage() {
   return (
     <main
       id="registration-page"
-      className="relative isolate w-full overflow-x-clip bg-[#F1EAD7] flex flex-col items-center min-h-[max(100vh,calc(100vw*1165/1440))] lg:min-h-[1165px]"
+      className="relative isolate flex min-h-[max(100vh,calc(100vw*1165/1440))] w-full flex-col items-center overflow-x-clip bg-[#F1EAD7] lg:min-h-[1165px]"
       style={{
         paddingTop: "var(--navbar-height)",
       }}
@@ -47,7 +47,7 @@ export default function RegistrationPage() {
         - Content sections have fixed aspect ratios, ensuring stable height and zero CLS
       */}
       <div
-        className="absolute inset-x-0 bottom-0 w-full pointer-events-none select-none -z-10 overflow-hidden"
+        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 w-full overflow-hidden select-none"
         style={{
           top: "var(--navbar-height)",
         }}
@@ -68,12 +68,12 @@ export default function RegistrationPage() {
         - On displays >= 1440px: locks at exact 1440px scale (content does not blow up)
         - On displays < 1440px: scales smoothly and responsively
       */}
-      <div className="relative w-full max-w-[1440px] mx-auto flex flex-col items-center">
+      <div className="relative mx-auto flex w-full max-w-[1440px] flex-col items-center">
         {/* Floating Decorative Elements (Lightning Left, Lightning Right, Basketball Left) */}
         <RegistrationDecorations />
 
         {/* Content Flow */}
-        <div className="relative w-full flex flex-col items-center z-20">
+        <div className="relative z-20 flex w-full flex-col items-center">
           {/* 1. Header/Hero Registration */}
           <RegistHeroSection />
 

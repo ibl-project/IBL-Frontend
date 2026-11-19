@@ -1,19 +1,22 @@
 "use client";
 
-import { type ReactNode, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
 import { motion, useReducedMotion } from "framer-motion";
-import { popSpringVariants, popPunchVariants } from "@/lib/animations";
+
+import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
+import { popPunchVariants, popSpringVariants } from "@/lib/animations";
 import { todayWib } from "@/lib/datetime";
 import { HOLLYWOOD_BOLD_ADVANCE, textWidthEm } from "@/lib/fontMetrics";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
-import { formatKickoff, teamLabel } from "@/lib/matchDisplay";
-import { type MatchListItem, type MatchTeamSide, isLiveNow, listMatches } from "@/lib/matchesApi";
 import { useLiveScores } from "@/lib/hooks/useLiveScores";
+import { formatKickoff, teamLabel } from "@/lib/matchDisplay";
+import { isLiveNow, listMatches, type MatchListItem, type MatchTeamSide } from "@/lib/matchesApi";
 import { formatMatchDay, groupMatchesByWibDay, pickDefaultDay } from "@/lib/scheduleDays";
-import { TeamLogo } from "@/components/sections/TeamsPage/TeamLogo";
+
 import { CalendarStrip } from "./CalendarStrip";
 
 const CARD_FRAMES = ["/svg/figma/Box Tim 12.svg", "/svg/figma/Box Tim 34.svg"];
@@ -64,29 +67,29 @@ function MatchCard({ match, frame, dateKey }: { match: MatchListItem; frame: str
       />
       <div className="absolute inset-0 text-center text-[#101010]">
         {/* Sisi Kiri: Logo Tim 1 & Nama Tim 1 (Sepenuhnya di dalam boks kuning) */}
-        <div className="absolute left-[14%] top-[30.5%] -translate-x-1/2 aspect-[73/77] h-[25%] pointer-events-none">
+        <div className="pointer-events-none absolute top-[30.5%] left-[14%] aspect-[73/77] h-[25%] -translate-x-1/2">
           <TeamLogo src={team1.logo} alt={`Logo ${teamLabel(team1)}`} sizes="75px" />
         </div>
         <p
           title={teamLabel(team1)}
           style={{ fontSize: cardNameFontSize(teamLabel(team1)) }}
-          className={`absolute left-[10%] top-[57.5%] w-[12.5%] truncate text-center font-hollywood font-bold tracking-wide text-[#074770] [text-shadow:1px_1px_0_#FFF3D2,0_1px_2px_rgba(0,0,0,0.18)] leading-tight ${dimmed(team1)}`}
+          className={`absolute top-[57.5%] left-[10%] w-[12.5%] truncate text-center font-hollywood leading-tight font-bold tracking-wide text-[#074770] [text-shadow:1px_1px_0_#FFF3D2,0_1px_2px_rgba(0,0,0,0.18)] ${dimmed(team1)}`}
         >
           {teamLabel(team1)}
         </p>
 
         {/* Skor Tim 1 (Di sebelah kanan logo Tim 1) */}
         {showScore && (
-          <div className="absolute left-[26.5%] top-[48.5%] -translate-x-1/2 -translate-y-1/2 font-crosner text-[clamp(30px,5vw,72px)] font-black text-[#760807] [text-shadow:2px_2px_0_#FFF3D2,4px_4px_0_rgba(56,6,6,0.25)] leading-none select-none tracking-tight">
+          <div className="absolute top-[48.5%] left-[26.5%] -translate-x-1/2 -translate-y-1/2 font-crosner text-[clamp(30px,5vw,72px)] leading-none font-black tracking-tight text-[#760807] select-none [text-shadow:2px_2px_0_#FFF3D2,4px_4px_0_rgba(56,6,6,0.25)]">
             {team1.score}
           </div>
         )}
 
         {/* Blok Tengah: Venue, Kickoff, dan Game Detail. Ukuran minimum di ponsel mengikuti main (lokasi 12 px, kickoff 10 px). */}
-        <p className="absolute left-[29.5%] right-[29.5%] top-[30.5%] truncate font-hollywood text-[clamp(12px,1.25vw,18px)] leading-tight text-[#147f83] [text-shadow:1px_1px_0_#fff3d2]">
+        <p className="absolute top-[30.5%] right-[29.5%] left-[29.5%] truncate font-hollywood text-[clamp(12px,1.25vw,18px)] leading-tight text-[#147f83] [text-shadow:1px_1px_0_#fff3d2]">
           {match.venue ?? "Lokasi belum diatur"}
         </p>
-        <p className="absolute left-[29.5%] right-[29.5%] top-[41.5%] flex items-center justify-center gap-1 sm:gap-1.5 font-poppins text-[clamp(10px,0.95vw,14px)] font-extrabold leading-tight tracking-tight">
+        <p className="absolute top-[41.5%] right-[29.5%] left-[29.5%] flex items-center justify-center gap-1 font-poppins text-[clamp(10px,0.95vw,14px)] leading-tight font-extrabold tracking-tight sm:gap-1.5">
           {live && (
             <span className="shrink-0 rounded-[3px] bg-[#c51610] px-[0.35em] py-[0.05em] font-poppins text-[0.7em] font-bold tracking-wider text-white shadow-xs">
               LIVE
@@ -97,26 +100,26 @@ function MatchCard({ match, frame, dateKey }: { match: MatchListItem; frame: str
         {/* Teks 9 px; area sentuh tak terlihat (before:) membuat tinggi target >= 24 px (WCAG 2.5.8) tanpa mengubah tampilan. */}
         <Link
           href={`/schedule-result-main/detail-game?id=${match.id}&date=${dateKey}`}
-          className="absolute left-1/2 top-[54%] -translate-x-1/2 rounded-[3.5px] border border-[#f6c475] bg-gradient-to-b from-[#c51610] to-[#760807] px-1.5 py-[1px] font-poppins text-[9px] font-semibold text-white before:absolute before:-inset-x-1 before:-inset-y-1 before:content-[''] shadow-[0_1px_0_rgba(0,0,0,.22)] transition-[transform,background-color] hover:scale-[1.07] hover:from-[#d6211b] hover:to-[#8a0a09] active:scale-[0.94] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44D1D1] sm:rounded-[6px] sm:px-[clamp(9px,1.3vw,18px)] sm:py-[clamp(2.5px,0.3vw,4.5px)] sm:text-[clamp(8.5px,0.85vw,12px)] sm:shadow-[0_2px_0_rgba(0,0,0,.28)]"
+          className="absolute top-[54%] left-1/2 -translate-x-1/2 rounded-[3.5px] border border-[#f6c475] bg-gradient-to-b from-[#c51610] to-[#760807] px-1.5 py-[1px] font-poppins text-[9px] font-semibold text-white shadow-[0_1px_0_rgba(0,0,0,.22)] transition-[transform,background-color] before:absolute before:-inset-x-1 before:-inset-y-1 before:content-[''] hover:scale-[1.07] hover:from-[#d6211b] hover:to-[#8a0a09] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44D1D1] active:scale-[0.94] sm:rounded-[6px] sm:px-[clamp(9px,1.3vw,18px)] sm:py-[clamp(2.5px,0.3vw,4.5px)] sm:text-[clamp(8.5px,0.85vw,12px)] sm:shadow-[0_2px_0_rgba(0,0,0,.28)]"
         >
           Game Detail
         </Link>
 
         {/* Skor Tim 2 (Di sebelah kiri logo Tim 2) */}
         {showScore && (
-          <div className="absolute left-[73.5%] top-[48.5%] -translate-x-1/2 -translate-y-1/2 font-crosner text-[clamp(30px,5vw,72px)] font-black text-[#760807] [text-shadow:2px_2px_0_#FFF3D2,4px_4px_0_rgba(56,6,6,0.25)] leading-none select-none tracking-tight">
+          <div className="absolute top-[48.5%] left-[73.5%] -translate-x-1/2 -translate-y-1/2 font-crosner text-[clamp(30px,5vw,72px)] leading-none font-black tracking-tight text-[#760807] select-none [text-shadow:2px_2px_0_#FFF3D2,4px_4px_0_rgba(56,6,6,0.25)]">
             {team2.score}
           </div>
         )}
 
         {/* Sisi Kanan: Logo Tim 2 & Nama Tim 2 (Sepenuhnya di dalam boks kuning) */}
-        <div className="absolute left-[86%] top-[31%] -translate-x-1/2 aspect-[73/77] h-[25%] pointer-events-none">
+        <div className="pointer-events-none absolute top-[31%] left-[86%] aspect-[73/77] h-[25%] -translate-x-1/2">
           <TeamLogo src={team2.logo} alt={`Logo ${teamLabel(team2)}`} sizes="75px" />
         </div>
         <p
           title={teamLabel(team2)}
           style={{ fontSize: cardNameFontSize(teamLabel(team2)) }}
-          className={`absolute left-[80%] top-[57.5%] w-[12.5%] truncate text-center font-hollywood font-bold tracking-wide text-[#074770] [text-shadow:1px_1px_0_#FFF3D2,0_1px_2px_rgba(0,0,0,0.18)] leading-tight ${dimmed(team2)}`}
+          className={`absolute top-[57.5%] left-[80%] w-[12.5%] truncate text-center font-hollywood leading-tight font-bold tracking-wide text-[#074770] [text-shadow:1px_1px_0_#FFF3D2,0_1px_2px_rgba(0,0,0,0.18)] ${dimmed(team2)}`}
         >
           {teamLabel(team2)}
         </p>
@@ -277,11 +280,7 @@ function MatchDaySchedule() {
             custom={0.25 + index * 0.14}
             className={index > 0 ? "mt-4 sm:mt-6" : ""}
           >
-            <MatchCard
-              match={match}
-              frame={CARD_FRAMES[index % CARD_FRAMES.length]}
-              dateKey={selectedDay.dateKey}
-            />
+            <MatchCard match={match} frame={CARD_FRAMES[index % CARD_FRAMES.length]} dateKey={selectedDay.dateKey} />
           </motion.div>
         ))}
       </div>
@@ -328,7 +327,7 @@ export const ScheduleResultMainLandingSection = () => {
   return (
     <section
       aria-label="Schedule and Result"
-      className="relative isolate overflow-hidden bg-[#f3e6ce] pb-5 pt-[calc(var(--navbar-height)+12px)] md:pt-[calc(var(--navbar-height)+12px)] lg:pt-[calc(var(--navbar-height)+16px)] sm:pb-6"
+      className="relative isolate overflow-hidden bg-[#f3e6ce] pt-[calc(var(--navbar-height)+12px)] pb-5 sm:pb-6 md:pt-[calc(var(--navbar-height)+12px)] lg:pt-[calc(var(--navbar-height)+16px)]"
     >
       {/* Latar: lebar satu blok dikunci clamp(1100px, 100vw, 1440px) supaya skala mengikuti isi halaman (yang
           juga berhenti membesar di 1440px) dan tidak melar saat zoom out. Layar lebih lebar diisi blok cermin di kiri-kanan. */}

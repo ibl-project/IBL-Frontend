@@ -2,16 +2,17 @@
 
 import React, { useMemo, useState } from "react";
 
-import { listTeams } from "@/lib/teamsApi";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
-import { ARTBOARD } from "./teamsMainTheme";
-import { TeamsArtboard } from "./TeamsArtboard";
-import { TeamsTitle } from "./TeamsTitle";
+import { listTeams } from "@/lib/teamsApi";
+
+import { BoardMessage } from "./BoardMessage";
+import { MobileGridScroller } from "./MobileGridScroller";
 import { PaperBoard } from "./PaperBoard";
 import { SectionBar } from "./SectionBar";
 import { TeamCard } from "./TeamCard";
-import { BoardMessage } from "./BoardMessage";
-import { MobileGridScroller } from "./MobileGridScroller";
+import { TeamsArtboard } from "./TeamsArtboard";
+import { ARTBOARD } from "./teamsMainTheme";
+import { TeamsTitle } from "./TeamsTitle";
 
 type GridScroll = (typeof ARTBOARD)[keyof typeof ARTBOARD]["grid"]["scroll"];
 
@@ -19,7 +20,12 @@ type GridScroll = (typeof ARTBOARD)[keyof typeof ARTBOARD]["grid"]["scroll"];
 function TeamGridArea({ scroll, children }: { scroll: GridScroll; children: React.ReactNode }) {
   if (!scroll) return <>{children}</>;
   return (
-    <MobileGridScroller height={scroll.height} left={scroll.left} trackWidth={scroll.trackWidth} trackMargin={scroll.trackMargin}>
+    <MobileGridScroller
+      height={scroll.height}
+      left={scroll.left}
+      trackWidth={scroll.trackWidth}
+      trackMargin={scroll.trackMargin}
+    >
       {children}
     </MobileGridScroller>
   );
@@ -50,7 +56,12 @@ export function TeamsMainLandingSection() {
               <SectionBar
                 variant={variant}
                 label="All Teams"
-                search={{ value: query, onChange: setQuery, placeholder: "Himpunan Mahasiswa", label: "Cari tim himpunan" }}
+                search={{
+                  value: query,
+                  onChange: setQuery,
+                  placeholder: "Himpunan Mahasiswa",
+                  label: "Cari tim himpunan",
+                }}
               />
               <div style={{ marginTop: grid.offset }}>
                 {state.status === "loading" && <BoardMessage variant={variant}>Memuat tim...</BoardMessage>}
@@ -67,7 +78,10 @@ export function TeamsMainLandingSection() {
                 )}
                 {filtered && filtered.length > 0 && (
                   <TeamGridArea scroll={grid.scroll}>
-                    <ul className="mx-auto flex flex-wrap justify-center" style={{ width: grid.pitch * grid.columns, rowGap: grid.rowGap }}>
+                    <ul
+                      className="mx-auto flex flex-wrap justify-center"
+                      style={{ width: grid.pitch * grid.columns, rowGap: grid.rowGap }}
+                    >
                       {filtered.map((team) => (
                         <li key={team.id}>
                           <TeamCard team={team} variant={variant} />

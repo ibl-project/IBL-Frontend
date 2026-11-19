@@ -1,18 +1,19 @@
-import type { Metadata } from "next";
 import React from "react";
+import type { Metadata } from "next";
+
 import { DashboardLayout } from "@/components/layout/dashboard/DashboardLayout";
 
 /**
  * =============================================================================
  * ROUTE GROUP LAYOUT: app/(dashboard)/layout.tsx
  * =============================================================================
- * 
+ *
  * DESKRIPSI:
  * Layout bersama (shared layout) khusus rute-rute dashboard (seperti /teams dan /scoring).
  * Menggunakan Next.js Route Group '(dashboard)' sehingga URL tetap bersih:
  * - /teams
  * - /scoring
- * 
+ *
  * Layout ini menggantikan layout publik dan menyematkan Sidebar & Topbar tersendiri.
  * =============================================================================
  */

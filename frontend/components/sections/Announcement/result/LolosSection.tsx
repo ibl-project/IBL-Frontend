@@ -1,5 +1,7 @@
 import React from "react";
+
 import CongratsDesktop from "@/public/images/announcement/CONGRATS DESKTOP.svg";
+
 import ResultTicket from "./ResultTicket";
 import WhatsAppContact from "./WhatsAppContact";
 
@@ -11,14 +13,9 @@ interface LolosSectionProps {
   cpPhone?: string;
 }
 
-export default function LolosSection({
-  urlName,
-  cpName,
-  cpPhone,
-}: LolosSectionProps) {
+export default function LolosSection({ urlName, cpName, cpPhone }: LolosSectionProps) {
   const displayName = urlName || "(nama)";
   const acceptMessage = "Anda telah berhasil lolos Open Recruitment Staff IBL2K26.";
-
 
   return (
     <>

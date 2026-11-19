@@ -321,8 +321,7 @@ export const createSchedule = (input: CreateScheduleInput) =>
 export const updateSchedule = (id: string, input: Partial<ScheduleInput>) =>
   apiFetch<MatchListItem>(`/matches/${id}`, { method: "PATCH", body: input });
 
-export const deleteSchedule = (id: string) =>
-  apiFetch<{ message: string }>(`/matches/${id}`, { method: "DELETE" });
+export const deleteSchedule = (id: string) => apiFetch<{ message: string }>(`/matches/${id}`, { method: "DELETE" });
 
 export const uploadResultFile = (id: string, file: File) =>
   apiFetch<ResultFile>(`/matches/${id}/result-file?name=${encodeURIComponent(file.name)}`, {
@@ -352,8 +351,7 @@ export const releaseSession = (id: string, keepalive = false) =>
 export const saveLineup = (id: string, lineup: { team1: LineupEntry[]; team2: LineupEntry[] }) =>
   apiFetch<MatchSnapshot>(`/matches/${id}/lineup`, { method: "PUT", body: lineup });
 
-export const startMatch = (id: string) =>
-  apiFetch<{ matchNumber: number }>(`/matches/${id}/start`, { method: "POST" });
+export const startMatch = (id: string) => apiFetch<{ matchNumber: number }>(`/matches/${id}/start`, { method: "POST" });
 
 export const recordAction = (
   id: string,

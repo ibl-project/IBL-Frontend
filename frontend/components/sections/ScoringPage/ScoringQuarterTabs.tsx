@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useRef } from "react";
+
 import { Lock } from "lucide-react";
 
-import { type QuarterState, periodLabel } from "@/lib/matchesApi";
+import { periodLabel, type QuarterState } from "@/lib/matchesApi";
 
 /** Tampilan di scoring desk: satu periode (1–4 = Quarter, 5+ = OT) atau Total. */
 export type ScoringView = number | "total";
@@ -76,7 +77,7 @@ export const ScoringQuarterTabs = ({ quarters, currentQuarter, view, onSelect }:
       role="tablist"
       aria-label="Periode pertandingan"
       onKeyDown={handleKeyDown}
-      className="flex w-full items-center justify-center gap-2.5 sm:gap-4 overflow-x-auto py-2 font-poppins"
+      className="flex w-full items-center justify-center gap-2.5 overflow-x-auto py-2 font-poppins sm:gap-4"
     >
       {tabs.map((tab) => {
         const selected = tab.view === view;
@@ -93,7 +94,7 @@ export const ScoringQuarterTabs = ({ quarters, currentQuarter, view, onSelect }:
             disabled={closed}
             title={tab.hint}
             onClick={() => onSelect(tab.view)}
-            className={`flex h-[40px] sm:h-[44px] min-w-[110px] sm:min-w-[130px] shrink-0 items-center justify-center rounded-full border-2 px-5 sm:px-6 text-xs sm:text-sm font-bold tracking-wide transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#208682] ${
+            className={`flex h-[40px] min-w-[110px] shrink-0 items-center justify-center rounded-full border-2 px-5 text-xs font-bold tracking-wide transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#208682] sm:h-[44px] sm:min-w-[130px] sm:px-6 sm:text-sm ${
               closed
                 ? "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400 opacity-60"
                 : selected

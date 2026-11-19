@@ -1,25 +1,27 @@
 "use client";
 
 import React, { useCallback, useRef, useState } from "react";
+
 import { Pencil, Plus, Trash2 } from "lucide-react";
 
+import { errorMessage } from "@/lib/errors";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
 import { canEditData, useAuthStore } from "@/lib/store/useAuthStore";
-import { errorMessage } from "@/lib/errors";
 import {
-  type PlayerStats,
-  type Team,
   DEFAULT_TEAM_LOGO,
-  JERSEY_PATTERN,
-  MAX_ROSTER,
   deleteTeamLogo,
   getTeam,
+  JERSEY_PATTERN,
+  MAX_ROSTER,
   saveRoster,
   uploadTeamLogo,
+  type PlayerStats,
+  type Team,
 } from "@/lib/teamsApi";
+
+import { TeamEditInfoModal } from "./TeamEditInfoModal";
 import { TeamLogo } from "./TeamLogo";
 import { TeamLogoField } from "./TeamLogoField";
-import { TeamEditInfoModal } from "./TeamEditInfoModal";
 
 interface TeamEditSectionProps {
   teamId?: string;
@@ -78,15 +80,7 @@ function nextFreeJersey(rows: RosterRow[]): string {
   return taken.has("0") ? "00" : "0";
 }
 
-const NameInput = ({
-  value,
-  onChange,
-  label,
-}: {
-  value: string;
-  onChange: (val: string) => void;
-  label: string;
-}) => {
+const NameInput = ({ value, onChange, label }: { value: string; onChange: (val: string) => void; label: string }) => {
   return (
     <input
       type="text"
@@ -96,7 +90,7 @@ const NameInput = ({
       aria-label={label}
       aria-invalid={value.trim() === "" || undefined}
       maxLength={100}
-      className={`w-full h-full py-1 px-2 text-center bg-transparent border hover:border-gray-300 focus:border-[#1E88E5] focus:bg-blue-50/60 rounded font-medium text-gray-700 transition-colors outline-none ${
+      className={`h-full w-full rounded border bg-transparent px-2 py-1 text-center font-medium text-gray-700 transition-colors outline-none hover:border-gray-300 focus:border-[#1E88E5] focus:bg-blue-50/60 ${
         value.trim() === "" ? "border-red-500" : "border-transparent"
       }`}
     />
@@ -123,70 +117,58 @@ const JerseyInput = ({
       aria-label={label}
       aria-invalid={invalid || undefined}
       maxLength={2}
-      className={`w-full min-w-[44px] py-1 px-1 text-center bg-transparent border hover:border-gray-300 focus:border-[#1E88E5] focus:bg-blue-50/60 rounded text-gray-700 font-medium transition-colors outline-none ${
+      className={`w-full min-w-[44px] rounded border bg-transparent px-1 py-1 text-center font-medium text-gray-700 transition-colors outline-none hover:border-gray-300 focus:border-[#1E88E5] focus:bg-blue-50/60 ${
         invalid ? "border-red-500" : "border-transparent"
       }`}
     />
   );
 };
 
-export const TeamEditSection = ({
-  teamId,
-  teamName = "NAMA HMD",
-  onBack,
-  onCancel,
-  onSave,
-}: TeamEditSectionProps) => {
+export const TeamEditSection = ({ teamId, teamName = "NAMA HMD", onBack, onCancel, onSave }: TeamEditSectionProps) => {
   const canEdit = canEditData(useAuthStore((state) => state.user?.role));
   const lookup = teamId ?? teamName;
   const loadTeam = useCallback(() => getTeam(lookup), [lookup]);
   const { state, reload } = useAsyncData(loadTeam);
 
   return (
-    <div className="w-full max-w-6xl flex flex-col gap-6 pb-12 pt-6">
-      <h1 className="text-4xl font-bold text-[#2d3748] mb-2">Teams</h1>
+    <div className="flex w-full max-w-6xl flex-col gap-6 pt-6 pb-12">
+      <h1 className="mb-2 text-4xl font-bold text-[#2d3748]">Teams</h1>
 
       {/* Main White Card Container (With Blue Border as in design) */}
-      <div className="bg-white rounded-xl shadow-sm border-2 border-[#1E88E5] p-8 w-full">
+      <div className="w-full rounded-xl border-2 border-[#1E88E5] bg-white p-8 shadow-sm">
         {state.status === "ready" && canEdit ? (
-          <TeamEditForm
-            key={state.data.id}
-            team={state.data}
-            onBack={onBack}
-            onCancel={onCancel}
-            onSave={onSave}
-          />
+          <TeamEditForm key={state.data.id} team={state.data} onBack={onBack} onCancel={onCancel} onSave={onSave} />
         ) : (
           <div className="flex flex-col items-center gap-4 py-10 text-center">
             {state.status === "loading" && (
               <div className="flex items-center gap-3 text-gray-600" role="status">
-                <div className="w-6 h-6 border-3 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                <div className="h-6 w-6 animate-spin rounded-full border-3 border-teal-600 border-t-transparent" />
                 <span>Memuat data tim...</span>
               </div>
             )}
             {state.status === "error" && (
               <>
-                <p role="alert" className="text-red-700 font-medium">
+                <p role="alert" className="font-medium text-red-700">
                   Data tim gagal dimuat: {state.message}
                 </p>
                 <button
                   type="button"
                   onClick={reload}
-                  className="px-5 py-2 rounded-full text-sm font-semibold bg-[#389F9D] hover:bg-[#2C7D7B] text-white transition-colors cursor-pointer"
+                  className="cursor-pointer rounded-full bg-[#389F9D] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2C7D7B]"
                 >
                   Coba Lagi
                 </button>
               </>
             )}
             {state.status === "ready" && !canEdit && (
-              <p role="alert" className="text-red-700 font-medium">
+              <p role="alert" className="font-medium text-red-700">
                 Akun ini hanya bisa melihat data tim, tidak bisa mengubahnya.
               </p>
             )}
             <button
               type="button"
               onClick={() => onBack?.()}
-              className="bg-[#389F9D] hover:bg-[#2C7D7B] text-white px-8 py-2.5 rounded-full font-semibold transition-colors shadow-sm cursor-pointer"
+              className="cursor-pointer rounded-full bg-[#389F9D] px-8 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-[#2C7D7B]"
             >
               Back
             </button>
@@ -327,23 +309,23 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
   return (
     <>
       {/* Card Header: Logo, Team Name, Group, and Edit Button */}
-      <div className="flex items-center justify-between gap-4 mb-6">
+      <div className="mb-6 flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="relative w-16 h-16 shrink-0">
+          <div className="relative h-16 w-16 shrink-0">
             <TeamLogo src={logo} alt={`Logo ${teamName}`} sizes="64px" className="object-contain drop-shadow-sm" />
           </div>
           <div className="flex flex-col">
-            <h2 className="text-xl font-bold text-[#2d3748] tracking-wide uppercase">{teamName}</h2>
-            <p className="text-gray-500 font-medium">{teamGroup ?? "Belum masuk grup"}</p>
+            <h2 className="text-xl font-bold tracking-wide text-[#2d3748] uppercase">{teamName}</h2>
+            <p className="font-medium text-gray-500">{teamGroup ?? "Belum masuk grup"}</p>
           </div>
         </div>
 
         <button
           type="button"
           onClick={() => setIsEditInfoOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 hover:border-teal-600 bg-white hover:bg-teal-50 text-xs font-semibold text-gray-700 hover:text-teal-800 transition-colors shadow-2xs cursor-pointer shrink-0"
+          className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-2xs transition-colors hover:border-teal-600 hover:bg-teal-50 hover:text-teal-800"
         >
-          <Pencil className="w-3.5 h-3.5 text-teal-600" />
+          <Pencil className="h-3.5 w-3.5 text-teal-600" />
           <span>Edit Nama & Grup</span>
         </button>
       </div>
@@ -360,7 +342,7 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
         }}
       />
 
-      <hr className="border-t border-[#94B8BC] opacity-50 mb-8" />
+      <hr className="mb-8 border-t border-[#94B8BC] opacity-50" />
 
       {/* 0. Logo Tim (langsung tersimpan) */}
       <div className="mb-10 max-w-md">
@@ -378,33 +360,33 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
 
       {/* 1. Team Statistic Table */}
       <div className="mb-10">
-        <h3 className="text-base font-extrabold text-[#2d3748] mb-1">Team Statistic</h3>
-        <p className="text-xs text-gray-600 mb-3">
+        <h3 className="mb-1 text-base font-extrabold text-[#2d3748]">Team Statistic</h3>
+        <p className="mb-3 text-xs text-gray-600">
           Statistik dihitung otomatis dari hasil pertandingan, jadi tidak diubah di halaman ini.
         </p>
-        <div className="overflow-x-auto rounded-lg overflow-hidden border border-gray-200/80 max-w-2xl">
+        <div className="max-w-2xl overflow-hidden overflow-x-auto rounded-lg border border-gray-200/80">
           <table className="w-full text-center text-sm">
             <thead className="bg-[#D9CDBF] font-bold text-[#2d3748]">
               <tr>
-                <th className="p-3 w-1/4 border-r border-white/50 bg-white"></th>
-                <th className="p-3 border-b border-white/50">G</th>
-                <th className="p-3 border-b border-white/50">W</th>
-                <th className="p-3 border-b border-white/50">L</th>
-                <th className="p-3 border-b border-white/50">PM</th>
-                <th className="p-3 border-b border-white/50">PA</th>
-                <th className="p-3 border-b border-white/50">PD</th>
-                <th className="p-3 border-b border-white/50">PTS</th>
+                <th className="w-1/4 border-r border-white/50 bg-white p-3"></th>
+                <th className="border-b border-white/50 p-3">G</th>
+                <th className="border-b border-white/50 p-3">W</th>
+                <th className="border-b border-white/50 p-3">L</th>
+                <th className="border-b border-white/50 p-3">PM</th>
+                <th className="border-b border-white/50 p-3">PA</th>
+                <th className="border-b border-white/50 p-3">PD</th>
+                <th className="border-b border-white/50 p-3">PTS</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td className="p-3 font-bold bg-[#D9CDBF] border-r border-white/50 text-[#2d3748]">Value</td>
+                <td className="border-r border-white/50 bg-[#D9CDBF] p-3 font-bold text-[#2d3748]">Value</td>
                 {(["G", "W", "L", "PM", "PA", "PD"] as const).map((field) => (
-                  <td key={field} className="p-3 bg-white text-gray-700 font-medium border-r border-gray-200">
+                  <td key={field} className="border-r border-gray-200 bg-white p-3 font-medium text-gray-700">
                     {teamStats[field] || "-"}
                   </td>
                 ))}
-                <td className="p-3 bg-white text-gray-700 font-medium">{teamStats.PTS || "-"}</td>
+                <td className="bg-white p-3 font-medium text-gray-700">{teamStats.PTS || "-"}</td>
               </tr>
             </tbody>
           </table>
@@ -413,32 +395,30 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
 
       {/* 2. Roster + Player Total Statistic Table */}
       <div className="mb-10">
-        <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-          <h3 className="text-base font-extrabold text-[#2d3748]">
-            Player Total Statistic ({rows.length} Pemain)
-          </h3>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-base font-extrabold text-[#2d3748]">Player Total Statistic ({rows.length} Pemain)</h3>
           <button
             type="button"
             onClick={handleAddPlayer}
             disabled={rows.length >= MAX_ROSTER}
             title={rows.length >= MAX_ROSTER ? `Maksimal ${MAX_ROSTER} pemain per tim` : undefined}
-            className="flex items-center gap-2 px-4 py-2 bg-[#1E88E5] hover:bg-[#1565C0] text-white rounded-full text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex cursor-pointer items-center gap-2 rounded-full bg-[#1E88E5] px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#1565C0] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="h-3.5 w-3.5" />
             <span>Tambah Pemain</span>
           </button>
         </div>
-        <div className="overflow-x-auto rounded-lg overflow-hidden border border-gray-200/80">
-          <table className="w-full text-center text-sm border-collapse">
+        <div className="overflow-hidden overflow-x-auto rounded-lg border border-gray-200/80">
+          <table className="w-full border-collapse text-center text-sm">
             <thead className="bg-[#D9CDBF] font-bold text-[#2d3748]">
               <tr>
-                <th className="p-3 border-b border-r border-white/50 w-[70px]">NO</th>
-                <th className="p-3 border-b border-r border-white/50">NAME</th>
-                <th className="p-3 border-b border-r border-white/50">GAME</th>
-                <th className="p-3 border-b border-r border-white/50">POINT</th>
-                <th className="p-3 border-b border-r border-white/50">ASSIST</th>
-                <th className="p-3 border-b border-r border-white/50">REBOUND</th>
-                <th className="p-3 border-b w-[50px]">HAPUS</th>
+                <th className="w-[70px] border-r border-b border-white/50 p-3">NO</th>
+                <th className="border-r border-b border-white/50 p-3">NAME</th>
+                <th className="border-r border-b border-white/50 p-3">GAME</th>
+                <th className="border-r border-b border-white/50 p-3">POINT</th>
+                <th className="border-r border-b border-white/50 p-3">ASSIST</th>
+                <th className="border-r border-b border-white/50 p-3">REBOUND</th>
+                <th className="w-[50px] border-b p-3">HAPUS</th>
               </tr>
             </thead>
             <tbody>
@@ -447,7 +427,7 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
                 const onlyOne = rows.length <= 1;
                 return (
                   <tr key={row.key} className={idx % 2 === 0 ? "bg-white" : "bg-[#F3EFE9]"}>
-                    <td className="p-1 border-r border-gray-200">
+                    <td className="border-r border-gray-200 p-1">
                       <JerseyInput
                         value={row.jersey}
                         invalid={isJerseyInvalid(row)}
@@ -455,17 +435,17 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
                         onChange={(jersey) => updateRow(row.key, { jersey })}
                       />
                     </td>
-                    <td className="p-1 border-r border-gray-200 font-medium text-gray-700">
+                    <td className="border-r border-gray-200 p-1 font-medium text-gray-700">
                       <NameInput
                         value={row.name}
                         label={`Nama pemain baris ${idx + 1}`}
                         onChange={(name) => updateRow(row.key, { name })}
                       />
                     </td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.game || "-"}</td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.point || "-"}</td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.assist || "-"}</td>
-                    <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.rebound || "-"}</td>
+                    <td className="border-r border-gray-200 p-3 text-gray-600">{row.stats?.game || "-"}</td>
+                    <td className="border-r border-gray-200 p-3 text-gray-600">{row.stats?.point || "-"}</td>
+                    <td className="border-r border-gray-200 p-3 text-gray-600">{row.stats?.assist || "-"}</td>
+                    <td className="border-r border-gray-200 p-3 text-gray-600">{row.stats?.rebound || "-"}</td>
                     <td className="p-1 text-center align-middle">
                       <button
                         type="button"
@@ -479,9 +459,9 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
                               ? "Tim harus memiliki minimal 1 pemain"
                               : "Hapus pemain"
                         }
-                        className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors cursor-pointer disabled:text-gray-300 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                        className="cursor-pointer rounded p-1 text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
                       >
-                        <Trash2 className="w-4 h-4 mx-auto" />
+                        <Trash2 className="mx-auto h-4 w-4" />
                       </button>
                     </td>
                   </tr>
@@ -494,31 +474,31 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
 
       {/* 3. Player Average Statistic Table */}
       <div className="mb-12">
-        <h3 className="text-base font-extrabold text-[#2d3748] mb-3">Player Average Statistic</h3>
-        <div className="overflow-x-auto rounded-lg overflow-hidden border border-gray-200/80">
-          <table className="w-full text-center text-sm border-collapse">
+        <h3 className="mb-3 text-base font-extrabold text-[#2d3748]">Player Average Statistic</h3>
+        <div className="overflow-hidden overflow-x-auto rounded-lg border border-gray-200/80">
+          <table className="w-full border-collapse text-center text-sm">
             <thead className="bg-[#D9CDBF] font-bold text-[#2d3748]">
               <tr>
-                <th className="p-3 border-b border-r border-white/50">NAME</th>
-                <th className="p-3 border-b border-r border-white/50">PPG</th>
-                <th className="p-3 border-b border-r border-white/50">APG</th>
-                <th className="p-3 border-b border-r border-white/50">RPG</th>
-                <th className="p-3 border-b border-r border-white/50">FG%</th>
-                <th className="p-3 border-b border-r border-white/50">3P%</th>
-                <th className="p-3 border-b border-r border-white/50">2P%</th>
-                <th className="p-3 border-b">FT%</th>
+                <th className="border-r border-b border-white/50 p-3">NAME</th>
+                <th className="border-r border-b border-white/50 p-3">PPG</th>
+                <th className="border-r border-b border-white/50 p-3">APG</th>
+                <th className="border-r border-b border-white/50 p-3">RPG</th>
+                <th className="border-r border-b border-white/50 p-3">FG%</th>
+                <th className="border-r border-b border-white/50 p-3">3P%</th>
+                <th className="border-r border-b border-white/50 p-3">2P%</th>
+                <th className="border-b p-3">FT%</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row, idx) => (
                 <tr key={row.key} className={idx % 2 === 0 ? "bg-white" : "bg-[#F3EFE9]"}>
-                  <td className="p-3 border-r border-gray-200 font-medium text-gray-700">{row.name}</td>
-                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.ppg || "-"}</td>
-                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.apg || "-"}</td>
-                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.rpg || "-"}</td>
-                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.fgPercent || "-"}</td>
-                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.threePPercent || "-"}</td>
-                  <td className="p-3 border-r border-gray-200 text-gray-600">{row.stats?.twoPPercent || "-"}</td>
+                  <td className="border-r border-gray-200 p-3 font-medium text-gray-700">{row.name}</td>
+                  <td className="border-r border-gray-200 p-3 text-gray-600">{row.stats?.ppg || "-"}</td>
+                  <td className="border-r border-gray-200 p-3 text-gray-600">{row.stats?.apg || "-"}</td>
+                  <td className="border-r border-gray-200 p-3 text-gray-600">{row.stats?.rpg || "-"}</td>
+                  <td className="border-r border-gray-200 p-3 text-gray-600">{row.stats?.fgPercent || "-"}</td>
+                  <td className="border-r border-gray-200 p-3 text-gray-600">{row.stats?.threePPercent || "-"}</td>
+                  <td className="border-r border-gray-200 p-3 text-gray-600">{row.stats?.twoPPercent || "-"}</td>
                   <td className="p-3 text-gray-600">{row.stats?.ftPercent || "-"}</td>
                 </tr>
               ))}
@@ -528,18 +508,21 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
       </div>
 
       {saveError && (
-        <div role="alert" className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 font-medium">
+        <div
+          role="alert"
+          className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700"
+        >
           {saveError}
         </div>
       )}
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-between mt-4">
+      <div className="mt-4 flex items-center justify-between">
         <button
           type="button"
           onClick={() => onBack?.()}
           disabled={isSaving}
-          className="bg-[#389F9D] hover:bg-[#2C7D7B] text-white px-8 py-2.5 rounded-full font-semibold transition-colors shadow-sm cursor-pointer disabled:opacity-60"
+          className="cursor-pointer rounded-full bg-[#389F9D] px-8 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-[#2C7D7B] disabled:opacity-60"
         >
           Back
         </button>
@@ -549,7 +532,7 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
             type="button"
             onClick={() => onCancel?.()}
             disabled={isSaving}
-            className="bg-[#EF4444] hover:bg-[#DC2626] text-white px-8 py-2.5 rounded-full font-semibold transition-colors shadow-sm cursor-pointer disabled:opacity-60"
+            className="cursor-pointer rounded-full bg-[#EF4444] px-8 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-[#DC2626] disabled:opacity-60"
           >
             Cancel
           </button>
@@ -557,7 +540,7 @@ const TeamEditForm = ({ team, onBack, onCancel, onSave }: TeamEditFormProps) => 
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-[#F59E0B] hover:bg-[#D97706] text-white px-8 py-2.5 rounded-full font-semibold transition-colors shadow-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+            className="cursor-pointer rounded-full bg-[#F59E0B] px-8 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-[#D97706] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isSaving ? "Menyimpan..." : "Save"}
           </button>

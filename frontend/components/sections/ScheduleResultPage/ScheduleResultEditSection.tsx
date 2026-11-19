@@ -2,17 +2,18 @@
 
 import React, { useRef, useState } from "react";
 
+import { Modal } from "@/components/ui/Modal";
+import { errorMessage } from "@/lib/errors";
 import {
-  type MatchListItem,
-  type ResultFile,
   deleteResultFile,
   updateSchedule,
   uploadResultFile,
   validateResultFile,
+  type MatchListItem,
+  type ResultFile,
 } from "@/lib/matchesApi";
-import { errorMessage } from "@/lib/errors";
 import { type Team } from "@/lib/teamsApi";
-import { Modal } from "@/components/ui/Modal";
+
 import { ResultFileCard } from "./ResultFileCard";
 import { ScheduleForm } from "./ScheduleForm";
 
@@ -97,7 +98,7 @@ const ResultFileField = ({ match, onChanged }: { match: MatchListItem; onChanged
           tabIndex={-1}
           aria-hidden="true"
           // Bukan `hidden`: WebKit iOS menolak .click() pada input yang tidak dirender (AGENTS.md).
-          className="absolute pointer-events-none opacity-0 w-px h-px"
+          className="pointer-events-none absolute h-px w-px opacity-0"
           onChange={(event) => {
             const selected = event.target.files?.[0];
             event.target.value = "";

@@ -2,7 +2,9 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+
 import Button from "@/components/ui/Button";
+
 import VideoLoadingOverlay from "./VideoLoadingOverlay";
 
 export default function NRPSearchForm() {
@@ -35,7 +37,7 @@ export default function NRPSearchForm() {
         params.set("status", data.status);
         if (data.cp_name) params.set("cpName", data.cp_name);
         if (data.cp_phone) params.set("cpPhone", data.cp_phone);
-        
+
         router.push(`/announcement/result?${params.toString()}`);
         return;
       }
@@ -58,7 +60,7 @@ export default function NRPSearchForm() {
       if (resultData.subdivisi) params.set("subdivisi", resultData.subdivisi);
       if (resultData.cp_name) params.set("cpName", resultData.cp_name);
       if (resultData.cp_phone) params.set("cpPhone", resultData.cp_phone);
-      
+
       router.push(`/announcement/result?${params.toString()}`);
     }
   };
@@ -71,23 +73,23 @@ export default function NRPSearchForm() {
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row items-center gap-6 md:gap-10 w-full sm:w-auto justify-center min-h-[96px] sm:min-h-[88px]">
-        <div className="text-center sm:text-left w-full sm:w-auto">
-          <h1 className="font-drowner text-[24px] sm:text-[30px] md:text-[36px] tracking-wider mb-2 sm:mb-0 leading-none">
+      <div className="flex min-h-[96px] w-full flex-col items-center justify-center gap-6 sm:min-h-[88px] sm:w-auto sm:flex-row md:gap-10">
+        <div className="w-full text-center sm:w-auto sm:text-left">
+          <h1 className="mb-2 font-drowner text-[24px] leading-none tracking-wider sm:mb-0 sm:text-[30px] md:text-[36px]">
             Masukkan NRP
           </h1>
           <input
             type="tel"
             value={nrp}
             onChange={(e) => {
-               const value = e.target.value;
-               // Hanya menerima angka (0-9) dan panjangnya maksimal 10 karakter
-               if (/^\d*$/.test(value) && value.length <= 10) {
-                 setNrp(value);
-               }
+              const value = e.target.value;
+              // Hanya menerima angka (0-9) dan panjangnya maksimal 10 karakter
+              if (/^\d*$/.test(value) && value.length <= 10) {
+                setNrp(value);
+              }
             }}
             onKeyDown={handleKeyDown}
-            className="bg-white w-full sm:w-[248px] h-[40px] sm:h-[44px] text-[18px] sm:text-[24px] border-1 border-gray-300 shadow-xl font-medium text-muted-foreground px-2 hover:border-bone active:border-bone mt-2 sm:mt-1"
+            className="mt-2 h-[40px] w-full border-1 border-gray-300 bg-white px-2 text-[18px] font-medium text-muted-foreground shadow-xl hover:border-bone active:border-bone sm:mt-1 sm:h-[44px] sm:w-[248px] sm:text-[24px]"
             placeholder="502xxxxxxx"
             suppressHydrationWarning
           />
@@ -98,9 +100,9 @@ export default function NRPSearchForm() {
       </div>
 
       {isLoading && resultData && (
-        <VideoLoadingOverlay 
-          onVideoEnd={handleVideoEnd} 
-          videoType={resultData.status === "lolos" ? "lolos" : "tidak_lolos"} 
+        <VideoLoadingOverlay
+          onVideoEnd={handleVideoEnd}
+          videoType={resultData.status === "lolos" ? "lolos" : "tidak_lolos"}
         />
       )}
     </>

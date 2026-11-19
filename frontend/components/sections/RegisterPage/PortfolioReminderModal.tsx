@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { createPortal } from "react-dom";
+
 import { motion } from "framer-motion";
+import { createPortal } from "react-dom";
 
 interface PortfolioReminderModalProps {
   open: boolean;
@@ -20,11 +21,7 @@ interface PortfolioReminderModalProps {
  * scale pada container halaman register. `open` hanya menjadi true lewat
  * interaksi user (pasti sisi klien), sehingga createPortal aman dipanggil.
  */
-export const PortfolioReminderModal = ({
-  open,
-  onClose,
-  duration = 3000,
-}: PortfolioReminderModalProps) => {
+export const PortfolioReminderModal = ({ open, onClose, duration = 3000 }: PortfolioReminderModalProps) => {
   useEffect(() => {
     if (!open) return;
     const timer = setTimeout(onClose, duration);
@@ -47,7 +44,7 @@ export const PortfolioReminderModal = ({
         initial={{ scale: 0.9, y: 20, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 24 }}
-        className="relative max-w-[420px] w-full rounded-2xl border-4 border-[#7E0202] bg-[#F4F0E6] shadow-2xl px-6 py-7 sm:px-8 sm:py-9 text-center"
+        className="relative w-full max-w-[420px] rounded-2xl border-4 border-[#7E0202] bg-[#F4F0E6] px-6 py-7 text-center shadow-2xl sm:px-8 sm:py-9"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Ikon peringatan */}
@@ -70,16 +67,16 @@ export const PortfolioReminderModal = ({
 
         <h2
           id="portfolio-reminder-title"
-          className="font-crosner text-2xl sm:text-3xl uppercase tracking-widest text-[#7E0202]"
+          className="font-crosner text-2xl tracking-widest text-[#7E0202] uppercase sm:text-3xl"
         >
           Perhatian!
         </h2>
 
-        <p className="mt-3 font-body text-sm sm:text-base text-gray-800 leading-relaxed">
+        <p className="mt-3 font-body text-sm leading-relaxed text-gray-800 sm:text-base">
           Khusus yang memilih sub divisi-divisi berikut:
         </p>
 
-        <div className="mt-2 space-y-1.5 text-left font-body text-sm sm:text-base text-gray-800 leading-relaxed">
+        <div className="mt-2 space-y-1.5 text-left font-body text-sm leading-relaxed text-gray-800 sm:text-base">
           <p>
             <span className="font-bold">1. Divisi SMM</span> (MedPro, CnD, Branding)
           </p>
@@ -88,11 +85,9 @@ export const PortfolioReminderModal = ({
           </p>
         </div>
 
-        <p className="mt-4 font-body text-base sm:text-lg font-bold text-[#7E0202]">
-          Wajib mencantumkan portofolio!
-        </p>
+        <p className="mt-4 font-body text-base font-bold text-[#7E0202] sm:text-lg">Wajib mencantumkan portofolio!</p>
       </motion.div>
     </motion.div>,
-    document.body
+    document.body,
   );
 };

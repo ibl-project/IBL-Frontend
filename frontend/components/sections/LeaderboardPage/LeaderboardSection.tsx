@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+
 import { motion } from "framer-motion";
-import { popSpringVariants, popPunchVariants } from "@/lib/animations";
+
+import { popPunchVariants, popSpringVariants } from "@/lib/animations";
 import { useAsyncData, type AsyncState } from "@/lib/hooks/useAsyncData";
-import { type Leaderboard, type LeaderboardRow, getLeaderboard } from "@/lib/leaderboardApi";
+import { getLeaderboard, type Leaderboard, type LeaderboardRow } from "@/lib/leaderboardApi";
 
 type LeaderboardKey = "points" | "assists" | "rebounds";
 
@@ -64,8 +66,7 @@ const categories: CategoryConfig[] = [
         src: "/images/announcement/star.svg",
         width: 311,
         height: 249,
-        className:
-          "-left-[5%] top-[4%] w-[10vw] max-w-[96px] sm:-left-[8%] sm:top-[0%] sm:w-[5.5vw]",
+        className: "-left-[5%] top-[4%] w-[10vw] max-w-[96px] sm:-left-[8%] sm:top-[0%] sm:w-[5.5vw]",
         initialRotate: -5,
         floatY: [-6, 6, -6],
         floatRotate: [-3, 3, -3],
@@ -173,14 +174,9 @@ function LeaderboardTable({
   state: AsyncState<Leaderboard>;
   onRetry: () => void;
 }) {
-  const entries: LeaderboardRow[] =
-    state.status === "ready" ? state.data[categoryKey].slice(0, ROWS_PER_TABLE) : [];
+  const entries: LeaderboardRow[] = state.status === "ready" ? state.data[categoryKey].slice(0, ROWS_PER_TABLE) : [];
   const emptyMessage =
-    state.status === "loading"
-      ? "Memuat data..."
-      : state.status === "error"
-        ? state.message
-        : "Belum ada data pemain.";
+    state.status === "loading" ? "Memuat data..." : state.status === "error" ? state.message : "Belum ada data pemain.";
 
   return (
     <div
@@ -225,7 +221,7 @@ function LeaderboardTable({
                     <button
                       type="button"
                       onClick={onRetry}
-                      className="cursor-pointer rounded-full px-4 py-1 text-[0.8em] font-bold uppercase text-white transition-opacity hover:opacity-80"
+                      className="cursor-pointer rounded-full px-4 py-1 text-[0.8em] font-bold text-white uppercase transition-opacity hover:opacity-80"
                       style={{ backgroundColor: color }}
                     >
                       Coba lagi
@@ -241,16 +237,10 @@ function LeaderboardTable({
               className="h-[clamp(19px,6.15vw,26px)] border-t text-[#151515] sm:h-[clamp(42px,4.75vw,68px)] sm:border-t-2"
               style={{ backgroundColor: "#fff8df", borderColor: color }}
             >
-              <td
-                className="border-r px-1 font-bold sm:border-r-2"
-                style={{ borderColor: color }}
-              >
+              <td className="border-r px-1 font-bold sm:border-r-2" style={{ borderColor: color }}>
                 {entry.rank}
               </td>
-              <td
-                className="border-r px-2 py-0.5 text-left sm:border-r-2 sm:py-1"
-                style={{ borderColor: color }}
-              >
+              <td className="border-r px-2 py-0.5 text-left sm:border-r-2 sm:py-1" style={{ borderColor: color }}>
                 <div className="flex flex-col justify-center">
                   <svg
                     viewBox="0 0 500 42"
@@ -259,13 +249,7 @@ function LeaderboardTable({
                     style={{ overflow: "visible" }}
                   >
                     <defs>
-                      <linearGradient
-                        id={`grad-${categoryKey}-${index}`}
-                        x1="0%"
-                        y1="0%"
-                        x2="0%"
-                        y2="100%"
-                      >
+                      <linearGradient id={`grad-${categoryKey}-${index}`} x1="0%" y1="0%" x2="0%" y2="100%">
                         {gradientStops.map((stop, i) => (
                           <stop key={i} offset={stop.offset} stopColor={stop.color} />
                         ))}
@@ -281,7 +265,7 @@ function LeaderboardTable({
                       strokeWidth="3.2"
                       strokeLinejoin="round"
                       paintOrder="stroke fill"
-                      className="select-none tracking-wide"
+                      className="tracking-wide select-none"
                       {...(entry.player.name.length > LONG_NAME_CHARS
                         ? { textLength: 490, lengthAdjust: "spacingAndGlyphs" }
                         : {})}
@@ -317,7 +301,7 @@ export function LeaderboardSection() {
   return (
     <section
       aria-label="Leaderboard IBL 2K26"
-      className="relative isolate min-h-[calc(100vw*540/320)] overflow-hidden pb-[6vw] pt-[calc(var(--navbar-height)+8px)] sm:min-h-0 sm:pb-8 sm:pt-[calc(var(--navbar-height)+0.5vw)]"
+      className="relative isolate min-h-[calc(100vw*540/320)] overflow-hidden pt-[calc(var(--navbar-height)+8px)] pb-[6vw] sm:min-h-0 sm:pt-[calc(var(--navbar-height)+0.5vw)] sm:pb-8"
     >
       <Image
         src="/images/backgroundleaderboard.png"

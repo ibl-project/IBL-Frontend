@@ -1,14 +1,15 @@
-import { type Page, expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
 import {
   ADMIN_PDF_BYTES,
-  DETAIL_URL,
-  MATCH_ID,
-  SCORE_DETAIL_URL,
   adminResultFile,
+  DETAIL_URL,
   finishedMatch,
+  MATCH_ID,
   mockApi,
   nextDownload,
   pdfFrom,
+  SCORE_DETAIL_URL,
 } from "./fixtures";
 
 /**
@@ -114,13 +115,16 @@ test.describe("Score Detail", () => {
   test("API error: pesan + 'Coba lagi' yang berhasil setelah API pulih", async ({ page }) => {
     await mockApi(page, finishedMatch());
     let failing = true;
-    await page.context().route(`**/api/matches/${MATCH_ID}`, (route) =>
-      failing ? serverError(route) : route.fallback(),
-    );
+    await page
+      .context()
+      .route(`**/api/matches/${MATCH_ID}`, (route) => (failing ? serverError(route) : route.fallback()));
     await page.goto(SCORE_DETAIL_URL);
 
     await expect(statusAlert(page)).toContainText("Gagal memuat data pertandingan.");
-    await expect(page.getByRole("link", { name: "Kembali" })).toHaveAttribute("href", `/schedule-result-main/detail-game?id=${MATCH_ID}`);
+    await expect(page.getByRole("link", { name: "Kembali" })).toHaveAttribute(
+      "href",
+      `/schedule-result-main/detail-game?id=${MATCH_ID}`,
+    );
 
     failing = false;
     const downloaded = nextDownload(page);

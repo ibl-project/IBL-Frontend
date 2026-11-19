@@ -13,7 +13,8 @@ export function formatBytes(bytes: number): string {
  * atau "Belum ada data".
  */
 export const ResultFileCard = ({ file }: { file: ResultFile | null }) => {
-  const box = "mx-auto flex h-[70px] w-full max-w-[282px] items-center rounded-[12px] border-2 border-[#d9b48f] bg-white";
+  const box =
+    "mx-auto flex h-[70px] w-full max-w-[282px] items-center rounded-[12px] border-2 border-[#d9b48f] bg-white";
 
   if (!file) {
     return (

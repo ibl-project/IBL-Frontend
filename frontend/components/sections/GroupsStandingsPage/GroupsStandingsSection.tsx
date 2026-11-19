@@ -1,11 +1,14 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { popSpringVariants, popPunchVariants } from "@/lib/animations";
+
+import { AnimatePresence, motion } from "framer-motion";
+
+import { popPunchVariants, popSpringVariants } from "@/lib/animations";
 import { useAsyncData, type AsyncState } from "@/lib/hooks/useAsyncData";
 import { getPlayoffs, getStandings, toBracket } from "@/lib/standingsApi";
+
 import { GroupStageGrid, StandingsTable } from "./ConferenceTable";
 import { PlayoffBracket } from "./PlayoffBracket";
 
@@ -15,7 +18,7 @@ type ViewMode = "conference" | "playoff";
 function BoardMessage({ children, onRetry }: { children: React.ReactNode; onRetry?: () => void }) {
   return (
     <div
-      className="flex flex-col items-center justify-center gap-3 py-10 text-center text-sm sm:text-base font-bold text-[#658B9D]"
+      className="flex flex-col items-center justify-center gap-3 py-10 text-center text-sm font-bold text-[#658B9D] sm:text-base"
       style={{ fontFamily: "var(--font-poppins)" }}
     >
       <p>{children}</p>
@@ -23,7 +26,7 @@ function BoardMessage({ children, onRetry }: { children: React.ReactNode; onRetr
         <button
           type="button"
           onClick={onRetry}
-          className="rounded-full border-2 border-[#658B9D] px-5 py-1.5 text-xs sm:text-sm uppercase hover:bg-[#658B9D] hover:text-white transition-colors cursor-pointer"
+          className="cursor-pointer rounded-full border-2 border-[#658B9D] px-5 py-1.5 text-xs uppercase transition-colors hover:bg-[#658B9D] hover:text-white sm:text-sm"
         >
           Coba lagi
         </button>
@@ -50,10 +53,8 @@ function BoardContent<T>({
 function WoodPlankBar({ position }: { position: "top" | "bottom" }) {
   return (
     <div
-      className={`relative w-full h-[24px] sm:h-[30px] overflow-hidden ${
-        position === "top"
-          ? "border-b border-[#D8B98C]"
-          : "border-t border-[#D8B98C]"
+      className={`relative h-[24px] w-full overflow-hidden sm:h-[30px] ${
+        position === "top" ? "border-b border-[#D8B98C]" : "border-t border-[#D8B98C]"
       }`}
       style={{
         background: "linear-gradient(180deg, #F9E8BD 0%, #EDCEAA 100%)",
@@ -61,7 +62,7 @@ function WoodPlankBar({ position }: { position: "top" | "bottom" }) {
     >
       {/* Halftone / Wood Grain Texture Overlay */}
       <div
-        className="absolute inset-0 opacity-[0.14] pointer-events-none mix-blend-multiply"
+        className="pointer-events-none absolute inset-0 opacity-[0.14] mix-blend-multiply"
         style={{
           backgroundImage: "url('/images/groups-standings/board-texture.png')",
           backgroundSize: "280px auto",
@@ -106,7 +107,7 @@ export function GroupsStandingsSection() {
 
   return (
     <section
-      className="relative w-full min-h-screen pb-20 overflow-x-hidden pt-[var(--navbar-height)]"
+      className="relative min-h-screen w-full overflow-x-hidden pt-[var(--navbar-height)] pb-20"
       style={{
         backgroundColor: "#E4571A",
         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='292.57' height='292.57'%3E%3Crect width='146.285' height='146.285' fill='%237F0303'/%3E%3Crect x='146.285' y='146.285' width='146.285' height='146.285' fill='%237F0303'/%3E%3C/svg%3E")`,
@@ -116,7 +117,7 @@ export function GroupsStandingsSection() {
     >
       {/* ── Subtle Top Vignette ────────────────────────────────────── */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="pointer-events-none absolute inset-0"
         style={{
           background: "radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.25) 0%, transparent 65%)",
           zIndex: 0,
@@ -125,9 +126,9 @@ export function GroupsStandingsSection() {
       />
 
       {/* ── Header & Dropdown (Centered, max-w-1440px) ─────────────── */}
-      <div className="relative z-40 mx-auto w-full max-w-[1440px] pt-6 sm:pt-10 md:pt-14 px-4 sm:px-6 md:px-8">
+      <div className="relative z-40 mx-auto w-full max-w-[1440px] px-4 pt-6 sm:px-6 sm:pt-10 md:px-8 md:pt-14">
         {/* ── Page Header: GROUP & STANDING ────────────────────────── */}
-        <div className="flex items-center justify-center mb-8">
+        <div className="mb-8 flex items-center justify-center">
           <div className="relative flex items-center justify-center">
             {/* Left Rays: Punchy Pop-in + Organic Floating */}
             <motion.div
@@ -136,12 +137,12 @@ export function GroupsStandingsSection() {
               viewport={{ once: true, amount: 0.1 }}
               variants={popPunchVariants}
               custom={{ delay: 0.05, rotation: -6 }}
-              className="relative -mr-1.5 sm:-mr-3 md:-mr-5 z-10 w-[34px] sm:w-[52px] md:w-[72px] h-[58px] sm:h-[88px] md:h-[120px] shrink-0"
+              className="relative z-10 -mr-1.5 h-[58px] w-[34px] shrink-0 sm:-mr-3 sm:h-[88px] sm:w-[52px] md:-mr-5 md:h-[120px] md:w-[72px]"
             >
               <motion.div
                 animate={{ y: [-4, 4, -4], rotate: [-2, 2, -2] }}
                 transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
-                className="relative w-full h-full"
+                className="relative h-full w-full"
               >
                 <Image
                   src="/images/groups-standings/rays-left.svg"
@@ -160,9 +161,9 @@ export function GroupsStandingsSection() {
               viewport={{ once: true, amount: 0.1 }}
               variants={popSpringVariants}
               custom={0.12}
-              className="relative w-[300px] sm:w-[560px] md:w-[720px] lg:w-[780px] h-[78px] sm:h-[124px] md:h-[156px] flex items-center justify-center px-2 sm:px-10 translate-x-0 sm:translate-x-3 md:translate-x-4"
+              className="relative flex h-[78px] w-[300px] translate-x-0 items-center justify-center px-2 sm:h-[124px] sm:w-[560px] sm:translate-x-3 sm:px-10 md:h-[156px] md:w-[720px] md:translate-x-4 lg:w-[780px]"
             >
-              <div className="w-full h-full relative flex items-center justify-center">
+              <div className="relative flex h-full w-full items-center justify-center">
                 <Image
                   src="/images/groups-standings/title-banner.svg"
                   alt="title banner"
@@ -172,7 +173,7 @@ export function GroupsStandingsSection() {
                 />
                 {/* Text inside banner */}
                 <h1
-                  className="relative z-10 text-[27px] sm:text-[42px] md:text-[56px] lg:text-[62px] leading-none tracking-normal uppercase text-center select-none pt-1 pl-1 sm:pl-3"
+                  className="relative z-10 pt-1 pl-1 text-center text-[27px] leading-none tracking-normal uppercase select-none sm:pl-3 sm:text-[42px] md:text-[56px] lg:text-[62px]"
                   style={{
                     fontFamily: "var(--font-hollywood)",
                     backgroundImage: "linear-gradient(180deg, #CB0404 0%, #650202 100%)",
@@ -193,12 +194,12 @@ export function GroupsStandingsSection() {
               viewport={{ once: true, amount: 0.1 }}
               variants={popPunchVariants}
               custom={{ delay: 0.18, rotation: 6 }}
-              className="relative -ml-1.5 sm:-ml-3 md:-ml-5 z-10 w-[34px] sm:w-[52px] md:w-[72px] h-[58px] sm:h-[88px] md:h-[120px] shrink-0 translate-x-0 sm:translate-x-3 md:translate-x-4"
+              className="relative z-10 -ml-1.5 h-[58px] w-[34px] shrink-0 translate-x-0 sm:-ml-3 sm:h-[88px] sm:w-[52px] sm:translate-x-3 md:-ml-5 md:h-[120px] md:w-[72px] md:translate-x-4"
             >
               <motion.div
                 animate={{ y: [4, -4, 4], rotate: [2, -2, 2] }}
                 transition={{ duration: 4.6, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
-                className="relative w-full h-full"
+                className="relative h-full w-full"
               >
                 <Image
                   src="/images/groups-standings/rays-right.svg"
@@ -219,7 +220,7 @@ export function GroupsStandingsSection() {
           viewport={{ once: true, amount: 0.1 }}
           variants={popSpringVariants}
           custom={0.22}
-          className="flex justify-center mb-16 sm:mb-20 md:mb-24 relative z-50"
+          className="relative z-50 mb-16 flex justify-center sm:mb-20 md:mb-24"
           ref={dropdownRef}
         >
           <div className="relative">
@@ -227,7 +228,7 @@ export function GroupsStandingsSection() {
               type="button"
               id="conference-dropdown-btn"
               onClick={() => setDropdownOpen((prev) => !prev)}
-              className="w-[210px] sm:w-[260px] md:w-[290px] h-[44px] sm:h-[52px] md:h-[56px] flex items-center justify-center gap-2 px-4 transition-all duration-75 focus:outline-none cursor-pointer drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)] hover:scale-[1.03] active:scale-[0.97] touch-manipulation select-none"
+              className="flex h-[44px] w-[210px] cursor-pointer touch-manipulation items-center justify-center gap-2 px-4 drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)] transition-all duration-75 select-none hover:scale-[1.03] focus:outline-none active:scale-[0.97] sm:h-[52px] sm:w-[260px] md:h-[56px] md:w-[290px]"
               style={{
                 backgroundImage: "url('/images/groups-standings/dropdown-pill.svg')",
                 backgroundSize: "100% 100%",
@@ -236,7 +237,7 @@ export function GroupsStandingsSection() {
               }}
             >
               <span
-                className="text-[22px] sm:text-[28px] md:text-[32px] tracking-wide uppercase select-none pt-0.5"
+                className="pt-0.5 text-[22px] tracking-wide uppercase select-none sm:text-[28px] md:text-[32px]"
                 style={{
                   fontFamily: "var(--font-hollywood)",
                   color: "#877561",
@@ -252,7 +253,7 @@ export function GroupsStandingsSection() {
                 width={26}
                 height={22}
                 aria-hidden
-                className={`w-[18px] sm:w-[20px] md:w-[22px] h-auto object-contain transition-transform duration-200 pointer-events-none shrink-0 ${
+                className={`pointer-events-none h-auto w-[18px] shrink-0 object-contain transition-transform duration-200 sm:w-[20px] md:w-[22px] ${
                   dropdownOpen ? "rotate-180" : ""
                 }`}
               />
@@ -260,9 +261,7 @@ export function GroupsStandingsSection() {
 
             {/* Dropdown Menu */}
             {dropdownOpen && (
-              <div
-                className="absolute left-1/2 -translate-x-1/2 top-[50px] sm:top-[58px] md:top-[62px] z-50 w-[210px] sm:w-[260px] md:w-[290px] bg-[#FAF5E8] border-[3px] border-[#877561] rounded-[16px] shadow-[0_12px_28px_rgba(0,0,0,0.4)] overflow-hidden animate-in fade-in zoom-in-95 duration-150"
-              >
+              <div className="animate-in fade-in zoom-in-95 absolute top-[50px] left-1/2 z-50 w-[210px] -translate-x-1/2 overflow-hidden rounded-[16px] border-[3px] border-[#877561] bg-[#FAF5E8] shadow-[0_12px_28px_rgba(0,0,0,0.4)] duration-150 sm:top-[58px] sm:w-[260px] md:top-[62px] md:w-[290px]">
                 {conferences.map((conf, idx) => (
                   <button
                     key={conf.id}
@@ -272,7 +271,7 @@ export function GroupsStandingsSection() {
                       setConferenceIdx(idx);
                       setDropdownOpen(false);
                     }}
-                    className={`w-full text-center py-2.5 sm:py-3 px-4 text-[20px] sm:text-[24px] md:text-[28px] tracking-wide uppercase transition-colors cursor-pointer border-b border-[#D8CBB7] last:border-b-0 touch-manipulation select-none active:bg-[#658B9D] active:text-white ${
+                    className={`w-full cursor-pointer touch-manipulation border-b border-[#D8CBB7] px-4 py-2.5 text-center text-[20px] tracking-wide uppercase transition-colors select-none last:border-b-0 active:bg-[#658B9D] active:text-white sm:py-3 sm:text-[24px] md:text-[28px] ${
                       viewMode === "conference" && conferenceIdx === idx
                         ? "bg-[#658B9D] text-white"
                         : "text-[#877561] hover:bg-[#EFE7D4]"
@@ -291,10 +290,8 @@ export function GroupsStandingsSection() {
                     setViewMode("playoff");
                     setDropdownOpen(false);
                   }}
-                  className={`w-full text-center py-2.5 sm:py-3 px-4 text-[20px] sm:text-[24px] md:text-[28px] tracking-wide uppercase transition-colors cursor-pointer touch-manipulation select-none active:bg-[#658B9D] active:text-white ${
-                    viewMode === "playoff"
-                      ? "bg-[#658B9D] text-white"
-                      : "text-[#877561] hover:bg-[#EFE7D4]"
+                  className={`w-full cursor-pointer touch-manipulation px-4 py-2.5 text-center text-[20px] tracking-wide uppercase transition-colors select-none active:bg-[#658B9D] active:text-white sm:py-3 sm:text-[24px] md:text-[28px] ${
+                    viewMode === "playoff" ? "bg-[#658B9D] text-white" : "text-[#877561] hover:bg-[#EFE7D4]"
                   }`}
                   style={{
                     fontFamily: "var(--font-hollywood)",
@@ -319,7 +316,7 @@ export function GroupsStandingsSection() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
               transition={{ duration: 0.28 }}
-              className="flex flex-col gap-16 sm:gap-24 md:gap-28 w-full"
+              className="flex w-full flex-col gap-16 sm:gap-24 md:gap-28"
             >
               {/* ══════════════════════════════════════════════════════════
                   SECTION 1: CONFERENCE GROUP STAGE
@@ -332,10 +329,10 @@ export function GroupsStandingsSection() {
                   viewport={{ once: true, amount: 0.1 }}
                   variants={popSpringVariants}
                   custom={0.15}
-                  className="absolute left-1/2 -translate-x-1/2 -top-[30px] sm:-top-[42px] z-20 flex flex-col items-center pointer-events-none"
+                  className="pointer-events-none absolute -top-[30px] left-1/2 z-20 flex -translate-x-1/2 flex-col items-center sm:-top-[42px]"
                 >
                   <div className="flex flex-col items-center">
-                    <div className="relative w-[240px] sm:w-[330px] md:w-[360px] h-[54px] sm:h-[72px] md:h-[78px] flex items-center justify-center rotate-[2.1deg]">
+                    <div className="relative flex h-[54px] w-[240px] rotate-[2.1deg] items-center justify-center sm:h-[72px] sm:w-[330px] md:h-[78px] md:w-[360px]">
                       <Image
                         src="/images/groups-standings/ribbon.svg"
                         alt="ribbon"
@@ -344,7 +341,7 @@ export function GroupsStandingsSection() {
                         priority
                       />
                       <span
-                        className="relative z-10 text-[26px] sm:text-[36px] md:text-[42px] tracking-normal uppercase select-none text-center pb-1"
+                        className="relative z-10 pb-1 text-center text-[26px] tracking-normal uppercase select-none sm:text-[36px] md:text-[42px]"
                         style={{
                           fontFamily: "var(--font-hollywood)",
                           color: "#799BA7",
@@ -358,7 +355,7 @@ export function GroupsStandingsSection() {
                     </div>
                     {/* Sub-label: GROUP STAGE */}
                     <div
-                      className="text-[22px] sm:text-[26px] md:text-[30px] uppercase tracking-normal select-none mt-0 sm:mt-0.5 rotate-[1.5deg]"
+                      className="mt-0 rotate-[1.5deg] text-[22px] tracking-normal uppercase select-none sm:mt-0.5 sm:text-[26px] md:text-[30px]"
                       style={{
                         fontFamily: "var(--font-hollywood)",
                         color: "#799BA7",
@@ -379,14 +376,14 @@ export function GroupsStandingsSection() {
                   viewport={{ once: true, amount: 0.05 }}
                   variants={popSpringVariants}
                   custom={0.06}
-                  className="w-full relative shadow-[0_12px_32px_rgba(0,0,0,0.3)] overflow-hidden"
+                  className="relative w-full overflow-hidden shadow-[0_12px_32px_rgba(0,0,0,0.3)]"
                 >
                   {/* Top Wood Plank Bar */}
                   <WoodPlankBar position="top" />
 
                   {/* Cream Paper Body */}
                   <div
-                    className="w-full pt-16 sm:pt-20 pb-10 sm:pb-14 px-3 sm:px-6 md:px-10 lg:px-12 relative overflow-hidden"
+                    className="relative w-full overflow-hidden px-3 pt-16 pb-10 sm:px-6 sm:pt-20 sm:pb-14 md:px-10 lg:px-12"
                     style={{
                       background: "linear-gradient(180deg, #FFFFFF 0%, #FAF7F0 35%, #F4EDE1 100%)",
                     }}
@@ -420,10 +417,10 @@ export function GroupsStandingsSection() {
                   viewport={{ once: true, amount: 0.1 }}
                   variants={popSpringVariants}
                   custom={0.15}
-                  className="absolute left-1/2 -translate-x-1/2 -top-[30px] sm:-top-[42px] z-20 flex flex-col items-center pointer-events-none"
+                  className="pointer-events-none absolute -top-[30px] left-1/2 z-20 flex -translate-x-1/2 flex-col items-center sm:-top-[42px]"
                 >
                   <div className="flex flex-col items-center">
-                    <div className="relative w-[240px] sm:w-[330px] md:w-[360px] h-[54px] sm:h-[72px] md:h-[78px] flex items-center justify-center rotate-[2.1deg]">
+                    <div className="relative flex h-[54px] w-[240px] rotate-[2.1deg] items-center justify-center sm:h-[72px] sm:w-[330px] md:h-[78px] md:w-[360px]">
                       <Image
                         src="/images/groups-standings/ribbon.svg"
                         alt="ribbon"
@@ -432,7 +429,7 @@ export function GroupsStandingsSection() {
                         priority
                       />
                       <span
-                        className="relative z-10 text-[26px] sm:text-[36px] md:text-[42px] tracking-normal uppercase select-none text-center pb-1"
+                        className="relative z-10 pb-1 text-center text-[26px] tracking-normal uppercase select-none sm:text-[36px] md:text-[42px]"
                         style={{
                           fontFamily: "var(--font-hollywood)",
                           color: "#799BA7",
@@ -446,7 +443,7 @@ export function GroupsStandingsSection() {
                     </div>
                     {/* Sub-label: STANDINGS */}
                     <div
-                      className="text-[22px] sm:text-[26px] md:text-[30px] uppercase tracking-normal select-none mt-0 sm:mt-0.5 rotate-[1.5deg]"
+                      className="mt-0 rotate-[1.5deg] text-[22px] tracking-normal uppercase select-none sm:mt-0.5 sm:text-[26px] md:text-[30px]"
                       style={{
                         fontFamily: "var(--font-hollywood)",
                         color: "#799BA7",
@@ -467,14 +464,14 @@ export function GroupsStandingsSection() {
                   viewport={{ once: true, amount: 0.05 }}
                   variants={popSpringVariants}
                   custom={0.06}
-                  className="w-full relative shadow-[0_12px_32px_rgba(0,0,0,0.3)] overflow-hidden"
+                  className="relative w-full overflow-hidden shadow-[0_12px_32px_rgba(0,0,0,0.3)]"
                 >
                   {/* Top Wood Plank Bar */}
                   <WoodPlankBar position="top" />
 
                   {/* Cream Paper Body */}
                   <div
-                    className="w-full pt-16 sm:pt-20 pb-10 sm:pb-14 px-3 sm:px-6 md:px-10 relative overflow-hidden"
+                    className="relative w-full overflow-hidden px-3 pt-16 pb-10 sm:px-6 sm:pt-20 sm:pb-14 md:px-10"
                     style={{
                       background: "linear-gradient(180deg, #FFFFFF 0%, #FAF7F0 35%, #F4EDE1 100%)",
                     }}
@@ -516,9 +513,9 @@ export function GroupsStandingsSection() {
                 viewport={{ once: true, amount: 0.1 }}
                 variants={popSpringVariants}
                 custom={0.15}
-                className="absolute left-1/2 -translate-x-1/2 -top-[28px] sm:-top-[40px] md:-top-[46px] z-20 flex items-center justify-center pointer-events-none"
+                className="pointer-events-none absolute -top-[28px] left-1/2 z-20 flex -translate-x-1/2 items-center justify-center sm:-top-[40px] md:-top-[46px]"
               >
-                <div className="relative w-[280px] sm:w-[440px] md:w-[520px] h-[52px] sm:h-[70px] md:h-[82px] flex items-center justify-center px-4">
+                <div className="relative flex h-[52px] w-[280px] items-center justify-center px-4 sm:h-[70px] sm:w-[440px] md:h-[82px] md:w-[520px]">
                   <Image
                     src="/images/groups-standings/playoff-badge-bg.svg"
                     alt="Standing playoff badge"
@@ -527,7 +524,7 @@ export function GroupsStandingsSection() {
                     priority
                   />
                   <span
-                    className="relative z-10 text-[20px] sm:text-[32px] md:text-[40px] tracking-wider uppercase select-none text-[#EC5D12] text-center pt-0.5"
+                    className="relative z-10 pt-0.5 text-center text-[20px] tracking-wider text-[#EC5D12] uppercase select-none sm:text-[32px] md:text-[40px]"
                     style={{
                       fontFamily: "var(--font-hollywood)",
                       textShadow: "0 2px 3px rgba(0,0,0,0.5)",
@@ -546,12 +543,12 @@ export function GroupsStandingsSection() {
                 viewport={{ once: true, amount: 0.05 }}
                 variants={popSpringVariants}
                 custom={0.06}
-                className="w-full relative shadow-[0_12px_32px_rgba(0,0,0,0.3)] overflow-hidden"
+                className="relative w-full overflow-hidden shadow-[0_12px_32px_rgba(0,0,0,0.3)]"
               >
                 <WoodPlankBar position="top" />
 
                 <div
-                  className="w-full pt-12 sm:pt-16 pb-6 sm:pb-8 px-2 sm:px-6 relative overflow-hidden"
+                  className="relative w-full overflow-hidden px-2 pt-12 pb-6 sm:px-6 sm:pt-16 sm:pb-8"
                   style={{
                     background: "linear-gradient(180deg, #FFFFFF 0%, #FAF7F0 35%, #F4EDE1 100%)",
                   }}

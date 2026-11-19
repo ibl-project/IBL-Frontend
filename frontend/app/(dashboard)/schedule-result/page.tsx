@@ -1,16 +1,17 @@
 "use client";
 
 import React, { useCallback, useState } from "react";
+
 import { X } from "lucide-react";
 
-import { useAsyncData } from "@/lib/hooks/useAsyncData";
-import { listMatches } from "@/lib/matchesApi";
-import { canEditData, useAuthStore } from "@/lib/store/useAuthStore";
-import { listTeams } from "@/lib/teamsApi";
 import { ScheduleResultCreateSection } from "@/components/sections/ScheduleResultPage/ScheduleResultCreateSection";
 import { ScheduleResultDetailSection } from "@/components/sections/ScheduleResultPage/ScheduleResultDetailSection";
 import { ScheduleResultEditSection } from "@/components/sections/ScheduleResultPage/ScheduleResultEditSection";
 import { ScheduleResultLandingSection } from "@/components/sections/ScheduleResultPage/ScheduleResultLandingSection";
+import { useAsyncData } from "@/lib/hooks/useAsyncData";
+import { listMatches } from "@/lib/matchesApi";
+import { canEditData, useAuthStore } from "@/lib/store/useAuthStore";
+import { listTeams } from "@/lib/teamsApi";
 
 type Dialog = { kind: "create" } | { kind: "detail"; id: string } | { kind: "edit"; id: string } | null;
 

@@ -26,7 +26,7 @@ export const DIVISION_LIST = [
   "Sponsorship",
   "Ceremonial",
   "Competition",
-  "Damen"
+  "Damen",
 ];
 
 export const DROPDOWN_OPTIONS = [...DIVISION_LIST];
@@ -36,11 +36,4 @@ export const DROPDOWN_OPTIONS_2 = ["Tidak Memilih", ...DIVISION_LIST];
 
 // Divisi yang mewajibkan portofolio saat Upload Berkas
 // (Divisi SMM: MedPro, CnD, Branding | Divisi Website: Front-End, Back-End, UI/UX)
-export const PORTFOLIO_REQUIRED_DIVISIONS = [
-  "UIUX",
-  "CnD",
-  "MedPro",
-  "Front-End",
-  "Back-End",
-  "Branding",
-];
+export const PORTFOLIO_REQUIRED_DIVISIONS = ["UIUX", "CnD", "MedPro", "Front-End", "Back-End", "Branding"];

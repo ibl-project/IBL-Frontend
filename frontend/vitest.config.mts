@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+
 import { defineConfig } from "vitest/config";
 
 // Unit test (Vitest). Test integrasi browser ada di e2e/ dan dijalankan oleh Playwright, bukan Vitest.

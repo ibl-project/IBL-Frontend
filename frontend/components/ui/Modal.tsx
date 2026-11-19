@@ -37,7 +37,7 @@ export const Modal = ({ open, onClose, labelledBy, className = "", children }: M
         event.preventDefault();
         onClose();
       }}
-      className={`m-auto w-[calc(100%-2rem)] max-h-[calc(100dvh-2rem)] overflow-visible bg-transparent p-0 font-poppins backdrop:bg-[#e1e7ea]/40 backdrop:backdrop-blur-[6px] ${className}`}
+      className={`m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-visible bg-transparent p-0 font-poppins backdrop:bg-[#e1e7ea]/40 backdrop:backdrop-blur-[6px] ${className}`}
     >
       {open && children}
     </dialog>

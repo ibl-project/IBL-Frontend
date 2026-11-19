@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import type { Metadata } from "next";
+
 import { ScoreDetailPdfSection } from "@/components/sections/ScoreDetailPage/ScoreDetailPdfSection";
 
 export const metadata: Metadata = {

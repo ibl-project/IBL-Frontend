@@ -1,31 +1,33 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+
 import { Lock } from "lucide-react";
 
+import { useCollapseSidebar } from "@/components/layout/dashboard/DashboardLayout";
+import { Modal } from "@/components/ui/Modal";
+import { errorMessage } from "@/lib/errors";
 import { useAutoSaveActions } from "@/lib/hooks/useAutoSaveActions";
-import { type Rebase, useMatchLive } from "@/lib/hooks/useMatchLive";
+import { useMatchLive, type Rebase } from "@/lib/hooks/useMatchLive";
 import type { SessionState } from "@/lib/hooks/useScoringSession";
 import {
-  type PlayerLine,
-  type ScoringBoardItem,
-  type StatKey,
   isSessionError,
   lockQuarter,
   periodLabel,
   resetQuarter,
   unlockQuarter,
   updateColors,
+  type PlayerLine,
+  type ScoringBoardItem,
+  type StatKey,
 } from "@/lib/matchesApi";
 import { applyLock, applyStep } from "@/lib/matchSnapshot";
 import type { OutboxTap } from "@/lib/scoringOutbox";
 import { useAuthStore } from "@/lib/store/useAuthStore";
-import { errorMessage } from "@/lib/errors";
-import { useCollapseSidebar } from "@/components/layout/dashboard/DashboardLayout";
-import { Modal } from "@/components/ui/Modal";
+
 import { ScoringBoxScoreSection } from "./ScoringBoxScoreSection";
 import { ScoringOutboxConflict } from "./ScoringOutboxConflict";
-import { type ScoringView, ScoringQuarterTabs } from "./ScoringQuarterTabs";
+import { ScoringQuarterTabs, type ScoringView } from "./ScoringQuarterTabs";
 
 interface ScoringMatchPanelProps {
   item: ScoringBoardItem;
@@ -168,7 +170,9 @@ export const ScoringMatchPanel = ({
     const label = periodLabel(confirm.quarter);
     if (confirm.kind === "lock" && lockQueues(confirm.quarter)) {
       const next = Math.min(
-        ...quarters.filter((period) => !period.locked && period.quarter !== confirm.quarter).map((period) => period.quarter),
+        ...quarters
+          .filter((period) => !period.locked && period.quarter !== confirm.quarter)
+          .map((period) => period.quarter),
       );
       setSnapshot((current) => (current ? applyLock(current, confirm.quarter) : current));
       enqueueLock(confirm.quarter);
@@ -207,7 +211,10 @@ export const ScoringMatchPanel = ({
         });
       } else {
         await unlockQuarter(item.id, confirm.quarter);
-        setNotice({ tone: "ok", text: `${label} dibuka untuk koreksi. Tekan Save and Lock ${label} lagi setelah selesai.` });
+        setNotice({
+          tone: "ok",
+          text: `${label} dibuka untuk koreksi. Tekan Save and Lock ${label} lagi setelah selesai.`,
+        });
         // Backend sudah menjadikan akun ini pemegang sesi; minta sesi ulang
         // supaya halaman ikut tahu (sebelumnya klaim ditolak karena terkunci).
         recheckSession();
@@ -229,7 +236,10 @@ export const ScoringMatchPanel = ({
 
   if (!locked && session.status === "busy") {
     return (
-      <div role="alert" className="flex flex-col items-center gap-3 rounded-[12px] bg-white px-6 py-20 text-center font-poppins">
+      <div
+        role="alert"
+        className="flex flex-col items-center gap-3 rounded-[12px] bg-white px-6 py-20 text-center font-poppins"
+      >
         <Lock aria-hidden="true" className="h-8 w-8 text-gray-600" />
         <p className="text-lg font-semibold text-[#202224]">
           {title} sedang di-scoring oleh {session.holderName}.
@@ -263,7 +273,10 @@ export const ScoringMatchPanel = ({
 
   if (!snapshot || (!locked && session.status === "claiming")) {
     return (
-      <div role={error ? "alert" : "status"} className="rounded-[12px] bg-white px-6 py-20 text-center font-poppins text-sm">
+      <div
+        role={error ? "alert" : "status"}
+        className="rounded-[12px] bg-white px-6 py-20 text-center font-poppins text-sm"
+      >
         {error ? (
           <span className="font-medium text-red-700">Data match gagal dimuat: {error}</span>
         ) : (
@@ -288,13 +301,15 @@ export const ScoringMatchPanel = ({
       className={`text-xs font-medium ${conflict ? "text-red-700" : offline ? "text-amber-800" : "text-gray-600"}`}
     >
       {saveText}
-      {!outbox.persisted && " Penyimpanan browser tidak bisa dipakai: jangan tutup atau reload tab ini sampai semua terkirim."}
+      {!outbox.persisted &&
+        " Penyimpanan browser tidak bisa dipakai: jangan tutup atau reload tab ini sampai semua terkirim."}
     </span>
   );
   // Butuh server langsung: Lock periode terakhir, Reset, Unlock.
   const needsServer = offline || pending > 0;
   const needsServerTitle = offline ? "Butuh koneksi ke server" : pending > 0 ? "Tunggu semua data terkirim" : undefined;
-  const pill = "h-10 rounded-full px-6 text-sm font-bold text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
+  const pill =
+    "h-10 rounded-full px-6 text-sm font-bold text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
   const leaveButton = (
     <button
       type="button"
@@ -308,7 +323,9 @@ export const ScoringMatchPanel = ({
 
   const viewedQuarter = typeof view === "number" ? quarters.find((quarter) => quarter.quarter === view) : undefined;
   const lockedBy =
-    typeof view === "number" ? item.scoring.quarters.find((quarter) => quarter.quarter === view)?.lockedBy?.name : undefined;
+    typeof view === "number"
+      ? item.scoring.quarters.find((quarter) => quarter.quarter === view)?.lockedBy?.name
+      : undefined;
   // Unlock hanya kalau semua periode sebelum periode ini sudah terkunci.
   const unlockBlockedBy =
     typeof view === "number" ? quarters.find((quarter) => quarter.quarter < view && !quarter.locked) : undefined;
@@ -388,7 +405,9 @@ export const ScoringMatchPanel = ({
     if (others.length > 0) {
       const next = Math.min(...others.map((quarter) => quarter.quarter));
       return `${label} dikunci dan tidak bisa diubah sampai di-Unlock. ${periodLabel(next)} bisa diisi setelahnya.${
-        offline ? " Koneksi sedang terputus: kunci ini disimpan di laptop dan dikirim ke server otomatis saat koneksi kembali." : ""
+        offline
+          ? " Koneksi sedang terputus: kunci ini disimpan di laptop dan dikirim ke server otomatis saat koneksi kembali."
+          : ""
       }`;
     }
     const [score1, score2] = [snapshot.team1.score, snapshot.team2.score];
@@ -408,11 +427,18 @@ export const ScoringMatchPanel = ({
         <div
           role={notice.tone === "error" ? "alert" : "status"}
           className={`flex items-start justify-between gap-3 rounded-2xl border px-4 py-3 font-poppins text-sm ${
-            notice.tone === "error" ? "border-red-200 bg-red-50 text-red-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"
+            notice.tone === "error"
+              ? "border-red-200 bg-red-50 text-red-800"
+              : "border-emerald-200 bg-emerald-50 text-emerald-800"
           }`}
         >
           <span>{notice.text}</span>
-          <button type="button" aria-label="Tutup pesan" onClick={() => setNotice(null)} className="shrink-0 rounded-full px-2 hover:bg-black/5">
+          <button
+            type="button"
+            aria-label="Tutup pesan"
+            onClick={() => setNotice(null)}
+            className="shrink-0 rounded-full px-2 hover:bg-black/5"
+          >
             ✕
           </button>
         </div>
@@ -445,7 +471,12 @@ export const ScoringMatchPanel = ({
         footer={footer}
       />
 
-      <Modal open={confirm !== null} onClose={() => setConfirm(null)} labelledBy="scoring-confirm-title" className="max-w-sm">
+      <Modal
+        open={confirm !== null}
+        onClose={() => setConfirm(null)}
+        labelledBy="scoring-confirm-title"
+        className="max-w-sm"
+      >
         <div className="rounded-3xl bg-white p-6 text-center">
           <h3 id="scoring-confirm-title" className="text-lg font-bold text-gray-900">
             {confirm?.kind === "lock"

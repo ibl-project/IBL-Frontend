@@ -1,10 +1,12 @@
 "use client";
 
 import React from "react";
+
 import { Trash2 } from "lucide-react";
 
-import { type ScoringBoardItem, isLiveNow, periodLabel } from "@/lib/matchesApi";
 import { MatchCard } from "@/components/sections/ScheduleResultPage/MatchCard";
+import { isLiveNow, periodLabel, type ScoringBoardItem } from "@/lib/matchesApi";
+
 import { ScoringLandingSection } from "./ScoringLandingSection";
 
 interface ScoringMatchListSectionProps {
@@ -34,7 +36,13 @@ function statusText(match: ScoringBoardItem): string {
  * [Display]"): tombol Score membuka scoring desk, tombol sampah menghapus score
  * match itu. Jadwal baru ditambahkan lewat "+ Add Scoring".
  */
-export const ScoringMatchListSection = ({ items, filtered, unsent, onScore, onDelete }: ScoringMatchListSectionProps) => {
+export const ScoringMatchListSection = ({
+  items,
+  filtered,
+  unsent,
+  onScore,
+  onDelete,
+}: ScoringMatchListSectionProps) => {
   if (items.length === 0) return <ScoringLandingSection filtered={filtered} />;
 
   return (

@@ -2,7 +2,9 @@
 
 import React from "react";
 import Image, { type ImageProps } from "next/image";
+
 import { motion } from "framer-motion";
+
 import TicketCongrats from "@/public/images/announcement/Ticket_Congrats.svg";
 
 interface ResultTicketProps {
@@ -27,7 +29,7 @@ export default function ResultTicket({
   footerNode,
 }: ResultTicketProps) {
   return (
-    <div className="flex flex-col items-center justify-center select-none max-w-full">
+    <div className="flex max-w-full flex-col items-center justify-center select-none">
       {/* Dynamic Sticker (Animated Pop-in) */}
       <motion.div
         className={stickerClass}
@@ -35,33 +37,22 @@ export default function ResultTicket({
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
       >
-        <Image
-          src={stickerSrc}
-          alt={stickerAlt}
-          className="w-full h-auto"
-          priority
-        />
+        <Image src={stickerSrc} alt={stickerAlt} className="h-auto w-full" priority />
       </motion.div>
 
       {/* Ticket wrapper (Animated Slide-up) */}
       <motion.div
-        className={`relative w-[575px] max-w-[95vw] aspect-[575/363] z-0 ${ticketMarginBottomClass}`}
+        className={`relative z-0 aspect-[575/363] w-[575px] max-w-[95vw] ${ticketMarginBottomClass}`}
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", bounce: 0.4, delay: 0.2, duration: 0.8 }}
       >
-        <Image
-          src={TicketCongrats}
-          alt="Ticket Congrats"
-          fill
-          className="object-contain"
-          priority
-        />
+        <Image src={TicketCongrats} alt="Ticket Congrats" fill className="object-contain" priority />
 
         {/* Conditional Ticket Header Title */}
         {headerText && (
           <div
-            className="absolute font-hollywood text-center select-none uppercase"
+            className="absolute text-center font-hollywood uppercase select-none"
             style={{
               fontFamily: "var(--font-hollywood), sans-serif",
               fontSize: "clamp(20px, 4.5vw, 30px)",
@@ -69,8 +60,7 @@ export default function ResultTicket({
               width: "clamp(160px, 55vw, 259px)",
               height: "auto",
               letterSpacing: "-0.02em",
-              background:
-                "linear-gradient(180deg, #390100 30.77%, #770202 65.87%)",
+              background: "linear-gradient(180deg, #390100 30.77%, #770202 65.87%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -87,7 +77,7 @@ export default function ResultTicket({
 
         {/* Text content area */}
         <div
-          className="absolute font-drowner text-black z-10 flex flex-col items-center justify-center text-center"
+          className="absolute z-10 flex flex-col items-center justify-center text-center font-drowner text-black"
           style={{
             left: "50%",
             top: "52.9%",
@@ -104,9 +94,9 @@ export default function ResultTicket({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.6, ease: "easeOut" }}
-            className="absolute inset-0 pointer-events-none"
+            className="pointer-events-none absolute inset-0"
           >
-            <div className="contents pointer-events-auto">{footerNode}</div>
+            <div className="pointer-events-auto contents">{footerNode}</div>
           </motion.div>
         )}
       </motion.div>

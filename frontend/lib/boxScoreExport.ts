@@ -1,7 +1,7 @@
 import { getFontEmbedCSS, toSvg } from "html-to-image";
 import jsPDF from "jspdf";
 
-import { type MatchSnapshot, type PlayerLine, type StatCounts, STAT_KEYS, periodLabel } from "@/lib/matchesApi";
+import { periodLabel, STAT_KEYS, type MatchSnapshot, type PlayerLine, type StatCounts } from "@/lib/matchesApi";
 
 /**
  * Export box score scoring desk: CSV dan PDF.
@@ -45,11 +45,30 @@ export function exportFileName(snapshot: MatchSnapshot): string {
 // ----------------------------------------------------------------------------
 
 const CSV_HEADERS = [
-  "NO", "NAMA PEMAIN", "PTS", "2PM", "2PMISS", "2PA", "2P%", "3PM", "3PMISS", "3PA", "3P%",
-  "FTM", "FTMISS", "FTA", "FT%", "AST", "OREB", "DREB", "REB", "FOUL",
+  "NO",
+  "NAMA PEMAIN",
+  "PTS",
+  "2PM",
+  "2PMISS",
+  "2PA",
+  "2P%",
+  "3PM",
+  "3PMISS",
+  "3PA",
+  "3P%",
+  "FTM",
+  "FTMISS",
+  "FTA",
+  "FT%",
+  "AST",
+  "OREB",
+  "DREB",
+  "REB",
+  "FOUL",
 ];
 
-const percent = (made: number, attempted: number) => (attempted > 0 ? `${((made / attempted) * 100).toFixed(1)}%` : "0.0%");
+const percent = (made: number, attempted: number) =>
+  attempted > 0 ? `${((made / attempted) * 100).toFixed(1)}%` : "0.0%";
 
 /** Satu baris statistik (pemain atau total tim) dalam urutan CSV_HEADERS. */
 function statRow(no: string, name: string, counts: StatCounts): Array<string | number> {
@@ -60,10 +79,23 @@ function statRow(no: string, name: string, counts: StatCounts): Array<string | n
     no,
     name,
     counts.twoPointMade * 2 + counts.threePointMade * 3 + counts.freethrowMade,
-    counts.twoPointMade, counts.twoPointMiss, twoAttempted, percent(counts.twoPointMade, twoAttempted),
-    counts.threePointMade, counts.threePointMiss, threeAttempted, percent(counts.threePointMade, threeAttempted),
-    counts.freethrowMade, counts.freethrowMiss, freeAttempted, percent(counts.freethrowMade, freeAttempted),
-    counts.assist, counts.reboundOff, counts.reboundDef, counts.reboundOff + counts.reboundDef, counts.foul,
+    counts.twoPointMade,
+    counts.twoPointMiss,
+    twoAttempted,
+    percent(counts.twoPointMade, twoAttempted),
+    counts.threePointMade,
+    counts.threePointMiss,
+    threeAttempted,
+    percent(counts.threePointMade, threeAttempted),
+    counts.freethrowMade,
+    counts.freethrowMiss,
+    freeAttempted,
+    percent(counts.freethrowMade, freeAttempted),
+    counts.assist,
+    counts.reboundOff,
+    counts.reboundDef,
+    counts.reboundOff + counts.reboundDef,
+    counts.foul,
   ];
 }
 
@@ -182,7 +214,10 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => {
-      image.decode().then(() => resolve(image), () => resolve(image));
+      image.decode().then(
+        () => resolve(image),
+        () => resolve(image),
+      );
     };
     image.onerror = () => reject(new Error("Gagal memuat gambar lembar export"));
     image.crossOrigin = "anonymous";

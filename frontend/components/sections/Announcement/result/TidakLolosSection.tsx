@@ -1,5 +1,7 @@
 import React from "react";
+
 import ThankYouDesktop from "@/public/images/announcement/THANKYOU DESKTOP.svg";
+
 import ResultTicket from "./ResultTicket";
 
 interface TidakLolosSectionProps {
@@ -27,15 +29,9 @@ export default function TidakLolosSection({ urlName }: TidakLolosSectionProps) {
         }}
       >
         <p className="my-0.5 tracking-widest">Hi, {displayName}</p>
-        <p className="my-0.5 tracking-widest">
-          Terima kasih telah mengikuti Open Recruitment Staff IBL2k26.
-        </p>
-        <p className="my-0.5 tracking-widest">
-          Mohon maaf, pada kesempatan ini Anda belum dinyatakan lolos.
-        </p>
-        <p className="my-0.5 tracking-widest">
-          Keep growing and see you on another opportunity!
-        </p>
+        <p className="my-0.5 tracking-widest">Terima kasih telah mengikuti Open Recruitment Staff IBL2k26.</p>
+        <p className="my-0.5 tracking-widest">Mohon maaf, pada kesempatan ini Anda belum dinyatakan lolos.</p>
+        <p className="my-0.5 tracking-widest">Keep growing and see you on another opportunity!</p>
       </ResultTicket>
     </>
   );

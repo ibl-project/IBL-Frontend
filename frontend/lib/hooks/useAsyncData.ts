@@ -2,10 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { errorMessage } from "@/lib/errors";
 
-export type AsyncState<T> =
-  | { status: "loading" }
-  | { status: "error"; message: string }
-  | { status: "ready"; data: T };
+export type AsyncState<T> = { status: "loading" } | { status: "error"; message: string } | { status: "ready"; data: T };
 
 /**
  * Muat data dari backend dan simpan statusnya (loading / error / ready).

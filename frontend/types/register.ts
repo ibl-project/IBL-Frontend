@@ -27,8 +27,8 @@ export interface RegisterFormData {
 }
 
 export interface CountdownTime {
-  days: number
-  hours: number
-  minutes: number
-  seconds: number
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
 }

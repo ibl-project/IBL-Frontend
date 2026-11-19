@@ -1,6 +1,6 @@
 import React from "react";
 
-import { type ExportSection, linesForView, sectionTitle, teamTotals } from "@/lib/boxScoreExport";
+import { linesForView, sectionTitle, teamTotals, type ExportSection } from "@/lib/boxScoreExport";
 import { formatWib } from "@/lib/datetime";
 import type { MatchSnapshot, PlayerLine, StatKey } from "@/lib/matchesApi";
 
@@ -35,7 +35,10 @@ const cell = "border border-black px-1 py-1 text-center";
 
 const TeamTable = ({ name, lines, color }: { name: string; lines: PlayerLine[]; color: string }) => {
   const custom = color !== "#ffffff";
-  const headerStyle = { backgroundColor: custom ? color : "#ffffff", color: custom && isDark(color) ? "#ffffff" : "#000000" };
+  const headerStyle = {
+    backgroundColor: custom ? color : "#ffffff",
+    color: custom && isDark(color) ? "#ffffff" : "#000000",
+  };
   const totals = teamTotals(lines);
   const points = totals.twoPointMade * 2 + totals.threePointMade * 3 + totals.freethrowMade;
   return (
@@ -50,20 +53,38 @@ const TeamTable = ({ name, lines, color }: { name: string; lines: PlayerLine[]; 
       </colgroup>
       <thead style={headerStyle}>
         <tr>
-          <th colSpan={13} className="border border-black py-1.5 text-[14px] font-black uppercase tracking-wider">
+          <th colSpan={13} className="border border-black py-1.5 text-[14px] font-black tracking-wider uppercase">
             {name}
           </th>
         </tr>
         <tr className="font-bold">
-          <th rowSpan={2} className={cell}>Nama</th>
-          <th rowSpan={2} className={cell}>NO</th>
-          <th rowSpan={2} className={cell}>Total</th>
-          <th colSpan={2} className={cell}>2 Point</th>
-          <th colSpan={2} className={cell}>3 Point</th>
-          <th rowSpan={2} className={cell}>Assist</th>
-          <th colSpan={2} className={cell}>Freethrow</th>
-          <th colSpan={2} className={cell}>Rebound</th>
-          <th rowSpan={2} className={cell}>Foul</th>
+          <th rowSpan={2} className={cell}>
+            Nama
+          </th>
+          <th rowSpan={2} className={cell}>
+            NO
+          </th>
+          <th rowSpan={2} className={cell}>
+            Total
+          </th>
+          <th colSpan={2} className={cell}>
+            2 Point
+          </th>
+          <th colSpan={2} className={cell}>
+            3 Point
+          </th>
+          <th rowSpan={2} className={cell}>
+            Assist
+          </th>
+          <th colSpan={2} className={cell}>
+            Freethrow
+          </th>
+          <th colSpan={2} className={cell}>
+            Rebound
+          </th>
+          <th rowSpan={2} className={cell}>
+            Foul
+          </th>
         </tr>
         <tr className="text-[10px] font-normal">
           {["Made", "Miss", "Made", "Miss", "Made", "Miss", "Off", "Def"].map((label, index) => (
@@ -89,7 +110,7 @@ const TeamTable = ({ name, lines, color }: { name: string; lines: PlayerLine[]; 
       </tbody>
       <tfoot>
         <tr className="font-extrabold">
-          <td className="border border-black py-1 text-center uppercase tracking-wider">Totals</td>
+          <td className="border border-black py-1 text-center tracking-wider uppercase">Totals</td>
           <td className="border border-black" />
           <td className={cell}>{points}</td>
           {STAT_COLUMNS.map((key) => (
@@ -119,14 +140,14 @@ export const ScoringExportSheet = ({ snapshot, section, color1, color2 }: Scorin
     <div className="flex w-[1280px] flex-col gap-3 bg-white p-6 font-poppins text-[#202224]">
       <div className="flex items-end justify-between border-b-2 border-black pb-2">
         <div>
-          <p className="text-[12px] font-semibold uppercase tracking-wide text-gray-600">IBL 2K26 · Box Score</p>
+          <p className="text-[12px] font-semibold tracking-wide text-gray-600 uppercase">IBL 2K26 · Box Score</p>
           <p className="text-[16px] font-bold">
             {snapshot.matchNumber !== null ? `Match ${snapshot.matchNumber} · ` : ""}
             {team1} vs {team2}
           </p>
         </div>
         <div className="text-center">
-          <p className="text-[20px] font-black uppercase tracking-wide text-[#8b0000]">{sectionTitle(section)}</p>
+          <p className="text-[20px] font-black tracking-wide text-[#8b0000] uppercase">{sectionTitle(section)}</p>
           <p className="text-[16px] font-bold">
             {team1} {score1} – {score2} {team2}
           </p>

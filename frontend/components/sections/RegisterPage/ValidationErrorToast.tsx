@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useSyncExternalStore } from "react";
+
+import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
 
 interface ValidationErrorToastProps {
   message: string | null;
@@ -13,16 +14,12 @@ interface ValidationErrorToastProps {
 
 const subscribeNoop = () => () => {};
 
-export const ValidationErrorToast = ({
-  message,
-  onDismiss,
-  duration = 3000,
-}: ValidationErrorToastProps) => {
+export const ValidationErrorToast = ({ message, onDismiss, duration = 3000 }: ValidationErrorToastProps) => {
   // True only on the client, so createPortal can safely access document.body
   const mounted = useSyncExternalStore(
     subscribeNoop,
     () => true,
-    () => false
+    () => false,
   );
 
   useEffect(() => {
@@ -58,7 +55,7 @@ export const ValidationErrorToast = ({
               damping: 24,
               mass: 0.8,
             }}
-            className="fixed left-1/2 top-1/2 z-[10000] -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
+            className="pointer-events-auto fixed top-1/2 left-1/2 z-[10000] -translate-x-1/2 -translate-y-1/2"
           >
             <div
               className="relative overflow-hidden shadow-2xl"
@@ -83,15 +80,10 @@ export const ValidationErrorToast = ({
                     damping: 12,
                     delay: 0.1,
                   }}
-                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full"
                   style={{ backgroundColor: "#864B4D" }}
                 >
-                  <svg
-                    className="w-5 h-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -102,17 +94,11 @@ export const ValidationErrorToast = ({
                 </motion.div>
 
                 {/* Text */}
-                <div className="flex-1 min-w-0">
-                  <p
-                    className="font-crosner text-xs font-bold uppercase tracking-widest"
-                    style={{ color: "#F4631E" }}
-                  >
+                <div className="min-w-0 flex-1">
+                  <p className="font-crosner text-xs font-bold tracking-widest uppercase" style={{ color: "#F4631E" }}>
                     Peringatan
                   </p>
-                  <p
-                    className="font-body text-sm mt-1 leading-snug"
-                    style={{ color: "#EFE8DE" }}
-                  >
+                  <p className="mt-1 font-body text-sm leading-snug" style={{ color: "#EFE8DE" }}>
                     {message}
                   </p>
                 </div>
@@ -120,27 +106,17 @@ export const ValidationErrorToast = ({
                 {/* Close button */}
                 <button
                   onClick={onDismiss}
-                  className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-colors hover:bg-white/10 cursor-pointer"
+                  className="flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-white/10"
                   aria-label="Tutup"
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="#EFE8DE"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2.5"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
+                  <svg className="h-4 w-4" fill="none" stroke="#EFE8DE" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
 
               {/* Animated countdown bar */}
-              <div className="w-full h-[3px]" style={{ backgroundColor: "#864B4D33" }}>
+              <div className="h-[3px] w-full" style={{ backgroundColor: "#864B4D33" }}>
                 <motion.div
                   initial={{ width: "100%" }}
                   animate={{ width: "0%" }}
@@ -157,6 +133,6 @@ export const ValidationErrorToast = ({
         </>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 };

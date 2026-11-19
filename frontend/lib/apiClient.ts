@@ -1,4 +1,4 @@
-import { type AuthUser, useAuthStore } from "@/lib/store/useAuthStore";
+import { useAuthStore, type AuthUser } from "@/lib/store/useAuthStore";
 
 /**
  * =============================================================================
@@ -157,9 +157,7 @@ function withRefreshLock<T>(task: () => Promise<T>): Promise<T> {
 
   // Kunci dilepas setelah promise dari callback selesai, yaitu setelah task.
   return new Promise<T>((resolve, reject) => {
-    navigator.locks
-      .request("ibl-auth-refresh", () => task().then(resolve, reject))
-      .catch(reject);
+    navigator.locks.request("ibl-auth-refresh", () => task().then(resolve, reject)).catch(reject);
   });
 }
 

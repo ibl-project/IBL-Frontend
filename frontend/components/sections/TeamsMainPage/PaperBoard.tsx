@@ -1,8 +1,8 @@
 import React from "react";
 
-import { ARTBOARD, PAGE_BACKGROUND, TEAMS_ASSETS, type ArtboardVariant, type TeamsPage } from "./teamsMainTheme";
 import { CheckerBand } from "./CheckerBand";
 import { PaperCard } from "./PaperCard";
+import { ARTBOARD, PAGE_BACKGROUND, TEAMS_ASSETS, type ArtboardVariant, type TeamsPage } from "./teamsMainTheme";
 
 interface PaperBoardProps {
   variant: ArtboardVariant;
@@ -25,46 +25,59 @@ export function PaperBoard({ variant, page, overlap, children }: PaperBoardProps
 
   return (
     <>
-    <div className="relative" style={{ marginTop: -overlap, minHeight: board.minHeight, paddingBottom: board.paddingBottom }}>
-      {/*
+      <div
+        className="relative"
+        style={{ marginTop: -overlap, minHeight: board.minHeight, paddingBottom: board.paddingBottom }}
+      >
+        {/*
         Pita checker bawah, di belakang papan; latar halaman, jadi selebar layar (bukan selebar papan).
         Batas baris tepat di tepi bawah papan: dua baris tertutup papan, baris ketiga utuh di ruang bawah.
       */}
-      <CheckerBand tile={checker} centerX={width / 2} left={-width * 4} width={width * 9} top={`calc(100% - ${checker}px)`} />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0"
-        style={{ left: bg.board.left, width: bg.board.width }}
-      >
-        {/* Papan (Vector 2577): gradasi Figma 180deg pada layer yang diputar -90 derajat = kiri ke kanan di layar. */}
+        <CheckerBand
+          tile={checker}
+          centerX={width / 2}
+          left={-width * 4}
+          width={width * 9}
+          top={`calc(100% - ${checker}px)`}
+        />
         <div
-          className="absolute inset-0 overflow-hidden"
-          style={{
-            background: "linear-gradient(90deg, #F9E8BD 0%, #EDCEAA 100%)",
-            boxShadow: `${-12.36 * shadow}px ${11.06 * shadow}px ${6.77 * shadow}px rgba(0, 0, 0, 0.28)`,
-          }}
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0"
+          style={{ left: bg.board.left, width: bg.board.width }}
         >
-          {/*
+          {/* Papan (Vector 2577): gradasi Figma 180deg pada layer yang diputar -90 derajat = kiri ke kanan di layar. */}
+          <div
+            className="absolute inset-0 overflow-hidden"
+            style={{
+              background: "linear-gradient(90deg, #F9E8BD 0%, #EDCEAA 100%)",
+              boxShadow: `${-12.36 * shadow}px ${11.06 * shadow}px ${6.77 * shadow}px rgba(0, 0, 0, 0.28)`,
+            }}
+          >
+            {/*
             Serat papan (image 2): opacity 60% di dalam mask berlayer 16%, jadi ~10% di layar.
             multiply + opacity pada gambar hitam-putih = titik hitam transparan dengan opacity yang sama.
           */}
-          <div
-            className="absolute inset-0 mix-blend-multiply"
-            style={{ opacity: 0.1, backgroundImage: `url('${TEAMS_ASSETS.grain}')`, backgroundSize: `${bg.grainWidth}px auto` }}
+            <div
+              className="absolute inset-0 mix-blend-multiply"
+              style={{
+                opacity: 0.1,
+                backgroundImage: `url('${TEAMS_ASSETS.grain}')`,
+                backgroundSize: `${bg.grainWidth}px auto`,
+              }}
+            />
+          </div>
+          <PaperCard
+            left={bg.paper.left}
+            width={bg.paper.width}
+            top={bg.paper.top}
+            bottom={bg.paper.bottom}
+            shadowScale={shadow}
           />
         </div>
-        <PaperCard
-          left={bg.paper.left}
-          width={bg.paper.width}
-          top={bg.paper.top}
-          bottom={bg.paper.bottom}
-          shadowScale={shadow}
-        />
+        <div className="relative">{children}</div>
       </div>
-      <div className="relative">{children}</div>
-    </div>
-    {/* Ruang satu baris checker di antara papan dan footer; ikut dihitung tinggi artboard, jadi tidak terpotong. */}
-    <div aria-hidden style={{ height: row }} />
+      {/* Ruang satu baris checker di antara papan dan footer; ikut dihitung tinggi artboard, jadi tidak terpotong. */}
+      <div aria-hidden style={{ height: row }} />
     </>
   );
 }

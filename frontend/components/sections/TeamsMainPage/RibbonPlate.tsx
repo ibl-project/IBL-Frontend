@@ -24,13 +24,26 @@ function ribbonShape(notchLeft: number, notchRight: number): string {
  * bentuknya memakai clip-path, garis tepi dibuat dari lapisan luar berwarna tepi dan lapisan isi
  * yang menjorok sebesar tebal tepi.
  */
-export function RibbonPlate({ notchLeft, notchRight, border, borderColor, background, className = "relative", style, children }: RibbonPlateProps) {
+export function RibbonPlate({
+  notchLeft,
+  notchRight,
+  border,
+  borderColor,
+  background,
+  className = "relative",
+  style,
+  children,
+}: RibbonPlateProps) {
   return (
     <div
       className={className}
       style={{ ...style, filter: `drop-shadow(0 ${border}px ${border}px rgba(0, 0, 0, 0.25))` }}
     >
-      <div aria-hidden className="absolute inset-0" style={{ background: borderColor, clipPath: ribbonShape(notchLeft, notchRight) }} />
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{ background: borderColor, clipPath: ribbonShape(notchLeft, notchRight) }}
+      />
       <div
         aria-hidden
         className="absolute"

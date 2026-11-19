@@ -4,15 +4,16 @@ import React, { useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-import { getTeam } from "@/lib/teamsApi";
 import { useAsyncData } from "@/lib/hooks/useAsyncData";
-import { ARTBOARD, TEAMS_COLORS } from "./teamsMainTheme";
-import { TeamsArtboard } from "./TeamsArtboard";
-import { PaperBoard } from "./PaperBoard";
-import { TeamBanner } from "./TeamBanner";
-import { PlayerStatsTable } from "./PlayerStatsTable";
-import { AVERAGE_COLUMNS, PLAYER_COLUMN_WIDTH, TOTAL_COLUMNS } from "./playerStatsColumns";
+import { getTeam } from "@/lib/teamsApi";
+
 import { BoardMessage } from "./BoardMessage";
+import { PaperBoard } from "./PaperBoard";
+import { AVERAGE_COLUMNS, PLAYER_COLUMN_WIDTH, TOTAL_COLUMNS } from "./playerStatsColumns";
+import { PlayerStatsTable } from "./PlayerStatsTable";
+import { TeamBanner } from "./TeamBanner";
+import { TeamsArtboard } from "./TeamsArtboard";
+import { ARTBOARD, TEAMS_COLORS } from "./teamsMainTheme";
 
 const MISSING_ID_MESSAGE = "Tim tidak ditemukan.";
 

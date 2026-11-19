@@ -1,8 +1,9 @@
 import React from "react";
-import { UploadData, FileData, RegisterFormData } from "@/types/register";
+
+import { PORTFOLIO_REQUIRED_DIVISIONS } from "@/constants/registerForm";
 import { noiseBg } from "@/constants/registerStyles";
 import { previewFileData } from "@/lib/utils";
-import { PORTFOLIO_REQUIRED_DIVISIONS } from "@/constants/registerForm";
+import { FileData, RegisterFormData, UploadData } from "@/types/register";
 
 interface UploadSlotProps {
   title: string;
@@ -65,9 +66,9 @@ const UploadSlot: React.FC<UploadSlotProps> = ({
 
       // 2. Validate File Extension
       if (allowedExtensions && allowedExtensions.length > 0) {
-        const fileExt = file.name.split('.').pop()?.toLowerCase();
+        const fileExt = file.name.split(".").pop()?.toLowerCase();
         if (!fileExt || !allowedExtensions.includes(fileExt)) {
-          setLocalError(`Harap upload format: ${allowedExtensionsLabel || allowedExtensions.join(', ')}`);
+          setLocalError(`Harap upload format: ${allowedExtensionsLabel || allowedExtensions.join(", ")}`);
           if (fileInputRef.current) fileInputRef.current.value = "";
           return;
         }
@@ -80,7 +81,7 @@ const UploadSlot: React.FC<UploadSlotProps> = ({
         onChange(file.name, {
           name: file.name,
           mimeType: file.type,
-          base64: base64
+          base64: base64,
         });
       };
       reader.readAsDataURL(file);
@@ -90,22 +91,22 @@ const UploadSlot: React.FC<UploadSlotProps> = ({
   return (
     <div
       onClick={handleClick}
-      className={`p-3 sm:p-4 md:p-5 lg:p-6 flex flex-col items-center justify-center gap-1 sm:gap-1.5 md:gap-2 select-none cursor-pointer group hover:bg-[#D1EAE5]/20 transition-all duration-300 ease-out ${className}`}
+      className={`group flex cursor-pointer flex-col items-center justify-center gap-1 p-3 transition-all duration-300 ease-out select-none hover:bg-[#D1EAE5]/20 sm:gap-1.5 sm:p-4 md:gap-2 md:p-5 lg:p-6 ${className}`}
     >
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        className="absolute pointer-events-none opacity-0 w-px h-px"
+        className="pointer-events-none absolute h-px w-px opacity-0"
         accept={accept}
       />
-      <h4 className="font-crosner text-2xl sm:text-3xl md:text-4xl lg:text-[44px] font-normal text-black uppercase tracking-widest text-center leading-tight mb-1 sm:mb-2 lg:mb-3 group-hover:-translate-y-0.5 group-hover:scale-103 transition-all duration-300 ease-out">
+      <h4 className="mb-1 text-center font-crosner text-2xl leading-tight font-normal tracking-widest text-black uppercase transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:scale-103 sm:mb-2 sm:text-3xl md:text-4xl lg:mb-3 lg:text-[44px]">
         {title}
       </h4>
-      <div className="flex flex-col items-center justify-center gap-1 sm:gap-1.5 text-center">
-        <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 lg:w-12 lg:h-12 rounded-full bg-[#D1EAE5] flex items-center justify-center border border-[#864B4D] group-hover:bg-[#2B918E] group-hover:border-black group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 ease-out">
+      <div className="flex flex-col items-center justify-center gap-1 text-center sm:gap-1.5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#864B4D] bg-[#D1EAE5] transition-all duration-300 ease-out group-hover:scale-110 group-hover:rotate-12 group-hover:border-black group-hover:bg-[#2B918E] sm:h-10 sm:w-10 md:h-11 md:w-11 lg:h-12 lg:w-12">
           <svg
-            className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#2B918E] group-hover:text-white group-hover:-translate-y-0.5 transition-all duration-300 ease-out"
+            className="h-4 w-4 text-[#2B918E] transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:text-white sm:h-5 sm:w-5 lg:h-6 lg:w-6"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -121,12 +122,12 @@ const UploadSlot: React.FC<UploadSlotProps> = ({
         </div>
 
         {localError ? (
-          <span className="font-body text-[10px] sm:text-xs text-red-600 font-semibold px-2 py-0.5 max-w-[140px] sm:max-w-[180px] bg-red-50 border border-red-200 rounded leading-snug">
+          <span className="max-w-[140px] rounded border border-red-200 bg-red-50 px-2 py-0.5 font-body text-[10px] leading-snug font-semibold text-red-600 sm:max-w-[180px] sm:text-xs">
             {localError}
           </span>
         ) : value ? (
-          <div className="flex items-center gap-1 max-w-[180px] sm:max-w-[220px]">
-            <span className="font-body text-[10px] sm:text-xs text-gray-700 font-semibold bg-white border border-gray-300 rounded px-2 py-0.5 truncate flex-1 min-w-0 shadow-sm group-hover:border-gray-400 group-hover:shadow-md transition-all duration-300 ease-out">
+          <div className="flex max-w-[180px] items-center gap-1 sm:max-w-[220px]">
+            <span className="min-w-0 flex-1 truncate rounded border border-gray-300 bg-white px-2 py-0.5 font-body text-[10px] font-semibold text-gray-700 shadow-sm transition-all duration-300 ease-out group-hover:border-gray-400 group-hover:shadow-md sm:text-xs">
               {value}
             </span>
             {fileData && (
@@ -135,17 +136,27 @@ const UploadSlot: React.FC<UploadSlotProps> = ({
                 onClick={handlePreview}
                 title="Lihat berkas"
                 aria-label="Lihat berkas"
-                className="shrink-0 p-1 rounded text-gray-500 hover:text-[#2B918E] hover:bg-[#D1EAE5]/40 transition-colors duration-200"
+                className="shrink-0 rounded p-1 text-gray-500 transition-colors duration-200 hover:bg-[#D1EAE5]/40 hover:text-[#2B918E]"
               >
                 <svg
-                  className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
                 </svg>
               </button>
             )}
@@ -155,25 +166,30 @@ const UploadSlot: React.FC<UploadSlotProps> = ({
                 onClick={handleRemove}
                 title="Hapus berkas"
                 aria-label="Hapus berkas"
-                className="shrink-0 p-1 rounded text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors duration-200"
+                className="shrink-0 rounded p-1 text-gray-500 transition-colors duration-200 hover:bg-red-50 hover:text-red-600"
               >
                 <svg
-                  className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
               </button>
             )}
           </div>
         ) : (
           <div className="flex flex-col items-center">
-            <span className="font-body text-[9px] sm:text-xs text-gray-500">Drop files here or click to upload</span>
+            <span className="font-body text-[9px] text-gray-500 sm:text-xs">Drop files here or click to upload</span>
             {allowedExtensionsLabel && (
-              <span className="font-body text-[8px] sm:text-[10px] text-gray-400 mt-0.5">
+              <span className="mt-0.5 font-body text-[8px] text-gray-400 sm:text-[10px]">
                 Format: {allowedExtensionsLabel} (Max {maxSizeMB}MB)
               </span>
             )}
@@ -194,7 +210,15 @@ interface UploadStepProps {
   style?: React.CSSProperties;
 }
 
-export const UploadStep: React.FC<UploadStepProps> = ({ formData, uploadData, rawFiles, updateUploadField, removeUploadField, submitError, style }) => {
+export const UploadStep: React.FC<UploadStepProps> = ({
+  formData,
+  uploadData,
+  rawFiles,
+  updateUploadField,
+  removeUploadField,
+  submitError,
+  style,
+}) => {
   const isPortfolioRequired = React.useMemo(() => {
     if (!formData || !formData.informasiUmum) return false;
     const p1 = formData.informasiUmum.subdivisi1;
@@ -217,20 +241,20 @@ export const UploadStep: React.FC<UploadStepProps> = ({ formData, uploadData, ra
         backgroundClip: "padding-box, padding-box, border-box",
         ...style,
       }}
-      className="overflow-hidden flex flex-col shadow-[10px_10px_0px_0px_#000]/50"
+      className="flex flex-col overflow-hidden shadow-[10px_10px_0px_0px_#000]/50"
     >
       {submitError && (
-        <div className="absolute top-2 left-2 right-2 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded font-body text-xs z-50">
+        <div className="absolute top-2 right-2 left-2 z-50 rounded border border-red-400 bg-red-100 px-4 py-2 font-body text-xs text-red-700">
           <strong className="font-bold">Error: </strong>
           <span>{submitError}</span>
         </div>
       )}
       {/* Slanted Dividers */}
-      <div className="absolute top-[33.33%] -left-4 -right-4 h-[8px] bg-[#B93310] origin-center rotate-[3deg] pointer-events-none z-10" />
-      <div className="absolute top-[66.66%] -left-4 -right-4 h-[8px] bg-[#B93310] origin-center -rotate-[3deg] pointer-events-none z-10" />
+      <div className="pointer-events-none absolute top-[33.33%] -right-4 -left-4 z-10 h-[8px] origin-center rotate-[3deg] bg-[#B93310]" />
+      <div className="pointer-events-none absolute top-[66.66%] -right-4 -left-4 z-10 h-[8px] origin-center -rotate-[3deg] bg-[#B93310]" />
       {/* Vertical Divider 1 (Row 1) - Slanted right */}
       <div
-        className="absolute left-1/2 w-[8px] bg-[#B93310] origin-center pointer-events-none z-10"
+        className="pointer-events-none absolute left-1/2 z-10 w-[8px] origin-center bg-[#B93310]"
         style={{
           top: "-4px",
           height: "calc(33.33% + 8px)",
@@ -240,7 +264,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({ formData, uploadData, ra
       />
       {/* Vertical Divider 2 (Row 2) - Slanted left */}
       <div
-        className="absolute left-1/2 w-[8px] bg-[#B93310] origin-center pointer-events-none z-10"
+        className="pointer-events-none absolute left-1/2 z-10 w-[8px] origin-center bg-[#B93310]"
         style={{
           top: "calc(33.33% - 4px)",
           height: "calc(33.33% + 8px)",
@@ -250,7 +274,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({ formData, uploadData, ra
       />
 
       {/* Row 1 - CV & KTM */}
-      <div className="flex h-1/3 relative z-20">
+      <div className="relative z-20 flex h-1/3">
         <UploadSlot
           title="CV *"
           value={uploadData.cv}
@@ -276,7 +300,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({ formData, uploadData, ra
       </div>
 
       {/* Row 2 - TWIBBON & BUKTI FOLLOW & REPOST */}
-      <div className="flex h-1/3 relative z-20">
+      <div className="relative z-20 flex h-1/3">
         <UploadSlot
           title="TWIBBON *"
           value={uploadData.twibbon}
@@ -302,7 +326,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({ formData, uploadData, ra
       </div>
 
       {/* Row 3 - PORTOFOLIO */}
-      <div className="flex h-1/3 relative z-20">
+      <div className="relative z-20 flex h-1/3">
         <UploadSlot
           title={isPortfolioRequired ? "PORTOFOLIO *" : "PORTOFOLIO (Opsional)"}
           value={uploadData.portofolio}

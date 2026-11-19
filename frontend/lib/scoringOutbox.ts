@@ -57,7 +57,9 @@ export function nextSeq(): number {
 function isOutboxItem(value: unknown): value is OutboxItem {
   if (!value || typeof value !== "object") return false;
   const item = value as Partial<OutboxItem>;
-  return (item.kind === "tap" || item.kind === "lock") && typeof item.seq === "number" && typeof item.quarter === "number";
+  return (
+    (item.kind === "tap" || item.kind === "lock") && typeof item.seq === "number" && typeof item.quarter === "number"
+  );
 }
 
 /** Semua entri dengan awalan kunci tertentu. Storage diblokir → kosong. */

@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useCallback, useState } from "react";
+
+import { useAsyncData } from "@/lib/hooks/useAsyncData";
+import type { PlayoffRound } from "@/lib/matchesApi";
 import { getPlayoffs, type PlayoffMatch } from "@/lib/standingsApi";
 import { listTeams } from "@/lib/teamsApi";
-import type { PlayoffRound } from "@/lib/matchesApi";
-import { useAsyncData } from "@/lib/hooks/useAsyncData";
+
 import { PlayoffBracketBoard } from "./PlayoffBracketBoard";
 import { PlayoffEditModal } from "./PlayoffEditModal";
 
@@ -19,10 +21,7 @@ export const PlayoffAdminSection: React.FC = () => {
   } | null>(null);
 
   const fetchDashboardData = useCallback(async () => {
-    const [playoffs, teams] = await Promise.all([
-      getPlayoffs(),
-      listTeams(),
-    ]);
+    const [playoffs, teams] = await Promise.all([getPlayoffs(), listTeams()]);
     return {
       playoffs,
       teams,
@@ -31,11 +30,7 @@ export const PlayoffAdminSection: React.FC = () => {
 
   const { state, reload } = useAsyncData(fetchDashboardData);
 
-  const handleEditSlot = (
-    round: PlayoffRound,
-    position: number,
-    match: PlayoffMatch | null
-  ) => {
+  const handleEditSlot = (round: PlayoffRound, position: number, match: PlayoffMatch | null) => {
     setActiveSlot({ round, position, match });
   };
 
@@ -49,18 +44,16 @@ export const PlayoffAdminSection: React.FC = () => {
 
   return (
     <div className="flex w-full flex-col gap-8 pt-6 font-poppins">
-      <h1 className="text-[32px] font-bold tracking-tight text-[#202224]">
-        Playoff
-      </h1>
+      <h1 className="text-[32px] font-bold tracking-tight text-[#202224]">Playoff</h1>
 
       {/* Toast feedback */}
       {toastMessage && (
-        <div className="p-3.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold flex items-center justify-between shadow-sm animate-fade-in">
+        <div className="animate-fade-in flex items-center justify-between rounded-xl border border-teal-200 bg-teal-50 p-3.5 text-xs font-semibold text-teal-800 shadow-sm">
           <span>{toastMessage}</span>
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            className="text-teal-600 hover:text-teal-900 font-bold ml-4"
+            className="ml-4 font-bold text-teal-600 hover:text-teal-900"
           >
             ✕
           </button>
@@ -69,13 +62,9 @@ export const PlayoffAdminSection: React.FC = () => {
 
       {/* Error state */}
       {state.status === "error" && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center justify-between">
+        <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 p-4 text-xs font-medium text-red-700">
           <span>{state.message}</span>
-          <button
-            type="button"
-            onClick={reload}
-            className="underline font-semibold ml-4 hover:text-red-900"
-          >
+          <button type="button" onClick={reload} className="ml-4 font-semibold underline hover:text-red-900">
             Coba lagi
           </button>
         </div>
@@ -83,33 +72,27 @@ export const PlayoffAdminSection: React.FC = () => {
 
       {/* Loading state */}
       {state.status === "loading" && (
-        <div className="min-h-[400px] flex items-center justify-center">
-          <div className="size-8 border-3 border-teal-600 border-t-transparent rounded-full animate-spin" />
+        <div className="flex min-h-[400px] items-center justify-center">
+          <div className="size-8 animate-spin rounded-full border-3 border-teal-600 border-t-transparent" />
         </div>
       )}
 
       {/* Ready state */}
-      {state.status === "ready" && (
-        state.data.playoffs ? (
-          <PlayoffBracketBoard
-            playoffs={state.data.playoffs}
-            onEditSlot={handleEditSlot}
-          />
+      {state.status === "ready" &&
+        (state.data.playoffs ? (
+          <PlayoffBracketBoard playoffs={state.data.playoffs} onEditSlot={handleEditSlot} />
         ) : (
-          <div className="min-h-[400px] flex flex-col items-center justify-center rounded-2xl bg-white border border-slate-200 p-8 text-center shadow-sm">
-            <p className="text-sm font-medium text-slate-500">
-              Bracket playoff belum tersedia di backend.
-            </p>
+          <div className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <p className="text-sm font-medium text-slate-500">Bracket playoff belum tersedia di backend.</p>
             <button
               type="button"
               onClick={reload}
-              className="mt-4 px-4 py-2 rounded-xl bg-teal-600 text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-sm"
+              className="mt-4 rounded-xl bg-teal-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-teal-700"
             >
               Muat Ulang
             </button>
           </div>
-        )
-      )}
+        ))}
 
       {/* Edit Modal */}
       {activeSlot && state.status === "ready" && (

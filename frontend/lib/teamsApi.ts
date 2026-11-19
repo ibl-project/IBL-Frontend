@@ -86,8 +86,7 @@ export function validateLogoFile(file: File): string | null {
 
 export const listTeams = () => apiFetch<Team[]>("/teams", { auth: false });
 
-export const getTeam = (idOrName: string) =>
-  apiFetch<Team>(`/teams/${encodeURIComponent(idOrName)}`, { auth: false });
+export const getTeam = (idOrName: string) => apiFetch<Team>(`/teams/${encodeURIComponent(idOrName)}`, { auth: false });
 
 export const listGroups = () => apiFetch<Group[]>("/groups", { auth: false });
 
@@ -101,8 +100,7 @@ export const updateTeam = (teamId: string, input: { name?: string; group?: strin
 export const saveRoster = (teamId: string, players: RosterEntry[]) =>
   apiFetch<Team>(`/teams/${teamId}/roster`, { method: "PUT", body: { players } });
 
-export const deleteTeam = (teamId: string) =>
-  apiFetch<{ message: string }>(`/teams/${teamId}`, { method: "DELETE" });
+export const deleteTeam = (teamId: string) => apiFetch<{ message: string }>(`/teams/${teamId}`, { method: "DELETE" });
 
 export const importTeams = (teams: ImportTeamInput[], overwrite: boolean) =>
   apiFetch<{ createdTeams: number; updatedTeams: number; createdPlayers: number }>("/teams/import", {

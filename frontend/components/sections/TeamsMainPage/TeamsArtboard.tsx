@@ -2,7 +2,7 @@
 
 import React, { useLayoutEffect, useRef, useState } from "react";
 
-import { useArtboard } from "./useArtboard";
+import { CheckerBand } from "./CheckerBand";
 import {
   ARTBOARD,
   HALFTONE_ASPECT,
@@ -11,7 +11,7 @@ import {
   type ArtboardVariant,
   type TeamsPage,
 } from "./teamsMainTheme";
-import { CheckerBand } from "./CheckerBand";
+import { useArtboard } from "./useArtboard";
 
 interface TeamsArtboardProps {
   page: TeamsPage;
@@ -83,7 +83,11 @@ export function TeamsArtboard({ page, children }: TeamsArtboardProps) {
           className="relative mx-auto"
           style={{ width: width * scale, height: contentHeight * scale, visibility: metrics ? "visible" : "hidden" }}
         >
-          <div ref={contentRef} className="relative flow-root" style={{ width, transform: `scale(${scale})`, transformOrigin: "0 0" }}>
+          <div
+            ref={contentRef}
+            className="relative flow-root"
+            style={{ width, transform: `scale(${scale})`, transformOrigin: "0 0" }}
+          >
             <TeamsBackdrop page={page} variant={variant} />
             {children(variant)}
           </div>

@@ -2,9 +2,10 @@
 
 import React from "react";
 
+import { DatePicker } from "@/components/ui/DatePicker";
 import type { AsyncState } from "@/lib/hooks/useAsyncData";
 import type { MatchListItem } from "@/lib/matchesApi";
-import { DatePicker } from "@/components/ui/DatePicker";
+
 import { MatchCard } from "./MatchCard";
 
 interface ScheduleResultLandingSectionProps {
