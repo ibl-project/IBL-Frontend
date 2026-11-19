@@ -45,14 +45,15 @@ export function newActionId(): string {
 }
 
 /**
- * retry    : jaringan/server bermasalah, kirim ulang nanti
- * session  : login perlu diperbarui (halaman pindah ke login), kirim ulang nanti
- * drop     : ketukan ini sendiri ditolak (pemain bukan anggota tim, statistik sudah 0)
- * conflict : keadaan match berubah dari luar, termasuk sesi yang sempat diambil
- *            atau dilepas dari laptop lain (SCORING_SESSION_REQUIRED); berhenti
- *            sampai panitia memutuskan, karena skornya mungkin sudah diinput ulang
+ * How a failed send is handled (exported for tests):
+ * retry    : network or server problem; send again later
+ * session  : the login needs refreshing (the page moves to login); send again later
+ * drop     : this tap itself was rejected (player not on the team, stat already 0)
+ * conflict : the match changed from elsewhere, including a scoring session taken
+ *            or released from another laptop (SCORING_SESSION_REQUIRED); stop
+ *            until the committee decides, because the score may have been re-entered
  */
-function classify(error: unknown): "retry" | "session" | "drop" | "conflict" {
+export function classify(error: unknown): "retry" | "session" | "drop" | "conflict" {
   if (isConnectionError(error)) return "retry";
   const apiError = error as ApiError;
   if (apiError.status === 401) return "session";
